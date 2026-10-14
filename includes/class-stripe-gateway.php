@@ -40,7 +40,7 @@ final class Stripe_Gateway extends Payment_Gateway {
 	public function verify_webhook($request) {
 		$secret=$this->config('webhook_secret');
 		if (''===$secret) return new \WP_Error('dk2_stripe_webhook_unconfigured',__('Stripe webhook signing secret is not configured.','dropkey-v2'),array('status'=>503));
-		$raw=$request->get_body(); if (strlen($raw)>1000000) return new \\WP_Error('dk2_stripe_webhook_too_large',__('The webhook payload is too large.','dropkey-v2'),array('status'=>413)); $header=$request->get_header('stripe-signature');
+		$raw=$request->get_body(); if (strlen($raw)>1000000) return new \WP_Error('dk2_stripe_webhook_too_large',__('The webhook payload is too large.','dropkey-v2'),array('status'=>413)); $header=$request->get_header('stripe-signature');
 		$timestamp=0; $signatures=array();
 		foreach(explode(',',(string)$header) as $part) {
 			$bits=explode('=',trim($part),2);
