@@ -1,22 +1,108 @@
 PROJECT REQUIREMENTS AND RULES
+Project: DropKey Version 2
 Last updated: 2026-10-14
 
 STATUS
-Requirements for this fresh-start project have not yet been established. Do not import requirements from another repository or an earlier project version without confirmation.
+Initial product requirements were provided by the user on 2026-10-14. They define the intended product scope, but do not mean any feature is implemented. Architecture and implementation choices remain unapproved unless recorded separately as accepted decisions.
 
-REQUIREMENT RECORD FORMAT
-For each requirement, record:
-- ID:
-- Requirement:
-- Rationale:
-- Priority:
-- Acceptance criteria:
-- Status: proposed / confirmed / implemented / verified / deferred
-- Evidence or related files:
+CONFIRMED INITIAL REQUIREMENTS
+
+DK-001 — Digital product management
+Requirement: Admin can create digital products to sell and associate each product with the downloadable ZIP file for the WordPress plugin being sold.
+Acceptance criteria:
+- An authorized administrator can create and manage a digital product.
+- A product can be associated with its intended plugin ZIP package.
+- Product and file associations are managed by DropKey, not by a specific payment gateway.
+Status: confirmed; not implemented.
+
+DK-002 — Checkout and purchase records
+Requirement: DropKey provides the customer checkout/purchase flow and records the result of each purchase.
+Acceptance criteria:
+- Customers can complete a purchase through DropKey checkout.
+- Paid-product access is not granted solely because a browser returns to a success page; payment must be confirmed through a trusted gateway result.
+- A free product/plan can be obtained without charging a payment method.
+Status: confirmed; details to design.
+
+DK-003 — Payment gateways
+Requirement: MVP supports PayPal and Stripe. DropKey should allow additional payment gateways to be added later.
+Acceptance criteria:
+- PayPal and Stripe are supported in the MVP, subject to required account credentials and provider capabilities.
+- Gateway-specific code is separated behind an extensible integration boundary rather than scattered through core product, order, subscription, download, and license logic.
+Status: confirmed; integration design not yet approved.
+
+DK-004 — Protected downloads
+Requirement: After the customer completes the required purchase flow, DropKey provides a secure download link for the product ZIP that expires after 48 hours.
+Acceptance criteria:
+- Download access is checked by DropKey, not granted merely by exposing a permanent public file URL.
+- The download link has a verifiable expiration of 48 hours.
+- Expired or invalid links cannot download the file.
+- Download delivery is restricted to an eligible purchase/entitlement.
+Status: confirmed; storage and delivery implementation undecided.
+
+DK-005 — Purchase email
+Requirement: Email the customer the download link and license key after purchase.
+Acceptance criteria:
+- For an eligible paid purchase, the customer receives an email containing the download link and generated license key.
+- The message is sent only after the relevant payment is confirmed; free-plan delivery follows the defined free acquisition flow.
+- Email failures should be observable and should not silently erase the purchase or license record.
+Status: confirmed; exact retry/admin workflow to design.
+
+DK-006 — License key generation and management
+Requirement: DropKey generates a license key for an eligible purchase and provides tools to manage it.
+Acceptance criteria:
+- Keys are generated uniquely and are associated with the relevant customer, product, and purchase/plan.
+- Administrators can inspect and manage license records and statuses.
+- Licensing behavior can reflect the associated plan/subscription entitlement.
+Status: confirmed; exact statuses and administration controls to design.
+
+DK-007 — Client-plugin license integration
+Requirement: It should be straightforward to add license activation support to the WordPress plugins sold through DropKey, ideally by adding a reusable file to each client plugin.
+Acceptance criteria:
+- A documented, reusable PHP integration component can be added to a sold plugin.
+- The sold plugin can communicate with DropKey to activate, deactivate, and validate a license, once those API behaviors are specified.
+- The licensing API authenticates requests and validates product/license relationships.
+Status: confirmed; API contract and activation limits remain undecided.
+
+DK-008 — Plan and subscription types
+Requirement: DropKey supports free, monthly, and yearly offerings, as well as the purchase flow needed to sell digital products.
+Acceptance criteria:
+- Product offerings can represent free access, monthly subscriptions, and yearly subscriptions.
+- The exact support for one-time purchase plans, trial periods, proration, grace periods, and cancellation timing must be decided before implementation.
+- Subscription status and payment events determine the applicable product/license entitlement.
+Status: confirmed for free/monthly/yearly; additional billing rules are open decisions.
+
+DK-009 — Extensibility
+Requirement: DropKey exposes WordPress action hooks so future functionality can be added without rewriting core behavior.
+Acceptance criteria:
+- Important lifecycle events have documented, consistently named action hooks.
+- Hook names and payloads are documented and covered by relevant tests when implemented.
+Status: confirmed; exact hook inventory to design.
+
+NONFUNCTIONAL AND SECURITY REQUIREMENTS
+- Protect download delivery and license API operations against unauthorized use.
+- Do not store payment-card details in DropKey; use the payment providers' supported checkout/payment mechanisms.
+- Verify payment events using provider-supported trusted mechanisms and handle duplicate/retried events safely.
+- Do not store secrets, credentials, or API keys in project-memory files or source control.
+- Keep gateway-specific behavior separated from core commerce and licensing logic.
+Status: security goals confirmed at a high level; detailed threat model and implementation acceptance criteria remain to be defined.
+
+OPEN QUESTIONS — DO NOT GUESS
+- Minimum supported WordPress and PHP versions.
+- Whether products may have multiple ZIP versions/releases and how updates are delivered.
+- Whether a product supports one-time purchases in addition to free/monthly/yearly plans.
+- Whether licenses are limited by activation count, domain, site, or another rule.
+- Exact license and subscription statuses and how they affect activation after cancellation, failed renewal, refund, or chargeback.
+- Whether downloads can be reissued after the 48-hour link expires and whether there are download-count limits.
+- Whether files will be stored privately on the web host, in object storage, or elsewhere.
+- Customer accounts, guest checkout, order history, and self-service subscription cancellation requirements.
+- Tax/VAT, coupons, refunds, invoices, and trial-period scope.
+- Payment provider account readiness, webhook setup, and credentials; no credentials should be shared in chat or committed.
+- Email template, retry behavior, and sender configuration.
+- Required public REST API routes and the precise client SDK integration contract.
 
 GENERAL RULES
-- Separate confirmed requirements from suggestions and unresolved questions.
+- Actual repository files determine what is implemented.
+- Distinguish confirmed user requirements from proposals and unresolved questions.
 - Do not claim a requirement is implemented merely because it is documented.
-- Prefer explicit acceptance criteria that can be checked.
-- Record constraints, compatibility requirements, security considerations, and out-of-scope items when they are confirmed.
-- Update this file when the user confirms, changes, or removes a requirement.
+- Do not import architecture or requirements from another project or earlier version without user confirmation.
+- When requirements conflict or an essential detail is unclear, ask before making a consequential decision.
