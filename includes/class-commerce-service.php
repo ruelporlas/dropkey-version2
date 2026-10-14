@@ -147,6 +147,13 @@ final class Commerce_Service {
 			$event_row_id=(int)$wpdb->insert_id;
 		}
 		if ($existing) $event_row_id=(int)$existing->id;
+		if (!empty($event['subscription_id'])&&empty($event['period_end'])&&in_array($event['type'],array('payment_succeeded','subscription_updated'),true)) {
+			$provider=Payment_Gateway::make($gateway);
+			if (!is_wp_error($provider)&&method_exists($provider,'subscription_details')) {
+				$details=$provider->subscription_details($event['subscription_id']);
+				if (!is_wp_error($details)) foreach($details as $key=>$value) if (''!==$value&&null!==$value) $event[$key]=$value;
+			}
+		}
 		$result=true; $order=$this->find_order($gateway,$event);
 		if ('payment_succeeded'===$event['type']&&$order&&isset($event['amount'])&&null!==$event['amount']&&abs((float)$event['amount']-(float)$order->amount)>0.009) $result=new \WP_Error('dk2_payment_amount_mismatch',__('The payment amount does not match the checkout order.','dropkey-v2'));
 		if ('payment_succeeded'===$event['type']&&$order&&!empty($event['currency'])&&strtoupper($event['currency'])!==strtoupper($order->currency)) $result=new \WP_Error('dk2_payment_currency_mismatch',__('The payment currency does not match the checkout order.','dropkey-v2'));
