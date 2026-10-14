@@ -9,9 +9,12 @@ INITIAL EVIDENCE
 - Latest root contents check: GitHub Contents API returned only the project-memory/ directory.
 - Requirements documentation records product management, checkout, payment gateway scope, protected downloads, customer email, licensing, extensible hooks, multiple billing options per tier, guided admin UX, and frontend customer account management. This is documentation, not feature implementation.
 - Licensing requirement: tiers can define configurable maximum website activation counts. Example tier names and counts are not final.
-- Customer account requirement: customers need a frontend account-management area for their licenses and subscriptions. Detailed pages and self-service actions remain undecided.
+- Customer account requirement: customers need a frontend account-management area for their licenses and subscriptions.
+- User decision capture (2026-10-14): received explicit selections for all 17 MVP decision fields; recorded in requirements and architecture/decision memory. The selected policies include broader WP/PHP baseline, guest-optional checkout, exact-URL activations, editable Basic/Plus/Pro examples, admin-managed cancellation, 3-day grace, provider-state refund policy, updates in MVP, private-host ZIP storage, 5 downloads per link with reissue, deferred tax/coupons/invoices/trials, email retries, full customer account, scoped customer self-service, provider-hosted payment/billing portal approach, and milestone-based MVP.
+- Remaining detail status: open implementation-level rules are listed in 04_REQUIREMENTS_AND_RULES.txt; the selections do not settle technical architecture or every edge case.
 - Product model decision: user agreed to Product → Tier → Billing Options; tier-level activation limits are not duplicated across billing options.
 - Documentation update verification (2026-10-14): fetched updated requirements, architecture/decisions, current status, verification evidence, next steps, and change history from GitHub after writing. Confirmed the tier/billing model and customer account requirement are recorded in relevant memory files.
+- User decision capture (2026-10-14): the 17 selections were received in conversation. Memory updates for this selection set are pending write/read-back verification in this record until the final fetch confirms them.
 - Application source inspection: no application source files were present in the latest root listing.
 - Build, lint, automated tests, payment tests, API tests, customer account UX checks, and runtime checks: not run; no application implementation is available to test.
 
