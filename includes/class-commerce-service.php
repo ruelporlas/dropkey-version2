@@ -100,9 +100,10 @@ final class Commerce_Service {
 		$sub_id=sanitize_text_field($event['subscription_id']);
 		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_subscription_id=%s",$order->gateway,$sub_id));
 		$data=array('order_id'=>$order->id,'license_id'=>$license_id,'gateway'=>$order->gateway,'gateway_subscription_id'=>$sub_id,
-			'status'=>'active','current_period_end'=>!empty($event['period_end'])?$event['period_end']:null,'grace_until'=>null,'updated_at'=>$now);
+			'status'=>'active','grace_until'=>null,'updated_at'=>$now);
+		if (!empty($event['period_end'])) $data['current_period_end']=$event['period_end'];
 		if ($existing) $wpdb->update($table,$data,array('id'=>$existing->id));
-		else { $data['created_at']=$now; $wpdb->insert($table,$data); }
+		else { if (!isset($data['current_period_end'])) $data['current_period_end']=null; $data['created_at']=$now; $wpdb->insert($table,$data); }
 		$wpdb->update(Database::table('licenses'),array('status'=>'active','updated_at'=>$now),array('id'=>$license_id));
 	}
 	private function record_payment_reference($order,$event) {
@@ -138,7 +139,11 @@ final class Commerce_Service {
 		else {
 			$ok=$wpdb->insert($events,array('gateway'=>$gateway,'event_id'=>$event_id,'event_type'=>sanitize_text_field($event['event_type']),
 				'payload_hash'=>$hash,'status'=>'processing','error_message'=>'','created_at'=>current_time('mysql',true)));
-			if (!$ok) return array('duplicate'=>true,'processed'=>false);
+			if (!$ok) {
+				$duplicate=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$events} WHERE gateway=%s AND event_id=%s",$gateway,$event_id));
+				if ($duplicate) return new \WP_Error('dk2_webhook_in_progress',__('This provider event is already being processed. Retry delivery shortly.','dropkey-v2'),array('status'=>503));
+				return new \WP_Error('dk2_webhook_store_failed',__('The payment event could not be recorded.','dropkey-v2'),array('status'=>500));
+			}
 			$event_row_id=(int)$wpdb->insert_id;
 		}
 		if ($existing) $event_row_id=(int)$existing->id;
