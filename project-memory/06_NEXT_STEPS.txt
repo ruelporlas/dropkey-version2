@@ -52,3 +52,13 @@ WORKING RULES
 - Ask when scope is unclear; do not get ahead or expand scope without authorization.
 - Keep implemented source, static tests, runtime verification, and production readiness distinct.
 - Update relevant memory files after substantial changes and verify each memory write by fetching the file again.
+
+
+CUSTOMER PORTAL — IMMEDIATE VERIFICATION TASK — 2026-10-15
+1. Install the latest main-branch source on a backed-up WordPress staging site; GitHub commits do not update an installed copy automatically.
+2. Confirm schema version 7 and all 12 tables; verify the licenses table has `customer_user_id` and `key_encrypted` columns and existing records remain intact.
+3. Create a page containing `[dropkey_account]`. Test logged-out sign-in prompt and logged-in dashboard.
+4. Use two separate WordPress accounts to verify no cross-account access to licenses, activations, subscriptions, orders, or download actions, including forged record IDs in POST requests.
+5. Test activation deactivation, fresh download-token creation, key display/copy for newly issued licenses, profile edits, correct/wrong current-password handling, and mobile layout.
+6. Confirm signed-in checkout links an order only when the submitted email matches the logged-in account. Guest purchases remain unlinked until a verified claim flow is implemented.
+7. Keep WordPress auth salts stable while encrypted license-key copies are stored. Do not call the portal production-ready until WordPress runtime/security checks pass.
