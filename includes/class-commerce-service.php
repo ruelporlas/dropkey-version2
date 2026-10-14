@@ -30,7 +30,7 @@ final class Commerce_Service {
 		if ('free'!==$gateway) {
 			$instance=Payment_Gateway::make($gateway); if (is_wp_error($instance)) return $instance;
 			$settings=get_option('dk2_payment_settings',array()); $config=isset($settings[$gateway])?$settings[$gateway]:array();
-			if (empty($config['enabled'])||('stripe'===$gateway&&(empty($config['secret'])||empty($config['webhook_secret'])))||('paypal'===$gateway&&(empty($config['client_id'])||empty($config['secret'])||empty($config['webhook_id']))) return new \WP_Error('dk2_checkout_gateway_disabled',__('That payment method is not currently available.','dropkey-v2'),array('status'=>503));
+			if (empty($config['enabled'])||('stripe'===$gateway&&(empty($config['secret'])||empty($config['webhook_secret'])))||('paypal'===$gateway&&(empty($config['client_id'])||empty($config['secret'])||empty($config['webhook_id'])))) return new \WP_Error('dk2_checkout_gateway_disabled',__('That payment method is not currently available.','dropkey-v2'),array('status'=>503));
 		}
 		$public_id=wp_generate_uuid4(); $now=current_time('mysql',true);
 		$ok=$wpdb->insert(Database::table('orders'),array(
