@@ -3,39 +3,45 @@ Project: DropKey Version 2
 Last updated: 2026-10-14
 
 PROJECT PURPOSE
-DropKey Version 2 is intended to be a WordPress plugin the user can use to sell their own WordPress plugins and other digital products online. It should manage products, checkout/payment, secure ZIP delivery, license keys, subscriptions, customer emails, and extensibility.
+WordPress plugin intended to sell the user's own WordPress plugins and other digital products, including checkout, protected ZIP delivery, license keys, subscriptions, customer emails, and extensibility.
 
 REPOSITORY BASELINE
 - Repository: ruelporlas/dropkey-version2
 - Default branch: main
-- Latest root contents inspection: only the project-memory/ directory was returned by GitHub.
-- No application source files have been observed in the repository.
+- Latest root contents inspection returned only project-memory/.
+- No application source files have been observed.
 - No implementation, build, lint, automated test, or runtime check has been performed.
 
 CURRENT PHASE
 Initial requirements capture / pre-architecture planning.
 
 COMPLETED
-- Initialized the project-memory documentation set and AI project protocol.
-- Received the user's initial product scope and recorded it in 04_REQUIREMENTS_AND_RULES.txt.
-- Inspected the repository root through GitHub; only project-memory/ was present.
+- Initialized project-memory documentation and AI project protocol.
+- Recorded initial product scope.
+- Confirmed a product may offer multiple plans: free, one-time purchase, monthly, and yearly.
+- Confirmed each product plan/tier must have its own configurable maximum website activation count.
+- Recorded guided admin UX expectations for product and plan setup.
+- Inspected repository root; only project-memory/ was present.
 
 CONFIRMED PRODUCT SCOPE
-- Create digital products and associate downloadable WordPress plugin ZIP files.
+- Product management and association with plugin ZIP files.
 - DropKey-managed checkout and purchase records.
-- PayPal and Stripe support for MVP, with future gateway extensibility.
+- PayPal and Stripe for MVP, with future gateway extensibility.
 - Protected download links expiring after 48 hours.
-- Customer email containing the download link and license key.
+- Customer email with download link and license key.
 - License key generation and administration.
-- A simple reusable PHP file/component to integrate license activation in sold plugins.
-- Free, one-time purchase, monthly, and yearly plans; one product may support multiple plans.
+- Reusable PHP component for licensing in sold plugins.
+- Multiple plan types per product: free, one-time, monthly, yearly.
+- Per-plan/tier activation limits, configurable separately for each product.
 - WordPress action hooks for future extension.
+- Clear admin UI with contextual help, validation, and next-step guidance.
 
 NOT IMPLEMENTED / NOT VERIFIED
-All product features above are requirements only. No application code has been observed or verified.
-No architecture, schema, API contract, payment implementation, or deployment setup has been approved.
+All features above are requirements only. No application source code has been observed or verified. No architecture, schema, API contract, payment implementation, or deployment setup has been approved.
+Actual activation counts and the relationship between tiers and billing options remain undecided.
 
 OPEN ITEMS
-- Resolve high-impact billing, licensing, download storage, compatibility, and customer-account decisions.
+- Decide whether each tier has multiple billing options or each plan combines one tier and one billing option.
+- Decide actual activation counts and website identity/deactivation rules.
+- Resolve billing, subscription entitlement, download storage, compatibility, and customer-account decisions.
 - Establish minimum WordPress/PHP versions and the first implementation milestone.
-- Inspect repository again before implementation and record accepted architecture decisions.
