@@ -2,7 +2,7 @@ ARCHITECTURE AND TECHNICAL DECISIONS
 Last updated: 2026-10-14
 
 STATUS
-The user-approved product/domain decisions are being implemented in a WordPress-native PHP plugin. The current code architecture uses dbDelta() tables and repositories, an admin controller, separate private-storage/license/download services, versioned REST routes, and a portable PHP client. Static syntax checks passed; WordPress runtime behavior remains unverified.
+The user-approved product/domain decisions are being implemented in a WordPress-native PHP plugin. The current architecture uses dbDelta() tables and repositories, an admin controller, private-storage/license/download services, a shared payment-gateway boundary with Stripe and PayPal adapters, checkout/order/subscription services, encrypted email queue, public storefront shortcode, versioned REST routes, and a portable PHP client. PHP 7.4/8.0/8.3 syntax checks and network-free webhook/client contract tests pass; WordPress runtime and provider sandbox behavior remain unverified.
 
 DECISION LOG
 
@@ -58,6 +58,39 @@ Consequences and trade-offs:
 - Status transitions, notices, and any admin override/exception flow still need specification.
 Status: accepted.
 Evidence or related files: User instruction on 2026-10-14; project-memory/04_REQUIREMENTS_AND_RULES.txt, DKD-006.
+
+
+Date: 2026-10-14
+Decision: Implement Milestone 4 commerce using hosted payment-provider flows and a provider-independent order/entitlement service.
+Context / problem: The MVP needs checkout and paid fulfillment without storing payment-card details, while keeping gateway-specific API details out of core order/licensing logic.
+Implementation choices:
+- Public catalog and checkout are exposed through the `[dropkey_store]` shortcode and a public checkout handler/REST endpoint.
+- Stripe uses hosted Checkout sessions; recurring billing options use subscription Checkout mode and inline price data. Stripe webhook signatures and timestamps are verified locally.
+- PayPal one-time checkout uses order approval plus server-side capture and amount/currency comparison. PayPal recurring options reference a plan ID created in PayPal; webhook signatures are verified using PayPal's verification API.
+- Core orders, subscription records, payment-event idempotency, individual provider payment references, and encrypted email queue entries are separate tables.
+- A successful provider event must match an order and its amount/currency before paid fulfillment. Refunds suspend licenses; dispute events mark orders disputed and suspend licenses.
+- License issuance, protected download token creation, and encrypted fulfillment-email queueing are part of one database transaction.
+- Email queue content uses authenticated AES-256-GCM encryption, WP-Cron retries, and administrator retry controls.
+- Admin-managed cancellation is scheduled for the end of the paid period; Stripe cancellation is scheduled remotely, while PayPal cancellation is sent when the paid-through date arrives.
+- Public checkout attempts are rate-limited per client IP and email. Authenticated provider API requests disable redirects and verify TLS.
+Consequences / limits: Provider credentials remain in WordPress options, never source control. PayPal recurring plans must be created manually. WordPress runtime, provider sandbox events, mail delivery, and production concurrency/security behavior still require end-to-end testing.
+Status: implementation committed; static CI and network-free contract tests pass; runtime behavior not yet verified.
+Evidence: https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895 and project README.
+
+Date: 2026-10-14
+Decision: Improve the admin UI using scoped CSS and dashboard navigation without adding a frontend framework or changing the product model.
+Context / problem: The first admin screens were functional but visually inconsistent and difficult to scan.
+Implementation choices: Add scoped responsive admin styles, dashboard counts and shortcuts, payment settings, order/subscription views, and email retry actions; add a separately styled storefront shortcode.
+Consequences / limits: Visual design is source-implemented but has not been reviewed in a live WordPress browser across desktop/mobile layouts.
+Status: implementation committed; visual runtime review pending.
+Evidence: assets/css/admin.css, assets/css/storefront.css, includes/class-admin.php, includes/class-storefront.php.
+
+Date: 2026-10-14
+Decision: Add network-free contract tests to Milestone 5 for webhook/client boundaries.
+Implementation choices: A PHP CLI test script stubs WordPress HTTP helpers and exercises Stripe signature/timestamp/payload checks, PayPal provider-verification success/failure handling, and the reusable PHP client's HTTPS, request, TLS, API-error, and transport-error behavior. CI runs the tests across PHP 7.4, 8.0, and 8.3.
+Consequences / limits: These tests are not WordPress integration tests and do not make live network calls; database transactions, REST registration, actual provider sandbox checkout, and mail delivery remain unverified.
+Status: tests pass in GitHub Actions.
+Evidence: tests/payment-webhook-contract.php; https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895.
 
 DECISION LOG FORMAT
 For every meaningful decision, record:
