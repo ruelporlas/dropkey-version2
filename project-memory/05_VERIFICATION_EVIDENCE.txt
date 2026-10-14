@@ -3,14 +3,15 @@ Project: DropKey Version 2
 Last updated: 2026-10-14
 
 INITIAL EVIDENCE
-- Repository lookup: found ruelporlas/dropkey-version2 through the connected GitHub integration.
-- Repository metadata: default branch main; repository visibility public; connected integration reported admin, push, and pull permissions.
+- Repository lookup: ruelporlas/dropkey-version2 is accessible through the connected GitHub integration.
+- Repository metadata: default branch main; repository visibility public.
 - Initial contents check: GitHub reported the repository empty before project-memory/ was created.
-- Current root contents check on 2026-10-14: GitHub Contents API returned only the project-memory/ directory.
-- Requirements documentation update: recorded the initial product requirements, multiple plans per product, one-time purchase option, and guided admin UI/UX expectations in project-memory files. This confirms documentation was written, not that any feature exists.
+- Latest root contents check: GitHub Contents API returned only the project-memory/ directory.
+- Requirements documentation records product management, checkout, payment gateway scope, protected downloads, customer email, licensing, extensible hooks, multiple plan types, and guided admin UX. This is documentation, not feature implementation.
+- New licensing requirement: user specified that tiers such as Basic, Plus, and Pro should define how many websites a license can activate. The requirements file records this as confirmed; example tier names and activation counts are not final.
 - Application source inspection: no application source files were present in the latest root listing.
 - Build, lint, automated tests, payment tests, API tests, admin UX checks, and runtime checks: not run; no application implementation is available to test.
-- Follow-up memory verification: fetched the updated requirements, current status, and change history from GitHub and confirmed they contain the one-time purchase decision. Next-steps/evidence files are being aligned to the same decision.
+- Documentation write verification: fetch the current requirements, status, next-steps, evidence, and history files after updates and confirm the latest requirement appears. This is documentation verification only.
 
 EVIDENCE RECORD FORMAT
 - Date:
