@@ -34,6 +34,7 @@ abstract class Abstract_Repository {
 		if ( ! $id || ! $this->get( $id ) ) {
 			return new \WP_Error( 'dk2_record_not_found', __( 'The requested record was not found.', 'dropkey-v2' ) );
 		}
+		$data['id'] = $id;
 		$normalized = $this->normalize( $data, false );
 		if ( is_wp_error( $normalized ) ) {
 			return $normalized;

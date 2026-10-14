@@ -25,6 +25,9 @@ final class Product_Repository extends Abstract_Repository {
 				$slug = sanitize_title( $name );
 			}
 		}
+		if ( $creating && '' === $slug ) {
+			return new \WP_Error( 'dk2_product_slug_required', __( 'A valid product name or slug is required.', 'dropkey-v2' ) );
+		}
 		if ( '' !== $slug ) {
 			$allowed['slug'] = $slug;
 		}

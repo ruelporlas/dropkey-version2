@@ -38,12 +38,12 @@ final class Tier_Repository extends Abstract_Repository {
 			if ( '' === $name ) {
 				return new \WP_Error( 'dk2_tier_name_required', __( 'A tier name is required.', 'dropkey-v2' ) );
 			}
-			if ( ! isset( $data['activation_limit'] ) || ! is_numeric( $data['activation_limit'] ) || (int) $data['activation_limit'] < 1 || (int) $data['activation_limit'] > 65535 ) {
+			if ( ! isset( $data['activation_limit'] ) || ! is_numeric( $data['activation_limit'] ) || (float) $data['activation_limit'] !== (float) (int) $data['activation_limit'] || (int) $data['activation_limit'] < 1 || (int) $data['activation_limit'] > 65535 ) {
 				return new \WP_Error( 'dk2_invalid_activation_limit', __( 'The activation limit must be a whole number from 1 to 65535.', 'dropkey-v2' ) );
 			}
 			$allowed['activation_limit'] = (int) $data['activation_limit'];
 		} elseif ( isset( $data['activation_limit'] ) ) {
-			if ( ! is_numeric( $data['activation_limit'] ) || (int) $data['activation_limit'] < 1 || (int) $data['activation_limit'] > 65535 ) {
+			if ( ! is_numeric( $data['activation_limit'] ) || (float) $data['activation_limit'] !== (float) (int) $data['activation_limit'] || (int) $data['activation_limit'] < 1 || (int) $data['activation_limit'] > 65535 ) {
 				return new \WP_Error( 'dk2_invalid_activation_limit', __( 'The activation limit must be a whole number from 1 to 65535.', 'dropkey-v2' ) );
 			}
 			$allowed['activation_limit'] = (int) $data['activation_limit'];
@@ -54,6 +54,9 @@ final class Tier_Repository extends Abstract_Repository {
 			if ( '' === $slug ) {
 				$slug = sanitize_title( $name );
 			}
+		}
+		if ( $creating && '' === $slug ) {
+			return new \WP_Error( 'dk2_tier_slug_required', __( 'A valid tier name or slug is required.', 'dropkey-v2' ) );
 		}
 		if ( '' !== $slug ) {
 			$allowed['slug'] = substr( $slug, 0, 150 );

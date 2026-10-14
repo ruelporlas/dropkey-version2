@@ -25,7 +25,11 @@ final class Billing_Option_Repository extends Abstract_Repository {
 		global $wpdb;
 		$allowed = array();
 		$types   = array( 'free', 'one_time', 'monthly', 'yearly' );
+		$current = null;
 
+		if ( ! $creating && isset( $data['id'] ) ) {
+			$current = $this->get( $data['id'] );
+		}
 		if ( $creating ) {
 			$tier_id = isset( $data['tier_id'] ) ? absint( $data['tier_id'] ) : 0;
 			$tiers   = Database::table( 'tiers' );
@@ -45,17 +49,21 @@ final class Billing_Option_Repository extends Abstract_Repository {
 			}
 			$allowed['billing_type'] = $data['billing_type'];
 		}
-		$billing_type = isset( $allowed['billing_type'] ) ? $allowed['billing_type'] : '';
+
+		$billing_type = isset( $allowed['billing_type'] ) ? $allowed['billing_type'] : ( $current ? $current->billing_type : '' );
+		$type_changed = $current && isset( $data['billing_type'] ) && $data['billing_type'] !== $current->billing_type;
+		$must_set_paid_fields = $creating || ( $type_changed && 'free' === $current->billing_type && 'free' !== $billing_type );
+
 		if ( 'free' === $billing_type ) {
 			$allowed['price']    = '0.00';
 			$allowed['currency'] = null;
-		} elseif ( isset( $data['price'] ) || $creating ) {
+		} elseif ( isset( $data['price'] ) || $must_set_paid_fields ) {
 			if ( ! isset( $data['price'] ) || ! is_numeric( $data['price'] ) || (float) $data['price'] < 0 ) {
 				return new \WP_Error( 'dk2_invalid_price', __( 'Enter a valid non-negative price.', 'dropkey-v2' ) );
 			}
 			$allowed['price'] = number_format( (float) $data['price'], 2, '.', '' );
 		}
-		if ( 'free' !== $billing_type && ( isset( $data['currency'] ) || $creating ) ) {
+		if ( 'free' !== $billing_type && ( isset( $data['currency'] ) || $must_set_paid_fields ) ) {
 			$currency = isset( $data['currency'] ) ? strtoupper( sanitize_text_field( $data['currency'] ) ) : '';
 			if ( ! preg_match( '/^[A-Z]{3}$/', $currency ) ) {
 				return new \WP_Error( 'dk2_invalid_currency', __( 'Enter a three-letter currency code for paid billing options.', 'dropkey-v2' ) );
