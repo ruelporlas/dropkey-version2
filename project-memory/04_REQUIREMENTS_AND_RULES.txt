@@ -14,7 +14,7 @@ Acceptance criteria:
 - An authorized administrator can create and manage a digital product.
 - A product can be associated with its intended plugin ZIP package.
 - Product and file associations are managed by DropKey, not by a specific payment gateway.
-Status: confirmed; not implemented.
+Status: partially implemented in Milestones 2–3 (product administration and versioned ZIP release management); checkout/purchase association remains unimplemented.
 
 DK-002 — Checkout and purchase records
 Requirement: DropKey provides the customer checkout/purchase flow and records the result of each purchase.
@@ -38,7 +38,7 @@ Acceptance criteria:
 - The download link has a verifiable expiration of 48 hours.
 - Expired or invalid links cannot download the file.
 - Download delivery is restricted to an eligible purchase/entitlement.
-Status: confirmed; storage and delivery implementation undecided.
+Status: partially implemented in Milestone 3 (private package storage, hashed 48-hour tokens, five-download per-link cap, and integrity checks); purchase entitlement integration and runtime verification remain outstanding.
 
 DK-005 — Purchase email
 Requirement: Email the customer the download link and license key after purchase.
@@ -54,7 +54,7 @@ Acceptance criteria:
 - Keys are generated uniquely and are associated with the relevant customer, product, and purchase/plan.
 - Administrators can inspect and manage license records and statuses.
 - Licensing behavior can reflect the associated plan/subscription entitlement.
-Status: confirmed; exact statuses and administration controls to design.
+Status: partially implemented in Milestone 3 (manual license issuance, hashed keys, status controls, and activation service); purchase linkage and runtime verification remain outstanding.
 
 DK-007 — Client-plugin license integration
 Requirement: It should be straightforward to add license activation support to the WordPress plugins sold through DropKey, ideally by adding a reusable file to each client plugin.
@@ -62,7 +62,7 @@ Acceptance criteria:
 - A documented, reusable PHP integration component can be added to a sold plugin.
 - The sold plugin can communicate with DropKey to activate, deactivate, and validate a license, once those API behaviors are specified.
 - The licensing API authenticates requests and validates product/license relationships.
-Status: confirmed. The chosen planning approach is to design a versioned REST API and reusable PHP client together, with integration tests. Route details, authentication design, and client contract remain to be specified. Configurable per-tier activation limits are confirmed; actual counts and website identity rules remain open.
+Status: partially implemented in Milestone 3: versioned REST routes and reusable PHP client exist. Integration tests, rate limiting, and production security review remain outstanding. Configurable per-tier activation limits are implemented in source; exact URL canonicalization still needs runtime validation.
 
 DK-008 — Plan and subscription types
 Requirement: DropKey supports free, monthly, and yearly offerings, as well as one-time purchases.
@@ -152,3 +152,13 @@ GENERAL RULES
 - Do not claim a requirement is implemented merely because it is documented.
 - Do not import architecture or requirements from another project or earlier version without user confirmation.
 - When requirements conflict or an essential detail is unclear, ask before making a consequential decision.
+
+IMPLEMENTATION STATUS SUPPLEMENT — 2026-10-14
+This supplement updates implementation status only; it does not change the confirmed product requirements or imply runtime acceptance.
+- DK-001: product admin create/edit/status and versioned ZIP release upload exist in source.
+- DK-004: hashed expiring download tokens and protected streaming exist in source; checkout/purchase eligibility linkage is not implemented because checkout is outside these milestones.
+- DK-006: administrators can manually issue licenses, change status, view active website activations, and deactivate activations. Purchase/subscription automation is not implemented.
+- DK-007: initial activate/deactivate/validate/update REST endpoints and a portable PHP client exist in source. Integration tests and rate limiting remain outstanding.
+- DK-008: product-tier-billing option configuration exists; no payment checkout or subscription engine exists.
+- DK-010: per-tier activation limit is exposed in admin and enforced by the activation service in source.
+- No payment is verified by this code. Manual license issuance is an administrator-granted license only, not a completed purchase.
