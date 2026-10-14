@@ -1,3 +1,10 @@
+2026-10-15 — Implemented initial customer-facing account portal
+- What changed: Added `[dropkey_account]` and responsive account styles for account-linked licenses, activation sites/deactivation, subscription status, purchase/download history, fresh protected download links, profile editing, and password changes. Added schema version 7 fields for license customer_user_id and AES-256-GCM encrypted key display copies while retaining SHA-256 validation hashes. Linked matching-email signed-in checkout orders to the WordPress user. Updated README setup notes.
+- Why: The user explicitly authorized customer-facing account pages for licenses and subscriptions.
+- Security/compatibility boundaries: Account ownership is based on WordPress user IDs, not email-only lookup. Guest-purchase linking remains unimplemented. Existing keys created before encrypted storage cannot be recovered from hashes. Stable WordPress auth salts are required to decrypt new stored copies. Subscription cancellation remains administrator-managed; payment-method portal actions are not implemented.
+- Verification: GitHub Actions https://github.com/ruelporlas/dropkey-version2/actions/runs/38655993037 passed PHP syntax checks and existing network-free contract tests on PHP 7.4, 8.0, and 8.3. WordPress runtime, ownership/action tests, schema migration, and visual review remain NOT RUN.
+- Source commit: https://github.com/ruelporlas/dropkey-version2/commit/65af56a43bb0a82ff9791a44db0426a2043a4f24.
+
 2026-10-14 — Reconciled confirmed MVP policies in requirements memory
 - What changed: Removed stale open-question entries that contradicted already accepted choices and clarified which implementation details remain unresolved.
 - Why: Keep the official requirements file consistent with the user's confirmed decisions and the Milestone 1 status.
