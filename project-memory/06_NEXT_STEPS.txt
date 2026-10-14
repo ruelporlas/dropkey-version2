@@ -1,15 +1,29 @@
 NEXT STEPS
+Project: DropKey Version 2
 Last updated: 2026-10-14
 
-IMMEDIATE
-1. Ask the user to establish or confirm the project's purpose and desired first milestone.
-2. Capture confirmed scope, requirements, constraints, and acceptance criteria in 04_REQUIREMENTS_AND_RULES.txt.
-3. Inspect the actual repository contents before proposing or implementing an architecture.
-4. Record only accepted technical decisions in 03_ARCHITECTURE_AND_DECISIONS.txt.
-5. Update this file when priorities change or an item is completed.
+CURRENT TASK
+Turn the user's initial product description into a clear, testable MVP specification and then agree on architecture before implementation.
 
-RULES
-- Keep the list short, ordered, and actionable.
-- Do not begin unrelated work or silently expand the current task.
-- Mark items complete only when there is evidence that the action was completed.
-- If a necessary decision is unclear and has not been delegated, ask the user.
+COMPLETED IN THIS STEP
+- Captured the initial user-confirmed scope in 04_REQUIREMENTS_AND_RULES.txt.
+- Inspected the repository root; only project-memory/ was present.
+
+IMMEDIATE NEXT ACTION
+Resolve the highest-impact open decisions before designing data structures and payment/license flows. Start with:
+1. Minimum supported WordPress and PHP versions.
+2. Product pricing model: free, one-time purchase, monthly, yearly, and whether a product may offer multiple plans.
+3. License activation rules (for example, activation limit and domain/site identity).
+4. Subscription cancellation, failed-renewal, refund, and license-entitlement behavior.
+5. Whether customers must create accounts or may use guest checkout.
+
+AFTER REQUIREMENTS ARE CLEAR
+- Propose an architecture for approval, including gateway adapters, payment/webhook processing, product/plan/order/subscription/license relationships, protected download delivery, and the client-plugin license SDK/API.
+- Record accepted decisions in 03_ARCHITECTURE_AND_DECISIONS.txt.
+- Inspect the actual repository before creating implementation files.
+- Implement one agreed milestone at a time and update verification evidence.
+
+ACCEPTANCE CRITERIA FOR THE CURRENT PLANNING TASK
+- Confirmed requirements and unresolved decisions are clearly separated.
+- No implementation is claimed or performed without authorization.
+- Next action is clear and actionable.
