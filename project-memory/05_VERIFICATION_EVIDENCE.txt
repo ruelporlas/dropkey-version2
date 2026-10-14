@@ -14,7 +14,8 @@ INITIAL EVIDENCE
 - Remaining detail status: open implementation-level rules are listed in 04_REQUIREMENTS_AND_RULES.txt; the selections do not settle technical architecture or every edge case.
 - Product model decision: user agreed to Product → Tier → Billing Options; tier-level activation limits are not duplicated across billing options.
 - Documentation update verification (2026-10-14): fetched updated requirements, architecture/decisions, current status, verification evidence, next steps, and change history from GitHub after writing. Confirmed the tier/billing model and customer account requirement are recorded in relevant memory files.
-- User decision capture (2026-10-14): the 17 selections were received in conversation. Memory updates for this selection set are pending write/read-back verification in this record until the final fetch confirms them.
+- User decision capture (2026-10-14): the 17 selections were received in conversation and recorded in requirements, architecture/decisions, current status, next steps, and history.
+- Read-back verification (2026-10-14): fetched all six updated memory files from GitHub after writes. The user decisions, remaining-open-details section, current planning status, and next steps were present in the fetched files. This verifies the documentation writes only; it does not verify any application behavior.
 - Application source inspection: no application source files were present in the latest root listing.
 - Build, lint, automated tests, payment tests, API tests, customer account UX checks, and runtime checks: not run; no application implementation is available to test.
 
