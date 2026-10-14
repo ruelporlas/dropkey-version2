@@ -59,3 +59,14 @@ Milestones 2–3 verification record — 2026-10-14
 - Payment/webhook, purchase email, subscriptions, customer account area, rate limiting, and complete WordPress plugin updater are not implemented in these milestones.
 - Production warning: before uploading real packages, configure a writable path outside DOCUMENT_ROOT and confirm the web server cannot serve it directly. The plugin adds .htaccess/index.php defense-in-depth only.
 - Static syntax success is not a security review or WordPress integration pass.
+
+Milestones 4–5 verification record — 2026-10-14
+- Source implementation read-back: storefront shortcode and CSS, admin dashboard/payment settings/orders/subscription UI, Stripe and PayPal adapters, checkout/order/subscription services, payment history, encrypted email queue, REST checkout/capture/webhook routes, schema version 6, and README were fetched from the main branch.
+- Plugin version: 0.3.0. Database schema version: 6, with tables for products, tiers, billing options, releases, licenses, activations, download tokens, orders, subscriptions, payment events, email queue, and payments.
+- Latest GitHub Actions run: https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895 (commit 57c7cb97788367f2169b73e33424ca3753ab840a). PHP syntax jobs for PHP 7.4, 8.0, and 8.3 passed.
+- The network-free contract test script passed 23 assertions: Stripe signature/timestamp/payload checks, order reference and amount normalization including zero-decimal currency factor, reusable client HTTPS/TLS/request/error behavior, and PayPal webhook verification success/failure handling and payment reference normalization.
+- These contract tests use stubs and do not make live Stripe/PayPal network requests. They do not prove provider credentials, webhook configuration, checkout behavior, database transaction behavior, or real mail delivery.
+- WordPress runtime/integration testing: NOT RUN. The plugin has not been activated with schema version 6 in a real WordPress test site during this work session.
+- Stripe/PayPal sandbox checkout and webhook delivery: NOT RUN. PayPal subscription plan configuration, subscription renewal/failure/cancellation, refunds/disputes, and actual customer email delivery remain unverified.
+- Admin/storefront visual review in a running WordPress browser: NOT RUN. The interface styling and shortcode are implemented in source but have not been visually confirmed on the user's site.
+- Overall status: static syntax and network-free contract checks PASS; WordPress runtime, provider sandbox, and visual integration remain NOT RUN.
