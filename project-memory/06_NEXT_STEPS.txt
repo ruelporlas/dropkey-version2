@@ -17,8 +17,8 @@ COMPLETED IN THIS STEP
 IMMEDIATE NEXT ACTION
 Continue planning only; do not implement code until the user requests it.
 1. Resolve exact-URL canonicalization and activation-transfer rules.
-2. Confirm subscription cancellation timing and define license/subscription state transitions for the selected 3-day grace period, refunds, and chargebacks.
-3. Define the versioned ZIP/update API and client SDK requirements for updates-now MVP scope.
+2. Define cancellation status transitions/notices and any admin override for the accepted end-of-paid-period policy; define license/subscription state transitions for the selected 3-day grace period, refunds, and chargebacks.
+3. Specify the versioned REST API and reusable PHP client together, including authentication, routes, request/response contracts, update flows, and integration-test coverage.
 4. Define guest purchase verification and account-linking flow.
 5. Confirm provider billing-portal fallbacks, webhooks/sandbox readiness, and email retry/sender behavior.
 6. Agree on the technical architecture, data model, API contracts, and acceptance criteria after the above policy edges are clear.
@@ -30,7 +30,7 @@ CUSTOMER ACCOUNT UX REQUIREMENT
 Plan a frontend account area, separate from WordPress admin, where an authenticated customer can view their own licenses and subscriptions. Enforce ownership checks on every customer-facing view/action. Define cancellation, activation management, and transfer behavior before enabling those actions.
 
 AFTER REQUIREMENTS ARE CLEAR
-- Propose an architecture for approval, including gateway adapters, payment/webhook processing, product/tier/billing/order/subscription/license relationships, protected download delivery, frontend customer account area, and the client-plugin license SDK/API.
+- Propose an architecture for approval, including gateway adapters, payment/webhook processing, product/tier/billing/order/subscription/license relationships, protected download delivery, frontend customer account area, and the client-plugin license SDK/API. Design the versioned REST API and reusable PHP client together, and include integration tests in the acceptance plan.
 - Record accepted decisions in 03_ARCHITECTURE_AND_DECISIONS.txt.
 - Inspect the actual repository before creating implementation files.
 - Implement one agreed milestone at a time and update verification evidence.
