@@ -90,6 +90,7 @@ final class PayPal_Gateway extends Payment_Gateway {
 		if (in_array($event_type,array('PAYMENT.CAPTURE.COMPLETED','BILLING.SUBSCRIPTION.PAYMENT.COMPLETED'),true)) $type='payment_succeeded';
 		elseif (in_array($event_type,array('BILLING.SUBSCRIPTION.PAYMENT.FAILED','PAYMENT.CAPTURE.DENIED'),true)) $type='payment_failed';
 		elseif (in_array($event_type,array('BILLING.SUBSCRIPTION.CANCELLED','BILLING.SUBSCRIPTION.EXPIRED'),true)) $type='subscription_cancelled';
+		elseif ('BILLING.SUBSCRIPTION.UPDATED'===$event_type) $type='subscription_updated';
 		elseif ('BILLING.SUBSCRIPTION.SUSPENDED'===$event_type) $type='payment_failed';
 		elseif ('PAYMENT.CAPTURE.REFUNDED'===$event_type) $type='refunded';
 		elseif ('CUSTOMER.DISPUTE.CREATED'===$event_type) $type='chargeback';
