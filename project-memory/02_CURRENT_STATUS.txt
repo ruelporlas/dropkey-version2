@@ -13,7 +13,7 @@ REPOSITORY BASELINE
 - No implementation, build, lint, automated test, or runtime check has been performed.
 
 CURRENT PHASE
-Initial requirements capture / pre-architecture planning.
+MVP requirements and policy capture / pre-architecture planning. User-selected product policies are recorded; technical architecture and implementation remain pending.
 
 COMPLETED
 - Initialized project-memory documentation and AI project protocol.
@@ -38,6 +38,16 @@ CONFIRMED PRODUCT SCOPE
 - WordPress action hooks for future extension.
 - Clear admin UI with contextual help, validation, and next-step guidance.
 
+USER-CONFIRMED MVP POLICIES RECORDED
+- WordPress 6.4+ / PHP 7.4+ baseline; guest and account checkout; exact-URL activation identity.
+- Editable example tiers Basic (1), Plus (3), Pro (10); customer and admin activation deactivation; admin-managed subscription cancellation; 3-day failed-payment grace period.
+- Provider-state-based refund/chargeback baseline with separate chargeback policy; versioned ZIP releases and update API in MVP; private ZIP storage on host.
+- Reissuable 48-hour download links with 5 downloads per link; taxes/coupons/invoices/trials deferred; email retry and admin resend.
+- Full customer account pages and specified customer self-service actions; hosted provider payment flows, provider references/status only, no card storage.
+- Milestone-based secure MVP approach.
+
 NOT IMPLEMENTED / NOT VERIFIED
-All features above are requirements only. No application source code has been observed or verified. No implementation, architecture, schema, API contract, payment integration, customer account UI, or deployment setup has been approved or tested.
-Actual activation counts, activation identity rules, and customer self-service actions remain undecided.
+All features and policies above are documented decisions/requirements only. No application source code has been observed or verified. No implementation, architecture, schema, API contract, payment integration, customer account UI, update mechanism, or deployment setup has been approved or tested.
+
+IMPORTANT REMAINING OPEN DETAILS
+Exact URL canonicalization; activation transfer rules; cancellation timing; full license/subscription state transitions; provider refund/dispute event handling; update/version retention; private storage/delivery implementation; download reissue abuse controls; guest identity/account-linking flow; provider readiness/webhooks; email retry schedule/configuration; API routes and SDK contract; account details/receipts; final technical architecture and acceptance tests.
