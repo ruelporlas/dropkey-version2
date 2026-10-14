@@ -3,7 +3,7 @@ Project: DropKey Version 2
 Last updated: 2026-10-14
 
 CURRENT TASK
-Turn the user's initial product description into a clear, testable MVP specification and then agree on architecture before implementation.
+Turn the user's initial product description and 17 selected MVP policies into a clear, testable specification, resolve the remaining consequential edge cases, and then agree on architecture before implementation.
 
 COMPLETED IN THIS STEP
 - Captured the initial user-confirmed scope in 04_REQUIREMENTS_AND_RULES.txt.
@@ -12,15 +12,16 @@ COMPLETED IN THIS STEP
 - Recorded that each product tier can define its own maximum website activation count.
 - Added the confirmed requirement for a frontend customer account area to view/manage licenses and subscriptions.
 - Inspected the repository root; only project-memory/ was present.
+- Recorded all 17 user-selected MVP policy decisions and separated unresolved implementation-level details.
 
 IMMEDIATE NEXT ACTION
-Continue clarifying the smallest useful MVP before architecture:
-1. Decide actual activation counts or keep them configurable with example values during early development.
-2. Decide how an activation identifies a website and how activation slots can be deactivated or transferred.
-3. Define which license and subscription details customers can see in their frontend account.
-4. Decide which self-service actions customers can perform (for example, cancel a subscription or deactivate a website), and what requires admin support.
-5. Resolve minimum supported WordPress/PHP versions and subscription cancellation, failed-renewal, refund, and entitlement behavior.
-6. Decide whether guest checkout is allowed or a customer account is required before purchase.
+Continue planning only; do not implement code until the user requests it.
+1. Resolve exact-URL canonicalization and activation-transfer rules.
+2. Confirm subscription cancellation timing and define license/subscription state transitions for the selected 3-day grace period, refunds, and chargebacks.
+3. Define the versioned ZIP/update API and client SDK requirements for updates-now MVP scope.
+4. Define guest purchase verification and account-linking flow.
+5. Confirm provider billing-portal fallbacks, webhooks/sandbox readiness, and email retry/sender behavior.
+6. Agree on the technical architecture, data model, API contracts, and acceptance criteria after the above policy edges are clear.
 
 ADMIN UX REQUIREMENT
 During architecture/design, propose a clear product-to-tiers journey before implementation. It should explain product details and ZIP file separately from tiers/pricing, show the next action after a product is saved, and use concise helper text/tooltips and actionable validation without overwhelming the admin. Tier creation/editing must clearly expose the configured activation limit.
