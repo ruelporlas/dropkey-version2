@@ -1,0 +1,71 @@
+AI PROJECT PROTOCOL
+Project: DropKey Version 2
+Required reading: read this file and the relevant project-memory files before meaningful project work.
+
+1. ESTABLISH CONTEXT FIRST
+- Treat this repository as a fresh start unless the user says otherwise.
+- Do not import assumptions, architecture, requirements, or progress from other projects or older conversations.
+- If the goal or essential context is unclear, ask a concise question before acting.
+- Do not begin implementation merely because a topic or possible next step was mentioned.
+
+2. SOURCE OF TRUTH
+- Actual current repository files determine what is implemented.
+- Project-memory files document the current status, decisions, requirements, verification, preferences, and history.
+- Conversation history is context, not proof of repository state.
+- Inspect relevant files before describing, editing, or extending existing code.
+- If evidence conflicts, disclose the conflict and resolve it through inspection rather than guessing.
+
+3. READ BEFORE WORK; UPDATE AFTER WORK
+Before a meaningful task:
+- Read this protocol.
+- Read 02_CURRENT_STATUS.txt, 03_ARCHITECTURE_AND_DECISIONS.txt, 04_REQUIREMENTS_AND_RULES.txt, 05_VERIFICATION_EVIDENCE.txt, 06_NEXT_STEPS.txt, and 08_WORKING_PREFERENCES_AND_PERMISSIONS.txt as relevant.
+- Inspect the actual source files relevant to the task.
+- Confirm the task scope and any important constraints.
+
+After a meaningful task:
+- Update 01_PROJECT_SOURCE_MAP.txt if source locations or project structure changed.
+- Update 02_CURRENT_STATUS.txt to reflect verified progress.
+- Update 03_ARCHITECTURE_AND_DECISIONS.txt for accepted decisions.
+- Update 04_REQUIREMENTS_AND_RULES.txt when requirements or constraints change.
+- Update 05_VERIFICATION_EVIDENCE.txt with checks actually performed and their exact outcomes.
+- Update 06_NEXT_STEPS.txt to reflect the real next actions.
+- Update 07_CHANGE_HISTORY.txt with meaningful changes and the relevant commit/reference when available.
+- Update 08_WORKING_PREFERENCES_AND_PERMISSIONS.txt only when explicit preferences or permissions change.
+- Update this protocol only when the working process itself is intentionally changed.
+
+4. MEMORY MAINTENANCE IS THE AI'S RESPONSIBILITY
+- Treat these files as maintained project records, not one-time notes.
+- When authorized work changes the project's status, requirements, decisions, verification, or next steps, update the relevant memory files as part of completing that work.
+- Do not wait for the user to remind you to maintain project memory.
+- Never claim the memory files were updated unless the GitHub operation succeeded.
+- Avoid needless edits when nothing material changed.
+
+5. ACCURACY AND VERIFICATION
+- Distinguish facts, confirmed requirements, accepted decisions, proposals, assumptions, and unknowns.
+- Never fabricate files, implementation details, test results, command output, or commit hashes.
+- Mark checks as not run when they were not run.
+- Verify changes after writing where practical, and record the evidence.
+- A successful file write proves the file was written; it does not prove application behavior.
+
+6. CHANGE CONTROL
+- Work only within the user's current task and its necessary scope.
+- Do not delete, overwrite, rename, or restructure unrelated files without authorization.
+- Do not silently expand scope.
+- Preserve useful history when decisions change; mark superseded decisions instead of erasing their record.
+- Ask before irreversible or destructive changes unless the user explicitly authorized that exact action.
+
+7. IMPLEMENTATION DISCIPLINE
+- Prefer clear, maintainable solutions over unnecessary complexity or dependencies.
+- Follow the project's confirmed stack and conventions once established; do not invent them in advance.
+- For code changes, inspect the surrounding implementation and relevant call sites first.
+- Report changed paths, decisions made, checks run, outcomes, and remaining limitations.
+
+8. END-OF-TASK REPORT
+At the end of a meaningful task, briefly state:
+- What changed.
+- Which project-memory files were updated.
+- What was verified and what was not verified.
+- Any unresolved question or blocker.
+- The next step, only when useful and within the agreed scope.
+
+This protocol is mandatory for future AI-assisted work in this repository. If the user explicitly changes an instruction, follow the user's latest instruction and update the relevant memory file.
