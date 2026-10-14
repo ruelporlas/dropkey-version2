@@ -43,3 +43,9 @@ Milestone 1 verification record — 2026-10-14
 - WordPress integration: not run. No configured WordPress installation/test database or WordPress test suite was available in this task. Plugin activation, dbDelta table creation/upgrades, repository CRUD, validation, and deletion guards remain unverified at runtime.
 - Payment/API/client tests: not applicable to implemented scope; those components do not exist yet.
 - Overall: static syntax verification passed for PHP 7.4, 8.0, and 8.3; WordPress integration status is not run, not passed.
+
+Project-memory consistency check — 2026-10-14
+- Fetched all eight official memory files after the Milestone 1 updates and confirmed their writes were present.
+- Reconciled stale open-question entries in 04_REQUIREMENTS_AND_RULES.txt with already confirmed MVP decisions (WP/PHP baseline, example activation limits, versioned releases, private-host ZIP storage, reissuable download links, guest checkout, deferred taxes/coupons/invoices/trials, and customer account scope).
+- Fetched 04_REQUIREMENTS_AND_RULES.txt after the correction and confirmed the contradictory open-question phrases were removed.
+- This check verifies documentation consistency only; it does not add runtime or integration-test evidence.
