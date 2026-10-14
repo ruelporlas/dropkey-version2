@@ -71,7 +71,7 @@ Acceptance criteria:
 - One product can have multiple tiers; each tier can offer any applicable combination of free, one-time, monthly, and yearly billing options.
 - Tier settings, including activation limits, belong to the tier; billing options define payment amount and cadence.
 - Prices and billing terms are configurable, not globally hardcoded.
-- The exact support for trial periods, proration, grace periods, and cancellation timing must be decided before implementation.
+- Trials are deferred; failed-payment grace period is initially 3 days; cancellation is admin-managed and effective at the end of the paid period. Proration behavior remains open.
 - Subscription status and payment events determine the applicable product/license entitlement.
 Status: confirmed for the listed offering types and Product → Tier → Billing Options model; additional billing rules are open decisions.
 
@@ -133,19 +133,18 @@ NONFUNCTIONAL AND SECURITY REQUIREMENTS
 Status: security goals confirmed at a high level; detailed threat model and implementation acceptance criteria remain to be defined.
 
 OPEN QUESTIONS — DO NOT GUESS
-- Minimum supported WordPress and PHP versions.
-- Exact activation counts for each tier.
+- Basic (1 activation), Plus (3), and Pro (10) are confirmed as initial editable examples; administrators can change them and they are not hardcoded global limits.
 - How activations identify a website (domain, site URL, or another rule), and how administrators/customers deactivate or transfer activations.
 - Exact license and subscription statuses and how they affect activation after cancellation, failed renewal, refund, or chargeback; cancellation status transitions, customer notices, and whether/how admins can override a scheduled end-of-period cancellation.
-- Whether products may have multiple ZIP versions/releases and how updates are delivered.
-- Whether downloads can be reissued after the 48-hour link expires and whether there are download-count limits.
-- Whether files will be stored privately on the web host, in object storage, or elsewhere.
-- Whether guest checkout is allowed or a customer account is required before purchase; the customer frontend account area itself is required.
-- Tax/VAT, coupons, refunds, invoices, and trial-period scope.
+- Versioned ZIP releases and an update API are included in the MVP; version retention and compatibility rules remain open.
+- Download links can be reissued as fresh 48-hour links with a starting limit of 5 downloads per link; configurability and reissue-abuse controls remain open.
+- ZIP files are to be stored privately on the hosting server outside direct public access; exact filesystem location, safeguards, and delivery mechanism remain open.
+- Guest and account checkout are both allowed; guest purchase verification and account-linking flow remain open.
+- Taxes, coupons, invoices, and trials are deferred. Provider-state refund handling and a separate chargeback policy are selected at a high level, but exact events and entitlement outcomes remain open.
 - Payment provider account readiness, webhook setup, and credentials; no credentials should be shared in chat or committed.
 - Email template, retry behavior, and sender configuration.
 - Specific public REST API routes, authentication/request-signing details, and the precise reusable PHP client contract; the approved planning approach is to design these together and verify them with integration tests.
-- Exact customer account pages, self-service subscription actions, and license activation/deactivation/transfer controls.
+- The full customer account area and the specified self-service actions are confirmed; detailed UX and activation-transfer behavior remain open.
 
 GENERAL RULES
 - Actual repository files determine what is implemented.
