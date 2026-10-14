@@ -75,3 +75,15 @@ RULES
 - Do not infer the current architecture from old conversations or another repository.
 - Inspect the actual repository before describing its architecture.
 - When a decision changes, preserve the earlier entry and mark it superseded rather than silently erasing history.
+
+Date: 2026-10-14
+Decision: Design a versioned REST API and reusable PHP client together, with integration tests.
+Context / problem: DropKey needs a stable licensing and update integration for the WordPress plugins sold through it.
+Options considered: Design the API first and integrate later; define the versioned REST API and reusable PHP client together; build one example plugin integration and generalize afterward.
+Reason for choosing: The user explicitly selected the combined API/client approach with integration tests.
+Consequences and trade-offs:
+- API versioning, routes, authentication, request validation, and response/error contracts must be designed alongside the reusable PHP client.
+- Integration tests must exercise the client against the API contract and cover licensing/update flows as specified during architecture.
+- This is an architecture-planning decision only; it does not authorize implementation.
+Status: accepted for architecture planning; detailed contract remains open.
+Evidence or related files: User instruction on 2026-10-14; project-memory/04_REQUIREMENTS_AND_RULES.txt, DK-007.
