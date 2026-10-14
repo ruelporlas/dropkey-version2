@@ -57,11 +57,12 @@ final class Stripe_Gateway extends Payment_Gateway {
 		$o=$event['data']['object']; $metadata=isset($o['metadata'])&&is_array($o['metadata'])?$o['metadata']:array();
 		if (empty($metadata['order_public_id'])&&isset($o['client_reference_id'])) $metadata['order_public_id']=$o['client_reference_id'];
 		if (empty($metadata['order_public_id'])&&isset($o['subscription_details']['metadata']['order_public_id'])) $metadata['order_public_id']=$o['subscription_details']['metadata']['order_public_id'];
+		if (empty($metadata['order_public_id'])&&isset($o['parent']['subscription_details']['metadata']['order_public_id'])) $metadata['order_public_id']=$o['parent']['subscription_details']['metadata']['order_public_id'];
 		$type='ignored';
 		if ('invoice.payment_succeeded'===$event['type']||'checkout.session.async_payment_succeeded'===$event['type']) $type='payment_succeeded';
 		elseif ('checkout.session.completed'===$event['type']&&isset($o['payment_status'])&&in_array($o['payment_status'],array('paid','no_payment_required'),true)) $type='payment_succeeded';
 		elseif (in_array($event['type'],array('invoice.payment_failed','checkout.session.async_payment_failed'),true)) $type='payment_failed';
-		elseif ('customer.subscription.updated'===$event['type']) $type='subscription_updated';
+		elseif (in_array($event['type'],array('customer.subscription.created','customer.subscription.updated'),true)) $type='subscription_updated';
 		elseif ('customer.subscription.deleted'===$event['type']) $type='subscription_cancelled';
 		elseif ('charge.refunded'===$event['type']) $type='refunded';
 		elseif ('charge.dispute.created'===$event['type']) $type='chargeback';
