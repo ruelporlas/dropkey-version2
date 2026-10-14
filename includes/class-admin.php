@@ -159,7 +159,7 @@ final class Admin {
 		echo '<h2>'.esc_html__('Subscriptions','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Customer / product','dropkey-v2').'</th><th>'.esc_html__('Provider','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Paid through','dropkey-v2').'</th><th>'.esc_html__('Cancellation','dropkey-v2').'</th></tr></thead><tbody>';
 		foreach($subscription_rows as $sub) {
 			echo '<tr><td>'.(int)$sub->id.'</td><td>'.esc_html($sub->customer_email).'<br>'.esc_html($sub->product_name.' / '.$sub->tier_name).'</td><td>'.esc_html($sub->gateway).'</td><td><span class="dk2-status dk2-status-'.esc_attr(sanitize_html_class($sub->status)).'">'.esc_html($sub->status).'</span></td><td>'.esc_html($sub->current_period_end?$sub->current_period_end:__('Not reported','dropkey-v2')).'</td><td>';
-			if (in_array($sub->status,array('active','past_due'),true)&&empty($sub->cancel_at_period_end)) { $this->form_start('subscription_cancel'); echo '<input type="hidden" name="subscription_id" value="'.(int)$sub->id.'"><button class="button button-small">'.esc_html__('Cancel at period end','dropkey-v2').'</button></form>'; }
+			if (in_array($sub->status,array('active','past_due'),true)&&!empty($sub->current_period_end)&&empty($sub->cancel_at_period_end)) { $this->form_start('subscription_cancel'); echo '<input type="hidden" name="subscription_id" value="'.(int)$sub->id.'"><button class="button button-small">'.esc_html__('Cancel at period end','dropkey-v2').'</button></form>'; }
 			elseif (!empty($sub->cancel_at_period_end)) echo esc_html__('Scheduled','dropkey-v2');
 			else echo '—';
 			echo '</td></tr>';
