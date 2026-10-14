@@ -2,29 +2,40 @@ CURRENT PROJECT STATUS
 Project: DropKey Version 2
 Last updated: 2026-10-14
 
-BASELINE
-- The GitHub repository ruelporlas/dropkey-version2 is accessible through the connected GitHub integration.
-- Default branch: main.
-- The repository was reported empty by GitHub's contents API before the project-memory files were added.
-- The project-memory folder is being initialized.
-- No application implementation has been reviewed or verified.
-- No feature should be described as implemented unless current repository evidence supports that claim.
+PROJECT PURPOSE
+DropKey Version 2 is intended to be a WordPress plugin the user can use to sell their own WordPress plugins and other digital products online. It should manage products, checkout/payment, secure ZIP delivery, license keys, subscriptions, customer emails, and extensibility.
+
+REPOSITORY BASELINE
+- Repository: ruelporlas/dropkey-version2
+- Default branch: main
+- Latest root contents inspection: only the project-memory/ directory was returned by GitHub.
+- No application source files have been observed in the repository.
+- No implementation, build, lint, automated test, or runtime check has been performed.
 
 CURRENT PHASE
-Fresh start / project baseline establishment.
+Initial requirements capture / pre-architecture planning.
 
 COMPLETED
-- Confirmed repository access and reported repository metadata.
-- Created the project-memory documentation structure (initialization in progress).
+- Initialized the project-memory documentation set and AI project protocol.
+- Received the user's initial product scope and recorded it in 04_REQUIREMENTS_AND_RULES.txt.
+- Inspected the repository root through GitHub; only project-memory/ was present.
 
-IN PROGRESS
-- Establishing the initial project memory and collaboration protocol.
+CONFIRMED PRODUCT SCOPE
+- Create digital products and associate downloadable WordPress plugin ZIP files.
+- DropKey-managed checkout and purchase records.
+- PayPal and Stripe support for MVP, with future gateway extensibility.
+- Protected download links expiring after 48 hours.
+- Customer email containing the download link and license key.
+- License key generation and administration.
+- A simple reusable PHP file/component to integrate license activation in sold plugins.
+- Free, monthly, and yearly offerings/subscriptions.
+- WordPress action hooks for future extension.
 
-BLOCKED / UNKNOWN
-- Product scope and initial requirements: not yet established in this fresh-start baseline.
-- Technology stack: not yet established.
-- Architecture: not yet established.
-- Existing implementation: none observed in the repository at initialization.
-- Test and deployment setup: not yet established.
+NOT IMPLEMENTED / NOT VERIFIED
+All product features above are requirements only. No application code has been observed or verified.
+No architecture, schema, API contract, payment implementation, or deployment setup has been approved.
 
-Update this file after meaningful work. Keep statements factual and distinguish verified facts from assumptions, proposals, and unknowns.
+OPEN ITEMS
+- Resolve high-impact billing, licensing, download storage, compatibility, and customer-account decisions.
+- Establish minimum WordPress/PHP versions and the first implementation milestone.
+- Inspect repository again before implementation and record accepted architecture decisions.
