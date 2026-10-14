@@ -2,70 +2,257 @@ AI PROJECT PROTOCOL
 Project: DropKey Version 2
 Required reading: read this file and the relevant project-memory files before meaningful project work.
 
-1. ESTABLISH CONTEXT FIRST
-- Treat this repository as a fresh start unless the user says otherwise.
-- Do not import assumptions, architecture, requirements, or progress from other projects or older conversations.
-- If the goal or essential context is unclear, ask a concise question before acting.
-- Do not begin implementation merely because a topic or possible next step was mentioned.
+# MASTER INSTRUCTION — PROJECT MEMORY AND CONTINUITY PROTOCOL
 
-2. SOURCE OF TRUTH
-- Actual current repository files determine what is implemented.
-- Project-memory files document the current status, decisions, requirements, verification, preferences, and history.
-- Conversation history is context, not proof of repository state.
-- Inspect relevant files before describing, editing, or extending existing code.
-- If evidence conflicts, disclose the conflict and resolve it through inspection rather than guessing.
+## 1. Your Responsibility
 
-3. READ BEFORE WORK; UPDATE AFTER WORK
-Before a meaningful task:
-- Read this protocol.
-- Read 02_CURRENT_STATUS.txt, 03_ARCHITECTURE_AND_DECISIONS.txt, 04_REQUIREMENTS_AND_RULES.txt, 05_VERIFICATION_EVIDENCE.txt, 06_NEXT_STEPS.txt, and 08_WORKING_PREFERENCES_AND_PERMISSIONS.txt as relevant.
-- Inspect the actual source files relevant to the task.
-- Confirm the task scope and any important constraints.
+You are responsible for maintaining the project memory files assigned to this project throughout our collaboration.
 
-After a meaningful task:
-- Update 01_PROJECT_SOURCE_MAP.txt if source locations or project structure changed.
-- Update 02_CURRENT_STATUS.txt to reflect verified progress.
-- Update 03_ARCHITECTURE_AND_DECISIONS.txt for accepted decisions.
-- Update 04_REQUIREMENTS_AND_RULES.txt when requirements or constraints change.
-- Update 05_VERIFICATION_EVIDENCE.txt with checks actually performed and their exact outcomes.
-- Update 06_NEXT_STEPS.txt to reflect the real next actions.
-- Update 07_CHANGE_HISTORY.txt with meaningful changes and the relevant commit/reference when available.
-- Update 08_WORKING_PREFERENCES_AND_PERMISSIONS.txt only when explicit preferences or permissions change.
-- Update this protocol only when the working process itself is intentionally changed.
+These files are the official project memory system. They exist to ensure that you, or another AI assistant, can resume work in a new conversation without requiring me to explain the project, its decisions, current status, and working rules again.
 
-4. MEMORY MAINTENANCE IS THE AI'S RESPONSIBILITY
-- Treat these files as maintained project records, not one-time notes.
-- When authorized work changes the project's status, requirements, decisions, verification, or next steps, update the relevant memory files as part of completing that work.
-- Do not wait for the user to remind you to maintain project memory.
-- Never claim the memory files were updated unless the GitHub operation succeeded.
-- Avoid needless edits when nothing material changed.
+**Maintaining project memory is part of your assigned work, not an optional task.**
 
-5. ACCURACY AND VERIFICATION
-- Distinguish facts, confirmed requirements, accepted decisions, proposals, assumptions, and unknowns.
-- Never fabricate files, implementation details, test results, command output, or commit hashes.
-- Mark checks as not run when they were not run.
-- Verify changes after writing where practical, and record the evidence.
-- A successful file write proves the file was written; it does not prove application behavior.
+You must follow this protocol whenever you work on this project.
 
-6. CHANGE CONTROL
-- Work only within the user's current task and its necessary scope.
-- Do not delete, overwrite, rename, or restructure unrelated files without authorization.
-- Do not silently expand scope.
-- Preserve useful history when decisions change; mark superseded decisions instead of erasing their record.
-- Ask before irreversible or destructive changes unless the user explicitly authorized that exact action.
+Do not wait for me to remind you to update the memory files.
 
-7. IMPLEMENTATION DISCIPLINE
-- Prefer clear, maintainable solutions over unnecessary complexity or dependencies.
-- Follow the project's confirmed stack and conventions once established; do not invent them in advance.
-- For code changes, inspect the surrounding implementation and relevant call sites first.
-- Report changed paths, decisions made, checks run, outcomes, and remaining limitations.
+## 2. The Eight Official Memory Files
 
-8. END-OF-TASK REPORT
-At the end of a meaningful task, briefly state:
-- What changed.
-- Which project-memory files were updated.
-- What was verified and what was not verified.
-- Any unresolved question or blocker.
-- The next step, only when useful and within the agreed scope.
+Use the following files, located in the project's designated memory folder.
 
-This protocol is mandatory for future AI-assisted work in this repository. If the user explicitly changes an instruction, follow the user's latest instruction and update the relevant memory file.
+### `01_PROJECT_SOURCE_MAP.txt`
+**Purpose: Actual project files — the source of truth**
+
+Maintain a map of the actual project structure, including:
+
+- Important source files and their exact paths.
+- The purpose and responsibility of important files and modules.
+- Key entry points, configuration files, database schemas, APIs, and dependencies.
+- Relevant commands for running, building, and testing the project.
+- The last-known inspection or verification status of important files.
+
+Rules:
+
+- Actual project files take precedence over assumptions, old conversations, and outdated memory.
+- Inspect existing files before making claims about their contents or changing them.
+- Do not assume a file exists simply because it appears in this map.
+- Update this map when important files, modules, paths, or responsibilities change.
+- Do not waste time documenting every file if it adds no meaningful value.
+
+### `02_CURRENT_STATUS.txt`
+**Purpose: Current project status**
+
+Maintain an accurate snapshot of:
+
+- Completed features.
+- Features currently being implemented.
+- Incomplete or partially implemented work.
+- Known bugs and blockers.
+- Work awaiting testing or verification.
+- The current development phase.
+- Important outstanding tasks.
+
+Clearly distinguish between implemented, tested, verified, incomplete, and planned work.
+
+Do not mark a feature as complete merely because code has been written.
+
+Update this file whenever meaningful project progress occurs and before ending a work session.
+
+### `03_ARCHITECTURE_AND_DECISIONS.txt`
+**Purpose: Architecture and technical decisions**
+
+Record:
+
+- The technology stack and system architecture.
+- Important design and implementation decisions.
+- Database structures and relationships.
+- Module boundaries, coding patterns, and integration approaches.
+- Important dependencies and technical constraints.
+- Decisions that were considered and rejected, including why.
+- Any approved changes to previous architectural decisions.
+
+Never silently reverse an established decision.
+
+If a decision needs to change, explain the reason and record the change without erasing important historical context.
+
+### `04_REQUIREMENTS_AND_RULES.txt`
+**Purpose: Requirements and rules**
+
+Record the project's functional requirements, nonfunctional requirements, business rules, user expectations, constraints, acceptance criteria, and prohibited behavior.
+
+Distinguish between:
+
+- Confirmed requirements.
+- Proposed requirements awaiting approval.
+- Superseded requirements retained for historical reference.
+
+Do not invent requirements, expand the scope, or treat your own suggestions as approved decisions.
+
+When requirements conflict, identify the conflict and ask me to resolve it if the correct interpretation is unclear.
+
+### `05_VERIFICATION_EVIDENCE.txt`
+**Purpose: Verification evidence**
+
+Record the results of meaningful checks, including:
+
+- Tests executed and their results.
+- Build, lint, and type-check results.
+- Manual verification performed.
+- Bugs reproduced and their reproduction steps.
+- Relevant error messages and their resolution.
+- The date of verification and the relevant files, commands, or test cases.
+- Known limitations of the verification performed.
+
+Clearly label results as passed, failed, not run, or inconclusive.
+
+Never claim that something works, passes testing, or has been verified without supporting evidence.
+
+A previous successful test does not prove that subsequent changes still work. Re-run relevant checks when practical.
+
+### `06_NEXT_STEPS.txt`
+**Purpose: Immediate next steps**
+
+Maintain a clear continuation plan containing:
+
+- The current task.
+- Its objective and expected result.
+- The exact next action.
+- Relevant files or modules to inspect or modify.
+- Dependencies and prerequisites.
+- Acceptance criteria for completing the task.
+- Outstanding questions, blockers, and decisions requiring my input.
+- The recommended task after the current one, if known.
+
+Prioritize the immediate next action over a long, speculative roadmap.
+
+The instructions must be clear enough for another AI session to continue without asking me to reconstruct the previous conversation.
+
+### `07_CHANGE_HISTORY.txt`
+**Purpose: Recent changes and history**
+
+Maintain a chronological record of meaningful project events, including:
+
+- Changes made and why they were needed.
+- Files or modules affected.
+- Important discoveries and debugging results.
+- Decisions made or approved.
+- Tests performed and their outcomes.
+- Problems introduced, resolved, or still outstanding.
+- Reverted changes and lessons learned.
+
+Preserve meaningful historical entries. Do not replace the entire history with a new summary or delete earlier decisions simply to keep the file short.
+
+Avoid recording every trivial edit. Focus on events that affect future development or understanding.
+
+### `08_WORKING_PREFERENCES_AND_PERMISSIONS.txt`
+**Purpose: My working preferences and permissions**
+
+Record my explicit instructions about how you should collaborate with me, including:
+
+- Whether you must inspect existing files before making changes.
+- Whether you should provide complete replacement files or smaller patches.
+- How you should handle file paths, code delivery, and navigation.
+- Whether you may make implementation decisions independently.
+- Actions that require my approval.
+- Files, folders, repositories, or systems you may not access or modify.
+- Prohibited assumptions, unwanted scope expansion, and other collaboration rules.
+
+Never invent my preferences or treat a temporary instruction as a permanent preference without sufficient basis.
+
+Respect the narrowest applicable permission. Permission to work on one task does not automatically authorize unrelated changes.
+
+## 3. Mandatory Workflow Before Starting Work
+
+At the beginning of a project task:
+
+1. Read the applicable working preferences and permissions.
+2. Read the requirements and rules.
+3. Read the current status and immediate next steps.
+4. Consult the architecture and decision records.
+5. Inspect the actual source files relevant to the task.
+6. Review relevant verification evidence and change history.
+7. Check whether important memory claims still match the actual project.
+
+You do not need to inspect every source file for every task. Inspect the files relevant to the requested work and broaden the inspection when necessary.
+
+If a memory file is missing, contradictory, or outdated, resolve what you can from authorized project files and available evidence. Ask me when an important ambiguity cannot be resolved safely.
+
+Never pretend to have read files you cannot access.
+
+## 4. Mandatory Workflow During Work
+
+While working:
+
+1. Follow the confirmed requirements and applicable permissions.
+2. Inspect relevant code before changing it.
+3. Record important decisions, discoveries, and meaningful changes.
+4. Update verification evidence after running relevant checks.
+5. Identify discrepancies between remembered state and actual state.
+6. Keep completed work separate from planned or unverified work.
+
+Do not record an intended action as a completed action.
+
+Do not promote a proposal to a confirmed requirement without my approval when approval is required.
+
+If the environment prevents you from accessing or editing the assigned memory files, explain the limitation. Never claim that the files were updated when they were not.
+
+## 5. Mandatory Workflow Before Ending a Work Session
+
+Before declaring the task finished or ending a substantial work session:
+
+1. Update `02_CURRENT_STATUS.txt`.
+2. Update `05_VERIFICATION_EVIDENCE.txt` with checks actually performed and their results.
+3. Update `06_NEXT_STEPS.txt` with the exact next action and completion criteria.
+4. Append meaningful events to `07_CHANGE_HISTORY.txt`.
+5. Update `01_PROJECT_SOURCE_MAP.txt` if the structure or important file responsibilities changed.
+6. Update `03_ARCHITECTURE_AND_DECISIONS.txt` if a meaningful technical decision was made or changed.
+7. Update `04_REQUIREMENTS_AND_RULES.txt` only when requirements genuinely change or their status changes.
+8. Update `08_WORKING_PREFERENCES_AND_PERMISSIONS.txt` only when my lasting preferences or permissions are explicitly established or changed.
+
+Do not rewrite files unnecessarily. Keep the records concise, accurate, and useful.
+
+If you cannot finish an update, identify exactly which files remain outdated and provide the proposed content or next action needed to complete the update.
+
+## 6. Memory Integrity Rules
+
+These rules are mandatory:
+
+- Actual authorized project files and fresh verification results take precedence over outdated status notes.
+- Explicit user-approved requirements take precedence over AI suggestions.
+- Record the source and date of important claims when practical.
+- Distinguish verified facts, user-reported information, proposals, unresolved disputes, and obsolete information.
+- Never silently delete or rewrite important decision history.
+- Never invent test results, file contents, completed work, or user approvals.
+- Never store passwords, API keys, access tokens, or other secrets in these memory files.
+- Do not modify unrelated project files merely to maintain memory.
+- Keep all project memory within the designated project boundary unless I explicitly authorize otherwise.
+- When evidence is insufficient, state what remains unknown instead of guessing.
+
+## 7. Project Handover Requirement
+
+At the end of a substantial task, ensure that the eight memory files collectively answer these questions:
+
+1. What is this project, and what are its rules?
+2. What is the actual state of the relevant source code?
+3. What has been completed, and what remains unfinished?
+4. What important technical decisions have been made?
+5. What has actually been tested or verified?
+6. What changed during the latest session, and why?
+7. What should the next AI session do first?
+8. What permissions and collaboration rules must the next AI follow?
+
+The memory files must provide enough context for another AI assistant to continue the project without relying on access to this conversation.
+
+## 8. End-of-Session Report
+
+After completing a task, provide a concise report stating:
+
+- What was accomplished.
+- Which relevant memory files were updated.
+- Which checks were performed and their actual results.
+- Any unresolved issues or approval requests.
+- The next recommended action.
+
+Only report memory updates that actually succeeded.
+
+**Final rule:** You are responsible for maintaining accurate project continuity, but you are not authorized to invent facts, override my requirements, exceed granted permissions, or silently make irreversible decisions in the name of keeping memory current.
