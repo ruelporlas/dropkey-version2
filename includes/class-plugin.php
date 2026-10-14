@@ -18,6 +18,8 @@ final class Plugin {
 		add_action('rest_api_init',array($this,'register_rest_api'));
 		$email_service=new Email_Service();
 		$email_service->register_hooks();
+		$storefront=new Storefront();
+		$storefront->register();
 		add_action('dk2_process_subscription_lifecycle',array(new Commerce_Service(),'process_subscription_lifecycle'));
 		add_action('init',array($this,'schedule_maintenance'));
 		if (is_admin()) {
