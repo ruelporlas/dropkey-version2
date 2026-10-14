@@ -2,6 +2,12 @@ PROJECT CHANGE HISTORY
 Project: DropKey Version 2
 Newest entries first.
 
+2026-10-14 — Confirmed versioned REST API and reusable PHP client approach
+- What changed: Recorded the decision to design the versioned REST API and reusable PHP client together, with integration tests; updated requirements, architecture planning, current status, verification evidence, and next steps.
+- Why: The user explicitly selected this approach for licensing/update integration planning.
+- Files / areas affected: project-memory/02_CURRENT_STATUS.txt, 03_ARCHITECTURE_AND_DECISIONS.txt, 04_REQUIREMENTS_AND_RULES.txt, 05_VERIFICATION_EVIDENCE.txt, 06_NEXT_STEPS.txt.
+- Verification: GitHub read-back verification is required after these documentation writes. No application code was changed and no tests were run.
+
 2026-10-14 — Recorded 17 user-confirmed MVP policy decisions
 - What changed: Updated the requirements and architecture/decision records with all 17 choices, updated the current status and continuation plan, and noted verification evidence.
 - Why: The user supplied explicit selections and asked that they be recorded, verified, and distinguished from remaining open details; implementation was expressly prohibited for this task.
