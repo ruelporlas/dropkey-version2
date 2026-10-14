@@ -8,12 +8,12 @@ WordPress plugin intended to sell the user's own WordPress plugins and other dig
 REPOSITORY BASELINE
 - Repository: ruelporlas/dropkey-version2
 - Default branch: main
-- The repository now contains the Milestone 1 foundation plus Milestones 2–3 admin, private release storage, licensing, activation, download-token, REST API, and SDK source.
-- Latest syntax workflow for commit e5043e5c21506245c0458d5acbf41d386e733754 passed on PHP 7.4, 8.0, and 8.3.
+- The repository now contains Milestone 1 data foundations, Milestones 2–4 admin/licensing/checkout/payment/subscription/email/storefront source, and Milestone 5 network-free webhook/client contract tests.
+- Latest verified workflow: https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895 (commit 57c7cb97788367f2169b73e33424ca3753ab840a); PHP syntax checks and contract tests passed on PHP 7.4, 8.0, and 8.3.
 - WordPress integration/runtime testing has not been run; user-side testing should happen after replacing/updating the previously installed plugin with the latest source.
 
 CURRENT PHASE
-Milestones 2 and 3 are implemented in repository source and static PHP syntax checks pass. Await WordPress runtime/integration testing. These milestones are not yet confirmed working in a WordPress installation.
+Milestones 2–4 are implemented in repository source; Milestone 5 adds network-free contract tests for Stripe webhook signatures, PayPal provider-verification handling, and the reusable PHP client. Latest PHP CI and those contract tests pass. WordPress runtime and live/sandbox payment-provider workflows remain unverified.
 
 COMPLETED
 - Initialized project-memory documentation and AI project protocol.
@@ -51,11 +51,11 @@ USER-CONFIRMED MVP POLICIES RECORDED
 IMPLEMENTED IN SOURCE (CODE EXISTS; RUNTIME BEHAVIOR NOT YET VERIFIED)
 - WordPress plugin entry point and bootstrap using namespace DropKey\\V2 and text domain dropkey-v2.
 - Database installer using dbDelta(), with separate schema version tracking.
-- Three prefixed tables: products, tiers, and billing_options.
+- Schema version 6 defines prefixed tables for products, tiers, billing options, releases, licenses, activations, download tokens, orders, subscriptions, payment events, email queue, and payment history.
 - Basic repositories with create/get/list/update/delete operations, field validation, and parent-child deletion guards.
 - GitHub Actions PHP syntax workflow for PHP 7.4, 8.0, and 8.3.
 
-IMPLEMENTED IN MILESTONES 2–3 (SOURCE EXISTS; WORDPRESS BEHAVIOR NOT YET VERIFIED)
+IMPLEMENTED IN MILESTONES 2–4 (SOURCE EXISTS; WORDPRESS BEHAVIOR NOT YET VERIFIED)
 - DropKey admin menu with product create/edit/status, tier create/edit and configurable activation limits, billing-option create/edit, versioned ZIP release upload, manual license issuance/status controls, active-site activation listing/deactivation, and protected download-link generation.
 - Schema version 3 adds releases, licenses, activations, and download-token tables through dbDelta().
 - ZIP upload validation and private storage path guard; files are stored outside the detected document root when that server variable is available, with additional .htaccess/index.php safeguards.
@@ -63,10 +63,21 @@ IMPLEMENTED IN MILESTONES 2–3 (SOURCE EXISTS; WORDPRESS BEHAVIOR NOT YET VERIF
 - Hashed 48-hour download tokens with up to 5 successful downloads per link and SHA-256 package integrity checking.
 - Versioned REST endpoints for activate, deactivate, validate, update checks, and protected ZIP delivery; reusable PHP client at sdk/dropkey-license-client.php.
 
+
+- Admin UI has scoped styling, responsive dashboard metrics and shortcuts, payment settings, order/subscription views, and failed-email retry controls.
+- Public storefront shortcode `[dropkey_store]` lists published products/tiers/billing options and starts hosted checkout. Checkout is rate-limited per client IP/email; a published ZIP release is required before checkout.
+- Stripe hosted Checkout supports one-time and recurring options, signed/timestamped webhook verification, provider-reference matching, subscription period lookup, and cancellation at period end.
+- PayPal supports hosted one-time order approval/server-side capture, recurring plans referenced by PayPal Plan ID, provider-side webhook signature verification, refund/dispute matching, and deferred cancellation at period end.
+- Orders, subscriptions, payment events, payment references, and encrypted email queue are stored separately. Webhook event IDs are unique; payment amount/currency are checked before fulfillment; email content is authenticated-encrypted at rest and retries are bounded.
+- Free checkout issues a license through the same transactional fulfillment path. Paid fulfillment follows provider-confirmed payment/capture; licenses and protected download links are emailed after queueing succeeds.
+- Subscription failures use a three-day grace period; lifecycle cron suspends access after grace/paid-through expiry. Refunds suspend licenses; disputes mark orders disputed and suspend licenses.
+- Version bumped to 0.3.0; database schema version bumped to 6.
+
 NOT IMPLEMENTED / NOT VERIFIED
 - No WordPress activation, table-creation, upgrade, or repository integration test has been run.
-- Checkout, PayPal/Stripe integration, order/subscription processing, payment webhooks, transactional email, customer-facing account pages, automatic plugin-updater UI integration, rate limiting, and production WordPress integration tests are not implemented or verified.
-- No payment provider, email, or customer-facing workflow has been tested.
+- WordPress activation/schema migration and CRUD runtime checks have not been rerun after Milestones 4–5 changes.
+- Real Stripe/PayPal sandbox checkout, webhook delivery from the providers, email delivery, subscription renewal/failure/cancellation, refund/dispute events, and browser behavior of the storefront have not been tested in a live WordPress environment.
+- Customer-facing account pages, guest-purchase account linking, complete WordPress Plugins-screen updater integration, taxes/coupons/invoices/trials, and a full WordPress integration test suite remain unimplemented.
 
 IMPORTANT REMAINING OPEN DETAILS
-Exact URL canonicalization; activation transfer rules; cancellation status transitions/notices/admin override; failed-payment state transitions and grace-period boundary behavior; provider refund/dispute event handling; update/version retention; private storage/delivery implementation; download reissue abuse controls; guest identity/account-linking flow; provider readiness/webhooks; email retry schedule/configuration; API routes and SDK contract; account details/receipts; architecture for the remaining checkout, payment, licensing, downloads, updates, and customer-account milestones.
+Runtime verification of schema version 6 and all 12 tables; sandbox checkout and provider webhook configuration; live provider payload variation and subscription event ordering; paid-through/grace boundary behavior; real email delivery and WP-Cron reliability; private storage server-level denial; guest identity/account-linking and frontend customer account pages; complete plugin updater UI; production security/concurrency review; tax/coupon/invoice/trial features remain deferred.
