@@ -12,6 +12,9 @@ final class REST_API {
 		register_rest_route('dropkey/v1','/licenses/validate',array('methods'=>'POST','callback'=>array($this,'validate'),'permission_callback'=>'__return_true'));
 		register_rest_route('dropkey/v1','/products/(?P<slug>[a-zA-Z0-9_-]+)/updates',array('methods'=>'POST','callback'=>array($this,'updates'),'permission_callback'=>'__return_true','args'=>array('slug'=>array('required'=>true,'sanitize_callback'=>'sanitize_title'))));
 		register_rest_route('dropkey/v1','/downloads/(?P<token>[a-f0-9]{64})',array('methods'=>'GET','callback'=>array($this,'download'),'permission_callback'=>'__return_true'));
+		register_rest_route('dropkey/v1','/checkout/sessions',array('methods'=>'POST','callback'=>array($this,'checkout'),'permission_callback'=>'__return_true'));
+		register_rest_route('dropkey/v1','/checkout/paypal/capture',array('methods'=>'POST','callback'=>array($this,'capture_paypal'),'permission_callback'=>'__return_true'));
+		register_rest_route('dropkey/v1','/webhooks/(?P<gateway>stripe|paypal)',array('methods'=>'POST','callback'=>array($this,'webhook'),'permission_callback'=>'__return_true'));
 	}
 	private function payload($request) { $data=$request->get_json_params(); return is_array($data)?$data:$request->get_params(); }
 	private function error($error) {
@@ -46,6 +49,38 @@ final class REST_API {
 		$link=(new Download_Service())->create_token($valid['license']->id,$latest->id); if(is_wp_error($link)) return $this->error($link);
 		return $this->response(array('update_available'=>true,'version'=>$latest->version,'download_url'=>$link['url'],'download_expires_at'=>$link['expires_at'],'release_notes'=>wp_strip_all_tags($latest->release_notes)));
 	}
+
+	public function checkout($request) {
+		$p=$this->payload($request);
+		$billing_id=isset($p['billing_option_id'])?absint($p['billing_option_id']):0;
+		$email=isset($p['customer_email'])?sanitize_email($p['customer_email']):'';
+		$gateway=isset($p['gateway'])?sanitize_key($p['gateway']):'';
+		$success=isset($p['success_url'])?esc_url_raw($p['success_url']):home_url('/');
+		$cancel=isset($p['cancel_url'])?esc_url_raw($p['cancel_url']):home_url('/');
+		$result=(new Commerce_Service())->start_checkout($billing_id,$email,$gateway,$success,$cancel);
+		if (is_wp_error($result)) return $this->error($result);
+		return $this->response($result,200);
+	}
+	public function capture_paypal($request) {
+		$p=$this->payload($request);
+		$public_id=isset($p['order_id'])?sanitize_text_field($p['order_id']):'';
+		$paypal_id=isset($p['paypal_order_id'])?sanitize_text_field($p['paypal_order_id']):'';
+		if (''===$public_id||''===$paypal_id) return $this->error(new \\WP_Error('dk2_paypal_capture_fields',__('order_id and paypal_order_id are required.','dropkey-v2'),array('status'=>400)));
+		$result=(new Commerce_Service())->capture_paypal($public_id,$paypal_id);
+		if (is_wp_error($result)) return $this->error($result);
+		return $this->response($result,200);
+	}
+	public function webhook($request) {
+		$gateway=sanitize_key($request['gateway']);
+		$instance=Payment_Gateway::make($gateway);
+		if (is_wp_error($instance)) return $this->error($instance);
+		$event=$instance->verify_webhook($request);
+		if (is_wp_error($event)) return $this->error($event);
+		$result=(new Commerce_Service())->process_webhook($gateway,$event);
+		if (is_wp_error($result)) return $this->error($result);
+		return $this->response($result,200);
+	}
+
 	public function download($request) {
 		$result=(new Download_Service())->deliver($request['token']); if(is_wp_error($result)) return $this->error($result);
 		if(headers_sent()) return $this->error(new \WP_Error('dk2_download_headers_sent',__('The download could not start because output was already sent.','dropkey-v2'),array('status'=>500)));
