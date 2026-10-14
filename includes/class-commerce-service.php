@@ -26,7 +26,7 @@ final class Commerce_Service {
 		$public_id=wp_generate_uuid4(); $now=current_time('mysql',true);
 		$ok=$wpdb->insert(Database::table('orders'),array(
 			'public_id'=>$public_id,'product_id'=>$billing->product_id,'tier_id'=>$billing->tier_id,'billing_option_id'=>$billing_id,
-			'customer_email'=>$email,'customer_user_id=>'=>0,'gateway'=>$gateway,'gateway_order_id'=>'','gateway_session_id'=>'',
+			'customer_email'=>$email,'customer_user_id'=>null,'gateway'=>$gateway,'gateway_order_id'=>'','gateway_session_id'=>'',
 			'status'=>'pending','amount'=>(float)$billing->price,'currency'=>strtoupper($billing->currency?$billing->currency:'USD'),
 			'created_at'=>$now,'updated_at'=>$now
 		));
