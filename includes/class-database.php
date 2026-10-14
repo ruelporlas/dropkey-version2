@@ -7,10 +7,10 @@ namespace DropKey\V2;
 defined( 'ABSPATH' ) || exit;
 final class Database {
 	const VERSION_OPTION = 'dk2_db_version';
-	const SCHEMA_VERSION = '5';
+	const SCHEMA_VERSION = '6';
 	public static function table( $table ) {
 		global $wpdb;
-		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue' );
+		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue', 'payments' );
 		return in_array( $table, $allowed, true ) ? $wpdb->prefix . 'dk2_' . $table : '';
 	}
 	public static function install() {
@@ -19,7 +19,7 @@ final class Database {
 		$c = $wpdb->get_charset_collate();
 		$p=self::table('products'); $t=self::table('tiers'); $b=self::table('billing_options');
 		$r=self::table('releases'); $l=self::table('licenses'); $a=self::table('activations'); $d=self::table('download_tokens');
-		$o=self::table('orders'); $s=self::table('subscriptions'); $e=self::table('payment_events'); $q=self::table('email_queue');
+		$o=self::table('orders'); $s=self::table('subscriptions'); $e=self::table('payment_events'); $q=self::table('email_queue'); $m=self::table('payments');
 		dbDelta("CREATE TABLE {$p} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			name varchar(191) NOT NULL, slug varchar(191) NOT NULL, description longtext NOT NULL,
@@ -105,6 +105,16 @@ final class Database {
 			next_attempt_at datetime DEFAULT NULL, last_error text NOT NULL,
 			created_at datetime NOT NULL, sent_at datetime DEFAULT NULL,
 			PRIMARY KEY  (id), KEY order_id (order_id), KEY status_next (status,next_attempt_at)
+		) {$c};");
+
+		dbDelta("CREATE TABLE {$m} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT, order_id bigint(20) unsigned NOT NULL,
+			gateway varchar(20) NOT NULL, gateway_payment_id varchar(191) NOT NULL,
+			provider_event_id varchar(191) NOT NULL DEFAULT '', amount decimal(12,2) unsigned NOT NULL DEFAULT 0.00,
+			currency char(3) NOT NULL, status varchar(20) NOT NULL DEFAULT 'paid',
+			created_at datetime NOT NULL, updated_at datetime NOT NULL,
+			PRIMARY KEY  (id), UNIQUE KEY gateway_payment (gateway,gateway_payment_id),
+			KEY order_id (order_id), KEY status (status)
 		) {$c};");
 		update_option(self::VERSION_OPTION,self::SCHEMA_VERSION,false);
 		do_action('dk2_database_installed',self::SCHEMA_VERSION);
