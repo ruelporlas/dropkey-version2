@@ -69,3 +69,7 @@ body[class*="dk2-"] #adminmenu .wp-submenu a { padding-top: 7px; padding-bottom:
   body[class*="dk2-"] .wrap .form-table th { width: auto; padding-bottom: 6px; }
   body[class*="dk2-"] .wrap .form-table td { padding-top: 4px; }
 }
+body[class*="dk2-"] .dk2-status { display:inline-block; padding:4px 9px; border-radius:999px; background:#eef2f5; color:#475569; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
+body[class*="dk2-"] .dk2-status-paid, body[class*="dk2-"] .dk2-status-sent, body[class*="dk2-"] .dk2-status-active { background:#e2f3ea; color:#236247; }
+body[class*="dk2-"] .dk2-status-pending, body[class*="dk2-"] .dk2-status-processing { background:#fff2d7; color:#8a5a10; }
+body[class*="dk2-"] .dk2-status-failed, body[class*="dk2-"] .dk2-status-refunded, body[class*="dk2-"] .dk2-status-disputed, body[class*="dk2-"] .dk2-status-suspended { background:#fde8e7; color:#9b2924; }
