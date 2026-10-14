@@ -6,6 +6,14 @@
 namespace DropKey\V2;
 defined('ABSPATH') || exit;
 final class Commerce_Service {
+	private function rate_limit_checkout($email) {
+		$keys=array(); $ip=isset($_SERVER['REMOTE_ADDR'])?sanitize_text_field($_SERVER['REMOTE_ADDR']):'';
+		if (''!==$ip) $keys[]='dk2_checkout_ip_'.hash('sha256',$ip);
+		$keys[]='dk2_checkout_email_'.hash('sha256',strtolower($email));
+		foreach($keys as $key) if ((int)get_transient($key)>=12) return new \\WP_Error('dk2_checkout_rate_limited',__('Too many checkout attempts. Please wait before trying again.','dropkey-v2'),array('status'=>429));
+		foreach($keys as $key) set_transient($key,(int)get_transient($key)+1,HOUR_IN_SECONDS);
+		return true;
+	}
 	public function start_checkout($billing_id,$email,$gateway,$success_url,$cancel_url) {
 		global $wpdb;
 		$billing_id=absint($billing_id); $email=sanitize_email($email); $gateway=sanitize_key($gateway);
@@ -77,6 +85,7 @@ final class Commerce_Service {
 		$locked->license_id=$license['id']; $locked->status='paid';
 		if (!empty($event['gateway_order_id'])) $wpdb->update($orders,array('gateway_order_id'=>$event['gateway_order_id']),array('id'=>$locked->id));
 		if (!empty($event['gateway_session_id'])) $wpdb->update($orders,array('gateway_session_id'=>$event['gateway_session_id']),array('id'=>$locked->id));
+		if (!empty($event['gateway_payment_id'])) $wpdb->update($orders,array('gateway_payment_id'=>$event['gateway_payment_id']),array('id'=>$locked->id));
 		if (!empty($event['subscription_id'])) $this->save_subscription($locked,$license['id'],$event);
 		$queued=$this->queue_fulfillment_email($locked,$license['id'],$license['license_key']);
 		if (is_wp_error($queued)) { $wpdb->query('ROLLBACK'); return $queued; }
@@ -99,6 +108,7 @@ final class Commerce_Service {
 		if (!empty($event['order_public_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE public_id=%s AND gateway=%s",$event['order_public_id'],$gateway));
 		if (!$order&&!empty($event['gateway_order_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_order_id=%s",$gateway,$event['gateway_order_id']));
 		if (!$order&&!empty($event['gateway_session_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_session_id=%s",$gateway,$event['gateway_session_id']));
+		if (!$order&&!empty($event['gateway_payment_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_payment_id=%s",$gateway,$event['gateway_payment_id']));
 		if (!$order&&!empty($event['subscription_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT o.* FROM {$table} o INNER JOIN ".Database::table('subscriptions')." s ON s.order_id=o.id WHERE s.gateway=%s AND s.gateway_subscription_id=%s",$gateway,$event['subscription_id']));
 		return $order;
 	}
@@ -156,7 +166,7 @@ final class Commerce_Service {
 		if (!$order) return new \WP_Error('dk2_order_not_found',__('The checkout order was not found.','dropkey-v2'),array('status'=>404));
 		$gateway=Payment_Gateway::make('paypal'); if (is_wp_error($gateway)) return $gateway;
 		$result=$gateway->capture_order($order,$paypal_order_id); if (is_wp_error($result)) return $result;
-		$event=array('gateway_order_id'=>$paypal_order_id,'type'=>'payment_succeeded');
+		$event=array('gateway_order_id'=>$paypal_order_id,'gateway_payment_id'=>$result['provider_capture_id'],'type'=>'payment_succeeded');
 		$completed=$this->complete_order($order,$event); if (is_wp_error($completed)) return $completed;
 		return array('order_id'=>$public_id,'status'=>'completed');
 	}
