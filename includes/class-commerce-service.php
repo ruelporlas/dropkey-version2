@@ -133,6 +133,7 @@ final class Commerce_Service {
 		$events=Database::table('payment_events'); $event_id=sanitize_text_field($event['event_id']); $hash=isset($event['payload_hash'])?$event['payload_hash']:hash('sha256',wp_json_encode($event));
 		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$events} WHERE gateway=%s AND event_id=%s",$gateway,$event_id));
 		if ($existing&&'processed'===$existing->status) return array('duplicate'=>true,'processed'=>true);
+		if ($existing&&'processing'===$existing->status&&strtotime($existing->created_at.' UTC')>time()-600) return array('duplicate'=>true,'processed'=>false,'in_progress'=>true);
 		if ($existing) $wpdb->update($events,array('status'=>'processing','error_message'=>''),array('id'=>$existing->id));
 		else {
 			$ok=$wpdb->insert($events,array('gateway'=>$gateway,'event_id'=>$event_id,'event_type'=>sanitize_text_field($event['event_type']),
@@ -211,15 +212,15 @@ final class Commerce_Service {
 	}
 	public function process_subscription_lifecycle() {
 		global $wpdb; $subs=Database::table('subscriptions'); $licenses=Database::table('licenses'); $now=current_time('mysql',true);
-		$due=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$subs} WHERE cancel_at_period_end=1 AND current_period_end IS NOT NULL AND current_period_end<=%s AND status IN ('active','past_due')",$now));
+		$due=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$subs} WHERE cancel_at_period_end=1 AND current_period_end IS NOT NULL AND current_period_end<=%s AND status IN ('active','past_due','cancel_pending')",$now));
 		foreach($due as $sub) {
 			if ('paypal'===$sub->gateway) {
 				$gateway=Payment_Gateway::make('paypal'); $cancel=$gateway->cancel_subscription_now($sub->gateway_subscription_id);
-				if (is_wp_error($cancel)) { do_action('dk2_subscription_cancel_provider_error',(int)$sub->id,$cancel->get_error_code()); continue; }
+				if (is_wp_error($cancel)) { do_action('dk2_subscription_cancel_provider_error',(int)$sub->id,$cancel->get_error_code()); $wpdb->update($subs,array('status'=>'cancel_pending','updated_at'=>$now),array('id'=>$sub->id)); $wpdb->update($licenses,array('status'=>'suspended','updated_at'=>$now),array('id'=>$sub->license_id,'status'=>'active')); continue; }
 			}
 			$wpdb->update($subs,array('status'=>'cancelled','updated_at'=>$now),array('id'=>$sub->id));
 		}
-		$expired=$wpdb->get_results($wpdb->prepare("SELECT license_id FROM {$subs} WHERE (status='cancelled' AND current_period_end IS NOT NULL AND current_period_end<=%s) OR (status='past_due' AND grace_until IS NOT NULL AND grace_until<=%s)",$now,$now));
+		$expired=$wpdb->get_results($wpdb->prepare("SELECT license_id FROM {$subs} WHERE ((status IN ('cancelled','cancel_pending')) AND current_period_end IS NOT NULL AND current_period_end<=%s) OR (status='past_due' AND grace_until IS NOT NULL AND grace_until<=%s)",$now,$now));
 		foreach($expired as $row) $wpdb->update($licenses,array('status'=>'suspended','updated_at'=>$now),array('id'=>$row->license_id,'status'=>'active'));
 	}
 }
