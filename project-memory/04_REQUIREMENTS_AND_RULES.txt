@@ -1,0 +1,22 @@
+PROJECT REQUIREMENTS AND RULES
+Last updated: 2026-10-14
+
+STATUS
+Requirements for this fresh-start project have not yet been established. Do not import requirements from another repository or an earlier project version without confirmation.
+
+REQUIREMENT RECORD FORMAT
+For each requirement, record:
+- ID:
+- Requirement:
+- Rationale:
+- Priority:
+- Acceptance criteria:
+- Status: proposed / confirmed / implemented / verified / deferred
+- Evidence or related files:
+
+GENERAL RULES
+- Separate confirmed requirements from suggestions and unresolved questions.
+- Do not claim a requirement is implemented merely because it is documented.
+- Prefer explicit acceptance criteria that can be checked.
+- Record constraints, compatibility requirements, security considerations, and out-of-scope items when they are confirmed.
+- Update this file when the user confirms, changes, or removes a requirement.
