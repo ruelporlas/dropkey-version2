@@ -66,6 +66,7 @@ final class Stripe_Gateway extends Payment_Gateway {
 		return array('event_id'=>sanitize_text_field($event['id']),'event_type'=>sanitize_text_field($event['type']),'type'=>$type,
 			'order_public_id'=>isset($metadata['order_public_id'])?sanitize_text_field($metadata['order_public_id']):'',
 			'gateway_order_id'=>'','gateway_session_id'=>isset($o['id'])&&0===strpos($event['type'],'checkout.session.')?sanitize_text_field($o['id']):'',
+			'gateway_payment_id'=>isset($o['payment_intent'])&&is_string($o['payment_intent'])?sanitize_text_field($o['payment_intent']):'',
 			'subscription_id'=>is_string($sub)?sanitize_text_field($sub):'','period_end'=>$period?gmdate('Y-m-d H:i:s',$period):'',
 			'status'=>isset($o['status'])?sanitize_key($o['status']):'','customer_email'=>isset($o['customer_details']['email'])?sanitize_email($o['customer_details']['email']):'',
 			'amount'=>isset($o['amount_total'])?((float)$o['amount_total']/100):(isset($o['amount_paid'])?((float)$o['amount_paid']/100):null),
