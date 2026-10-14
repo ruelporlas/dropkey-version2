@@ -13,7 +13,7 @@ REPOSITORY BASELINE
 - No implementation, build, lint, automated test, or runtime check has been performed.
 
 CURRENT PHASE
-MVP requirements and policy capture / pre-architecture planning. User-selected product policies are recorded; technical architecture and implementation remain pending.
+Milestone 1 — plugin foundation and core data model: source files are committed to GitHub and PHP syntax checks passed on PHP 7.4, 8.0, and 8.3. WordPress activation/database integration has not been run because no WordPress test environment was available.
 
 COMPLETED
 - Initialized project-memory documentation and AI project protocol.
@@ -22,7 +22,9 @@ COMPLETED
 - Confirmed each product tier must have its own configurable maximum website activation count.
 - Confirmed customers need a frontend account area to view and manage their own licenses and subscriptions; exact self-service actions remain open.
 - Recorded guided admin UX expectations for product and tier setup.
-- Inspected repository root; only project-memory/ was present.
+- Inspected repository root before implementation; it contained only project-memory/.
+- Implemented Milestone 1 plugin foundation and Product → Tier → Billing Option schema/repositories in commit 199149596a01e2858eb8f37220907f538ad56c50, followed by validation and schema-version fixes in later commits.
+- Added GitHub Actions PHP syntax checks and corrected their version interpolation after the first run failed during PHP setup.
 
 CONFIRMED PRODUCT SCOPE
 - Product management and association with plugin ZIP files.
@@ -46,8 +48,17 @@ USER-CONFIRMED MVP POLICIES RECORDED
 - Full customer account pages and specified customer self-service actions; hosted provider payment flows, provider references/status only, no card storage.
 - Milestone-based secure MVP approach.
 
+IMPLEMENTED IN MILESTONE 1 (CODE EXISTS; RUNTIME BEHAVIOR NOT YET VERIFIED)
+- WordPress plugin entry point and bootstrap using namespace DropKey\\V2 and text domain dropkey-v2.
+- Database installer using dbDelta(), with separate schema version tracking.
+- Three prefixed tables: products, tiers, and billing_options.
+- Basic repositories with create/get/list/update/delete operations, field validation, and parent-child deletion guards.
+- GitHub Actions PHP syntax workflow for PHP 7.4, 8.0, and 8.3.
+
 NOT IMPLEMENTED / NOT VERIFIED
-All features and policies above are documented decisions/requirements only. No application source code has been observed or verified. No implementation, architecture, schema, API contract, payment integration, customer account UI, update mechanism, or deployment setup has been approved or tested.
+- No WordPress activation, table-creation, upgrade, or repository integration test has been run.
+- Product/tier/billing admin screens, checkout, PayPal/Stripe integration, order/subscription processing, licenses/activations, versioned REST API, reusable PHP client, protected ZIP storage/delivery, update delivery, transactional email, and customer account pages are not implemented.
+- No payment provider, email, or customer-facing workflow has been tested.
 
 IMPORTANT REMAINING OPEN DETAILS
-Exact URL canonicalization; activation transfer rules; cancellation timing; full license/subscription state transitions; provider refund/dispute event handling; update/version retention; private storage/delivery implementation; download reissue abuse controls; guest identity/account-linking flow; provider readiness/webhooks; email retry schedule/configuration; API routes and SDK contract; account details/receipts; final technical architecture and acceptance tests.
+Exact URL canonicalization; activation transfer rules; cancellation status transitions/notices/admin override; failed-payment state transitions and grace-period boundary behavior; provider refund/dispute event handling; update/version retention; private storage/delivery implementation; download reissue abuse controls; guest identity/account-linking flow; provider readiness/webhooks; email retry schedule/configuration; API routes and SDK contract; account details/receipts; architecture for the remaining checkout, payment, licensing, downloads, updates, and customer-account milestones.
