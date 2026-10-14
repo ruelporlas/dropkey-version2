@@ -7,6 +7,7 @@ namespace DropKey\V2;
 defined('ABSPATH') || exit;
 final class Plugin {
 	private static $instance=null;
+	private $admin=null;
 	public static function instance() {
 		if (null===self::$instance) self::$instance=new self();
 		return self::$instance;
@@ -29,6 +30,6 @@ final class Plugin {
 	}
 	public function register_rest_api() {
 		$api=new REST_API();
-		add_action('rest_api_init',array($api,'register_routes'));
+		$api->register_routes();
 	}
 }
