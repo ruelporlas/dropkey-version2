@@ -34,7 +34,7 @@ final class Stripe_Gateway extends Payment_Gateway {
 		return array('session_id'=>sanitize_text_field($result['id']),'order_id'=>'','checkout_url'=>esc_url_raw($result['url']),'subscription_id'=>isset($result['subscription'])?sanitize_text_field($result['subscription']):'');
 	}
 	public function subscription_details($subscription_id) {
-		if (!$this->enabled()) return new \\WP_Error('dk2_stripe_not_configured',__('Stripe is not configured.','dropkey-v2'));
+		if (!$this->enabled()) return new \WP_Error('dk2_stripe_not_configured',__('Stripe is not configured.','dropkey-v2'));
 		$data=$this->json_request('GET','https://api.stripe.com/v1/subscriptions/'.rawurlencode($subscription_id),array('headers'=>array('Authorization'=>'Bearer '.$this->config('secret'))));
 		if (is_wp_error($data)) return $data;
 		return array('period_end'=>!empty($data['current_period_end'])?gmdate('Y-m-d H:i:s',(int)$data['current_period_end']):'','cancel_at_period_end'=>!empty($data['cancel_at_period_end'])?1:0,'status'=>isset($data['status'])?sanitize_key($data['status']):'');
