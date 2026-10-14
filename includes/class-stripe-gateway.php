@@ -17,7 +17,7 @@ final class Stripe_Gateway extends Payment_Gateway {
 			'metadata[order_public_id]'=>$order->public_id,
 			'line_items[0][quantity]'=>'1',
 			'line_items[0][price_data][currency]'=>$currency,
-			'line_items[0][price_data][unit_amount]'=> (string)round(((float)$billing->price)*100),
+			'line_items[0][price_data][unit_amount]'=> (string)round(((float)$billing->price)*Payment_Gateway::minor_unit_factor($billing->currency)),
 			'line_items[0][price_data][product_data][name]'=>$product->name.' — '.$tier->name,
 			
 		);
@@ -32,6 +32,12 @@ final class Stripe_Gateway extends Payment_Gateway {
 		if (is_wp_error($result)) return $result;
 		if (empty($result['id'])||empty($result['url'])) return new \WP_Error('dk2_stripe_session_invalid',__('Stripe did not return a checkout URL.','dropkey-v2'),array('status'=>502));
 		return array('session_id'=>sanitize_text_field($result['id']),'order_id'=>'','checkout_url'=>esc_url_raw($result['url']),'subscription_id'=>isset($result['subscription'])?sanitize_text_field($result['subscription']):'');
+	}
+	public function subscription_details($subscription_id) {
+		if (!$this->enabled()) return new \\WP_Error('dk2_stripe_not_configured',__('Stripe is not configured.','dropkey-v2'));
+		$data=$this->json_request('GET','https://api.stripe.com/v1/subscriptions/'.rawurlencode($subscription_id),array('headers'=>array('Authorization'=>'Bearer '.$this->config('secret'))));
+		if (is_wp_error($data)) return $data;
+		return array('period_end'=>!empty($data['current_period_end'])?gmdate('Y-m-d H:i:s',(int)$data['current_period_end']):'','cancel_at_period_end'=>!empty($data['cancel_at_period_end'])?1:0,'status'=>isset($data['status'])?sanitize_key($data['status']):'');
 	}
 	public function schedule_cancel($subscription_id) {
 		if (!$this->enabled()) return new \WP_Error('dk2_stripe_not_configured',__('Stripe is not configured.','dropkey-v2'));
@@ -75,7 +81,7 @@ final class Stripe_Gateway extends Payment_Gateway {
 			'gateway_payment_id'=>isset($o['payment_intent'])&&is_string($o['payment_intent'])?sanitize_text_field($o['payment_intent']):'',
 			'subscription_id'=>is_string($sub)?sanitize_text_field($sub):'','period_end'=>$period?gmdate('Y-m-d H:i:s',$period):'',
 			'status'=>isset($o['status'])?sanitize_key($o['status']):'','cancel_at_period_end'=>!empty($o['cancel_at_period_end'])?1:0,'customer_email'=>isset($o['customer_details']['email'])?sanitize_email($o['customer_details']['email']):'',
-			'amount'=>isset($o['amount_total'])?((float)$o['amount_total']/100):(isset($o['amount_paid'])?((float)$o['amount_paid']/100):null),
+			'amount'=>isset($o['amount_total'])?((float)$o['amount_total']/Payment_Gateway::minor_unit_factor(isset($o['currency'])?$o['currency']:'')):(isset($o['amount_paid'])?((float)$o['amount_paid']/Payment_Gateway::minor_unit_factor(isset($o['currency'])?$o['currency']:'')):null),
 			'currency'=>isset($o['currency'])?strtoupper(sanitize_text_field($o['currency'])):'',
 			'payload_hash'=>hash('sha256',$raw),'raw'=>$event);
 	}
