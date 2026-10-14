@@ -93,9 +93,10 @@ final class PayPal_Gateway extends Payment_Gateway {
 		$custom=isset($r['custom_id'])?$r['custom_id']:(isset($r['purchase_units'][0]['custom_id'])?$r['purchase_units'][0]['custom_id']:'');
 		$sub=isset($r['billing_agreement_id'])?$r['billing_agreement_id']:(isset($r['id'])&&false!==strpos($event_type,'SUBSCRIPTION')?$r['id']:'');
 		$period=isset($r['billing_info']['next_billing_time'])?strtotime($r['billing_info']['next_billing_time']):0;
+		$payment_id=isset($r['supplementary_data']['related_ids']['capture_id'])?$r['supplementary_data']['related_ids']['capture_id']:(in_array($event_type,array('PAYMENT.CAPTURE.COMPLETED','PAYMENT.CAPTURE.REFUNDED'),true)&&isset($r['id'])?$r['id']:'');
 		return array('event_id'=>sanitize_text_field($event['id']),'event_type'=>sanitize_text_field($event_type),'type'=>$type,
 			'order_public_id'=>sanitize_text_field($custom),'gateway_order_id'=>sanitize_text_field($related),
-			'gateway_session_id'=>'','subscription_id'=>sanitize_text_field($sub),'period_end'=>$period?gmdate('Y-m-d H:i:s',$period):'',
+			'gateway_session_id'=>'','gateway_payment_id'=>sanitize_text_field($payment_id),'subscription_id'=>sanitize_text_field($sub),'period_end'=>$period?gmdate('Y-m-d H:i:s',$period):'',
 			'status'=>isset($r['status'])?sanitize_key($r['status']):'','customer_email'=>'',
 			'amount'=>isset($r['amount']['value'])?(float)$r['amount']['value']:(isset($r['seller_receivable_breakdown']['gross_amount']['value'])?(float)$r['seller_receivable_breakdown']['gross_amount']['value']:null),
 			'currency'=>isset($r['amount']['currency_code'])?strtoupper(sanitize_text_field($r['amount']['currency_code'])):(isset($r['seller_receivable_breakdown']['gross_amount']['currency_code'])?strtoupper(sanitize_text_field($r['seller_receivable_breakdown']['gross_amount']['currency_code'])):''),
