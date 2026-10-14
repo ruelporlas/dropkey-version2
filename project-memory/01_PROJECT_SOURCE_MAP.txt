@@ -14,7 +14,10 @@ SOURCE-OF-TRUTH ORDER
 4. If sources conflict, inspect the actual files and report the conflict instead of guessing.
 
 CURRENT REPOSITORY BASELINE
-The repository was confirmed to exist and be accessible through the connected GitHub integration. A GitHub contents request reported that the repository was empty before this project-memory folder was created. No application source files have been inspected or established yet.
+- Repository: ruelporlas/dropkey-version2, branch main.
+- Milestone 1 source files were created and read back from GitHub on 2026-10-14.
+- Latest source commit for this milestone: https://github.com/ruelporlas/dropkey-version2/commit/002f5f26aae70d0e504e7ea8101e9d238668ffdc.
+- PHP syntax workflow passed on PHP 7.4, 8.0, and 8.3 for the latest commit. No WordPress runtime/integration environment was available in this task, so activation/database behavior remains unverified.
 
 KEY FILES
 - project-memory/01_PROJECT_SOURCE_MAP.txt — this map and source-of-truth rules.
@@ -26,5 +29,14 @@ KEY FILES
 - project-memory/07_CHANGE_HISTORY.txt — dated project changes and important decisions.
 - project-memory/08_WORKING_PREFERENCES_AND_PERMISSIONS.txt — collaboration preferences and access boundaries.
 - project-memory/AI_PROJECT_PROTOCOL.txt — mandatory working protocol for AI assistants.
+- dropkey-v2.php — plugin entry point, constants, class loading, and activation hook.
+- includes/class-plugin.php — plugin lifecycle and schema-version upgrade check.
+- includes/class-database.php — prefixed table names and dbDelta() schema installer.
+- includes/abstract-repository.php — shared CRUD operations and error handling.
+- includes/class-product-repository.php — product data validation and access.
+- includes/class-tier-repository.php — tier data validation, activation limits, product relation, and child-delete guard.
+- includes/class-billing-option-repository.php — billing option validation and tier relation.
+- .github/workflows/php-lint.yml — PHP syntax checks on PHP 7.4, 8.0, and 8.3.
+- README.md — milestone scope and local installation notes.
 
 Update this file whenever the project structure or authoritative source locations change.
