@@ -3,38 +3,52 @@ Project: DropKey Version 2
 Last updated: 2026-10-14
 
 CURRENT STATUS
-Milestones 1–3 source is committed to main. GitHub Actions PHP syntax checks passed on PHP 7.4, 8.0, and 8.3 for the latest implementation commit. WordPress integration/runtime tests have not yet been run.
+- Milestones 1–4 source is committed to main: admin data management, private versioned ZIP releases, licensing/downloads, hosted checkout, Stripe/PayPal adapters, orders/subscriptions, webhook processing, encrypted email queue, and the public storefront shortcode.
+- Milestone 5 network-free contract tests cover Stripe webhook signatures, PayPal provider-verification handling, and the reusable PHP licensing client.
+- Plugin version: 0.3.0. Database schema version: 6.
+- Latest CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895 passed PHP syntax checks and contract tests on PHP 7.4, 8.0, and 8.3.
+- WordPress runtime, actual provider sandbox checkout/webhooks, real email delivery, and live admin/storefront visual review have NOT been run in this work session.
 
 IMMEDIATE NEXT ACTION
-Update the plugin files installed on the user's WordPress test site from the latest repository source before beginning the next test. Changes pushed to GitHub do not automatically update an already installed plugin; the current source version is 0.2.0.
+Update the plugin installed on the user's WordPress test site with the latest source from the main branch, then run the WordPress integration checklist below. GitHub commits do not update an already installed plugin automatically. Do not use live payment credentials yet.
 
 TEST ORDER AFTER INSTALLING THE UPDATED SOURCE
-1. Confirm the plugin activates without a fatal error and the DropKey admin menu appears.
-2. Confirm schema version 3 and all seven dk2_ tables are created/upgraded with the site's real database prefix.
-3. Create and edit a product; publish it.
-4. Create a tier for that product, set an activation limit, publish it; create billing options and test free/paid field validation.
-5. Configure dk2_private_storage_path to a writable directory outside DOCUMENT_ROOT before uploading a test ZIP. Confirm the ZIP is not reachable through a public URL.
-6. Upload a versioned ZIP release, publish it, and verify the stored digest.
-7. Manually issue a license for a published product/tier. Copy the key once and confirm only its hash/prefix is stored.
-8. Test REST activate/deactivate/validate and activation-limit enforcement across multiple distinct site URLs; test wrong product slug on update checks.
-9. Create a protected download link. Test valid download, invalid token, expiry, five-download cap, inactive/expired license, and package integrity failure.
-10. Record actual outcomes and any reproduced errors in 05_VERIFICATION_EVIDENCE.txt before calling these milestones verified.
+1. Back up the WordPress database and current plugin folder; prefer staging.
+2. Replace the installed plugin files with the latest repository source (plugin version 0.3.0). Keep a rollback copy.
+3. Activate/reload WordPress and confirm no fatal error. Confirm the DropKey admin menu, dashboard counts/shortcuts, payment settings, orders, and subscriptions screens render.
+4. Confirm schema version 6 and all 12 prefixed tables exist: products, tiers, billing_options, releases, licenses, activations, download_tokens, orders, subscriptions, payment_events, email_queue, payments.
+5. Check the admin layout at desktop and mobile widths; inspect product/tier/billing/release/license/order/subscription tables and all form validation/notice states.
+6. Confirm the private package path is writable and outside both ABSPATH and the public document root; verify the web server cannot serve it directly before uploading packages.
+7. Configure Stripe test credentials and webhook signing secret. Register the required Stripe events from README. Never use live keys for this pass.
+8. Configure PayPal sandbox Client ID/Secret and webhook ID. For monthly/yearly options, create the subscription plan in PayPal sandbox and store its Plan ID in the matching billing option.
+9. Add [dropkey_store] to a test WordPress page. Confirm published products, tiers, billing options, activation limits, prices, email field, and available payment methods render correctly.
+10. Test free acquisition end to end: order record, license issuance, protected download token, queued customer email, and eventual email delivery.
+11. Test Stripe sandbox one-time checkout: approval/return, signed webhook, amount/currency validation, paid order, license, download, email, and duplicate webhook idempotency.
+12. Test PayPal sandbox one-time checkout: approval, server-side capture, amount/currency validation, webhook verification, paid order, license, download, and email.
+13. Test Stripe and PayPal subscriptions: initial paid fulfillment, period-end data, renewal success, payment failure, three-day grace, successful recovery, admin cancellation at period end, and access suspension after the paid-through date.
+14. Test refund and dispute events; confirm payment history matching and expected order/license state changes.
+15. Test bad signatures, expired Stripe signature timestamps, unknown event IDs, mismatched order amount/currency, invalid checkout input, and checkout rate limits.
+16. Confirm email retries, failed-email display, and administrator retry action; verify cron executes in the host's environment.
+17. Record exact pass/fail/blocked outcomes and errors in 05_VERIFICATION_EVIDENCE.txt. Do not label the milestones runtime-verified until these checks actually run.
 
-IMPORTANT SCOPE BOUNDARIES
-- Milestone 2 provides admin product, tier, billing option, and versioned ZIP release screens.
-- Milestone 3 provides manual license administration, website activations, expiring protected downloads, REST licensing/update endpoints, and a reusable PHP client.
-- Checkout, PayPal/Stripe, payment webhooks, orders/subscriptions, purchase emails, customer-facing account pages, rate limiting, and the full WordPress plugin update-screen integration are not implemented yet.
-- Never treat manual license issuance as proof of payment.
-- Configure and verify private storage outside the public document root before storing real product ZIPs.
+IMPLEMENTED SCOPE BOUNDARIES
+- Milestones 2–4 provide admin data management, protected releases, licensing, checkout, Stripe/PayPal integration code, payment webhook processing, subscription lifecycle, encrypted email queue, and storefront shortcode.
+- Milestone 5 adds network-free contract tests for payment webhook and client boundaries; it is not a full WordPress integration test suite.
+- Customer-facing account pages, guest-purchase account linking, and full WordPress Plugins-screen updater integration remain unimplemented.
+- Taxes, coupons, invoices, and trials remain deferred.
+- Manual license issuance remains an administrator grant, not evidence of payment.
+- PayPal recurring billing requires a pre-created provider plan ID.
+- Private storage must be confirmed outside the public web root before real product ZIPs are stored.
 
 ADMIN UX REQUIREMENT
-Product setup separates product details from tiers/pricing and exposes the next actions to add tiers or a ZIP release. Tier creation/editing exposes the configurable activation limit and gives helper text with editable examples.
+Product setup must keep product details distinct from tier/pricing setup and expose next-step links. Tier creation/editing must clearly explain the configurable activation limit and examples.
 
 CUSTOMER ACCOUNT UX REQUIREMENT
-A frontend account area remains required for a later milestone. It must show only the authenticated customer's own licenses and subscriptions and enforce ownership checks for every action.
+A future frontend account area must show only the authenticated customer's own licenses and subscriptions and enforce ownership checks for every action. Do not expose one customer's records to another customer.
 
 WORKING RULES
 - Actual repository files and latest verification results are the source of truth.
-- Ask when scope is unclear; do not get ahead of the user's request.
-- Keep implementation and runtime verification status separate.
-- Update these memory files after substantial project changes and verify each memory write by fetching the file again.
+- Read AI_PROJECT_PROTOCOL.txt before meaningful project work and inspect relevant source files.
+- Ask when scope is unclear; do not get ahead or expand scope without authorization.
+- Keep implemented source, static tests, runtime verification, and production readiness distinct.
+- Update relevant memory files after substantial changes and verify each memory write by fetching the file again.
