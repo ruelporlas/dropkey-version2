@@ -7,15 +7,20 @@ Turn the user's initial product description into a clear, testable MVP specifica
 
 COMPLETED IN THIS STEP
 - Captured the initial user-confirmed scope in 04_REQUIREMENTS_AND_RULES.txt.
+- Confirmed one product may offer multiple plans, including free, one-time purchase, monthly, and yearly options.
+- Recorded admin UI/UX requirements for a guided product and plan creation journey, contextual help, tooltips/equivalent help, validation, and next-step guidance.
 - Inspected the repository root; only project-memory/ was present.
 
 IMMEDIATE NEXT ACTION
 Resolve the highest-impact open decisions before designing data structures and payment/license flows. Start with:
 1. Minimum supported WordPress and PHP versions.
-2. Product pricing model: free, one-time purchase, monthly, yearly, and whether a product may offer multiple plans.
+2. Confirm plan types: free, one-time purchase, monthly, and yearly are in scope; determine whether any additional plan types are needed.
 3. License activation rules (for example, activation limit and domain/site identity).
 4. Subscription cancellation, failed-renewal, refund, and license-entitlement behavior.
 5. Whether customers must create accounts or may use guest checkout.
+
+ADMIN UX REQUIREMENT
+During architecture/design, propose a clear product-to-plans journey before implementation. It should explain product details and ZIP file separately from plans/pricing, show the next action after a product is saved, and use concise helper text/tooltips and actionable validation without overwhelming the admin.
 
 AFTER REQUIREMENTS ARE CLEAR
 - Propose an architecture for approval, including gateway adapters, payment/webhook processing, product/plan/order/subscription/license relationships, protected download delivery, and the client-plugin license SDK/API.
