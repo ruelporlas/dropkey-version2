@@ -11,7 +11,12 @@ final class Storefront {
 		add_shortcode('dropkey_store',array($this,'render'));
 		add_action('admin_post_dk2_public_checkout',array($this,'submit_checkout'));
 		add_action('admin_post_nopriv_dk2_public_checkout',array($this,'submit_checkout'));
-		wp_enqueue_style('dropkey-v2-storefront',DK2_URL.'assets/css/storefront.css',array(),DK2_VERSION);
+		add_action('wp_enqueue_scripts',array($this,'enqueue_assets'));
+	}
+	public function enqueue_assets() {
+		if (!is_singular()) return;
+		$post=get_post();
+		if ($post&&has_shortcode($post->post_content,'dropkey_store')) wp_enqueue_style('dropkey-v2-storefront',DK2_URL.'assets/css/storefront.css',array(),DK2_VERSION);
 	}
 	private function payment_settings() {
 		$settings=get_option('dk2_payment_settings',array());
@@ -49,7 +54,7 @@ final class Storefront {
 			$price='free'===$row->billing_type?__('Free','dropkey-v2'):strtoupper($row->currency).' '.number_format((float)$row->price,2);
 			$cadence='monthly'===$row->billing_type?__('per month','dropkey-v2'):('yearly'===$row->billing_type?__('per year','dropkey-v2'):('one_time'===$row->billing_type?__('one-time','dropkey-v2'):'')); 
 			echo '<article class="dk2-store-card"><div class="dk2-store-card-top"><div><p class="dk2-store-eyebrow">'.esc_html($row->product_name).'</p><h3>'.esc_html($row->tier_name).'</h3><p>'.esc_html(wp_strip_all_tags($row->tier_description?$row->tier_description:$row->product_description)).'</p></div><div class="dk2-store-price"><strong>'.esc_html($price).'</strong><span>'.esc_html($cadence).'</span></div></div>';
-			echo '<p class="dk2-store-limit">'.sprintf(esc_html__('%d active website%s included','dropkey-v2'),(int)$row->activation_limit,(1===(int)$row->activation_limit?'':'s').'</p>';
+			echo '<p class="dk2-store-limit">'.sprintf(esc_html__('%d active website%s included','dropkey-v2'),(int)$row->activation_limit,(1===(int)$row->activation_limit?'':'s')).'</p>';
 			echo '<form class="dk2-store-checkout" method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="dk2_public_checkout"><input type="hidden" name="billing_option_id" value="'.(int)$row->billing_option_id.'">';
 			wp_nonce_field('dk2_public_checkout','dk2_checkout_nonce');
 			echo '<label>'.esc_html__('Email address','dropkey-v2').'<input required type="email" name="customer_email" autocomplete="email" placeholder="you@example.com"></label>';
