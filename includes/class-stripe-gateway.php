@@ -33,6 +33,10 @@ final class Stripe_Gateway extends Payment_Gateway {
 		if (empty($result['id'])||empty($result['url'])) return new \WP_Error('dk2_stripe_session_invalid',__('Stripe did not return a checkout URL.','dropkey-v2'),array('status'=>502));
 		return array('session_id'=>sanitize_text_field($result['id']),'order_id'=>'','checkout_url'=>esc_url_raw($result['url']),'subscription_id'=>isset($result['subscription'])?sanitize_text_field($result['subscription']):'');
 	}
+	public function schedule_cancel($subscription_id) {
+		if (!$this->enabled()) return new \\WP_Error('dk2_stripe_not_configured',__('Stripe is not configured.','dropkey-v2'));
+		return $this->json_request('POST','https://api.stripe.com/v1/subscriptions/'.rawurlencode($subscription_id),array('headers'=>array('Authorization'=>'Bearer '.$this->config('secret'),'Content-Type'=>'application/x-www-form-urlencoded'),'body'=>http_build_query(array('cancel_at_period_end'=>'true'))));
+	}
 	public function verify_webhook($request) {
 		$secret=$this->config('webhook_secret');
 		if (''===$secret) return new \WP_Error('dk2_stripe_webhook_unconfigured',__('Stripe webhook signing secret is not configured.','dropkey-v2'),array('status'=>503));
