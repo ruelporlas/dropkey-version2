@@ -7,9 +7,10 @@ INITIAL EVIDENCE
 - Repository metadata: default branch main; repository visibility public; connected integration reported admin, push, and pull permissions.
 - Initial contents check: GitHub reported the repository empty before project-memory/ was created.
 - Current root contents check on 2026-10-14: GitHub Contents API returned only the project-memory/ directory.
-- Requirements documentation update: recorded the user's initial product requirements in project-memory/04_REQUIREMENTS_AND_RULES.txt. This confirms documentation was written, not that any feature exists.
+- Requirements documentation update: recorded the initial product requirements, multiple plans per product, one-time purchase option, and guided admin UI/UX expectations in project-memory files. This confirms documentation was written, not that any feature exists.
 - Application source inspection: no application source files were present in the latest root listing.
-- Build, lint, automated tests, payment tests, API tests, and runtime checks: not run; no application implementation is available to test.
+- Build, lint, automated tests, payment tests, API tests, admin UX checks, and runtime checks: not run; no application implementation is available to test.
+- Follow-up memory verification: fetched the updated requirements, current status, and change history from GitHub and confirmed they contain the one-time purchase decision. Next-steps/evidence files are being aligned to the same decision.
 
 EVIDENCE RECORD FORMAT
 - Date:
