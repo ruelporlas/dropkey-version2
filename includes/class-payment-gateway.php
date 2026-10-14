@@ -23,7 +23,7 @@ abstract class Payment_Gateway {
 		return '1'===$this->config('enabled') && ''!==$this->config('secret');
 	}
 	protected function json_request($method,$url,$args=array()) {
-		$defaults=array('timeout'=>20,'headers'=>array('Accept'=>'application/json'),'body'=>'');
+		$defaults=array('timeout'=>20,'redirection'=>0,'sslverify'=>true,'headers'=>array('Accept'=>'application/json'),'body'=>'');
 		$args=wp_parse_args($args,$defaults);
 		$response=wp_remote_request($url,array_merge($args,array('method'=>$method)));
 		if (is_wp_error($response)) return new \WP_Error('dk2_gateway_transport',__('The payment provider could not be reached. Please try again.','dropkey-v2'),array('status'=>502));
