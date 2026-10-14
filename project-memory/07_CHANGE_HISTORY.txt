@@ -15,6 +15,16 @@ PROJECT CHANGE HISTORY
 Project: DropKey Version 2
 Newest entries first.
 
+2026-10-14 — Implemented Milestones 4–5 source and improved the interface
+- What changed: Added a public product catalog/checkout shortcode ([dropkey_store]), hosted Stripe Checkout and PayPal order/subscription adapters, payment settings, checkout/capture/webhook REST routes, order/subscription/payment-event/payment-history records, payment amount/currency validation, webhook idempotency, subscription period lookup and end-of-period admin cancellation, encrypted transactional email queue/retries/admin resend, checkout rate limiting, and a more polished responsive admin UI with dashboard metrics/shortcuts and Orders/Payment Settings screens. Bumped plugin version to 0.3.0 and schema version to 6. Added network-free Stripe/PayPal webhook and PHP client contract tests.
+- Why: The user authorized proceeding to Milestones 4 and 5 and requested a substantial improvement to the interface before doing another WordPress test.
+- Important boundaries: PayPal recurring options require a plan ID created in PayPal. Customer-facing account pages, guest-purchase account linking, and full WordPress Plugins-screen updater integration remain unimplemented. Real provider checkout, webhooks, WordPress runtime, visual browser behavior, and mail delivery have not been tested in this session.
+- Verification: GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895 passed PHP syntax checks and 23 network-free contract assertions on PHP 7.4, 8.0, and 8.3. This is not a WordPress integration or live-provider test.
+- Main implementation commit: https://github.com/ruelporlas/dropkey-version2/commit/33cfae290d87cdbad145abc9d95aea3aa30eb20c
+- Latest test commit: https://github.com/ruelporlas/dropkey-version2/commit/57c7cb97788367f2169b73e33424ca3753ab840a
+- Memory files updated: source map, current status, architecture/decisions, requirements/status, verification evidence, next steps, and change history; read-back verification still required.
+
+
 2026-10-14 — Implemented Milestones 2 and 3 source
 - What changed: Added DropKey admin screens for products, tiers, billing options, versioned ZIP releases, license issuance/status, active-site activation management, and protected download-link generation. Expanded schema to version 3 with releases, licenses, activations, and download tokens. Added private ZIP storage validation, license issuance/activation/validation service, hashed expiring download tokens, versioned REST routes, and portable PHP client. Updated bootstrap and README.
 - Why: The user explicitly asked to complete Milestones 2 and 3 before doing another WordPress test.
