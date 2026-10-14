@@ -70,3 +70,12 @@ Milestones 4–5 verification record — 2026-10-14
 - Stripe/PayPal sandbox checkout and webhook delivery: NOT RUN. PayPal subscription plan configuration, subscription renewal/failure/cancellation, refunds/disputes, and actual customer email delivery remain unverified.
 - Admin/storefront visual review in a running WordPress browser: NOT RUN. The interface styling and shortcode are implemented in source but have not been visually confirmed on the user's site.
 - Overall status: static syntax and network-free contract checks PASS; WordPress runtime, provider sandbox, and visual integration remain NOT RUN.
+
+
+Customer account portal verification record — 2026-10-15
+- Source commit: https://github.com/ruelporlas/dropkey-version2/commit/65af56a43bb0a82ff9791a44db0426a2043a4f24.
+- GitHub Actions run: https://github.com/ruelporlas/dropkey-version2/actions/runs/38655993037 — completed successfully; PHP syntax checks and the existing network-free contract test script passed on PHP 7.4, 8.0, and 8.3.
+- GitHub read-back confirmed `includes/class-customer-account.php`, schema version 7, `License_Service::reveal_key()`, and plugin bootstrap registration are present.
+- WordPress activation/dbDelta migration, login/ownership tests, activation deactivation, download-token generation, password changes, key display in-browser, and responsive visual review: NOT RUN.
+- Guest-purchase account linking: NOT IMPLEMENTED. Legacy license keys created before encrypted storage cannot be recovered from hashes. Encrypted key display depends on stable WordPress auth salts.
+- Result: static/contract CI PASS; runtime integration and security behavior NOT VERIFIED.
