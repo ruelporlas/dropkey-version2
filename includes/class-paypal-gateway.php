@@ -66,6 +66,13 @@ final class PayPal_Gateway extends Payment_Gateway {
 		if (null===$amount||strtoupper($order->currency)!==strtoupper($currency)||abs($amount-(float)$order->amount)>0.009) return new \WP_Error('dk2_paypal_amount_mismatch',__('The captured PayPal amount does not match this order.','dropkey-v2'),array('status'=>409));
 		return array('provider_capture_id'=>isset($result['purchase_units'][0]['payments']['captures'][0]['id'])?sanitize_text_field($result['purchase_units'][0]['payments']['captures'][0]['id']):'','status'=>'paid');
 	}
+	public function subscription_details($subscription_id) {
+		$token=$this->access_token(); if (is_wp_error($token)) return $token;
+		$data=$this->paypal_request('GET','/v1/billing/subscriptions/'.rawurlencode($subscription_id),$token);
+		if (is_wp_error($data)) return $data;
+		$stamp=!empty($data['billing_info']['next_billing_time'])?strtotime($data['billing_info']['next_billing_time']):0;
+		return array('period_end'=>$stamp?gmdate('Y-m-d H:i:s',$stamp):'','status'=>isset($data['status'])?sanitize_key($data['status']):'');
+	}
 	public function cancel_subscription_now($subscription_id) {
 		$token=$this->access_token(); if (is_wp_error($token)) return $token;
 		return $this->paypal_request('POST','/v1/billing/subscriptions/'.rawurlencode($subscription_id).'/cancel',$token,array('reason'=>'Subscription period ended as scheduled by DropKey.'));
