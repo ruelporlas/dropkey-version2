@@ -18,7 +18,7 @@ Activation creates a **DropKey** menu with:
 - **Tiers:** create/edit product tiers, descriptions, and per-tier maximum website activations.
 - **Billing Options:** configure free, one-time, monthly, and yearly options, prices, currency, and status.
 - **ZIP Releases:** upload versioned ZIP files and set release notes/status.
-- **Licenses:** manually issue licenses for published products/tiers, change license status, inspect activations via the database, and generate protected download links.
+- **Licenses:** manually issue licenses for published products/tiers, change license status, view and deactivate active website activations, and generate protected download links.
 
 A license key is shown only when issued. DropKey stores the SHA-256 hash and a short prefix, not the full key. Issuing a license from the admin is a manual grant, not proof of a completed payment.
 
