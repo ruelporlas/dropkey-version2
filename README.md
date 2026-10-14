@@ -138,7 +138,7 @@ Manual license issuance is an administrator grant, not proof of a payment.
 
 ## Automated verification
 
-GitHub Actions lints PHP on PHP 7.4, 8.0, and 8.3 and runs network-free contract tests for Stripe webhook signatures and the reusable PHP client.
+GitHub Actions lints PHP on PHP 7.4, 8.0, and 8.3 and runs network-free contract tests for Stripe signature verification, PayPal's provider-verified webhook flow, and the reusable PHP client.
 
 These checks are not a substitute for running the plugin inside WordPress or testing real provider sandbox events. WordPress schema migration, storefront rendering, real Stripe/PayPal checkout, provider webhook delivery, email delivery, refund/dispute processing, and subscription lifecycle behavior still require end-to-end testing before production use.
 
