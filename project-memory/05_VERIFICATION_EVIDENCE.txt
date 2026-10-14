@@ -32,3 +32,5 @@ RULES
 - Clearly label checks that were not run.
 - Documentation presence is not implementation verification.
 - If a check fails, record the failure and relevant details; do not report it as passed.
+
+- REST API/PHP client planning decision (2026-10-14): user explicitly chose to design a versioned REST API and reusable PHP client together, with integration tests. Recorded as an architecture-planning decision in requirements and architecture memory. This confirms documentation only; no API, client, or tests have been implemented or run.
