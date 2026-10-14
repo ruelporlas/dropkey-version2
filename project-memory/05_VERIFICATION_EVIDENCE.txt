@@ -49,3 +49,13 @@ Project-memory consistency check — 2026-10-14
 - Reconciled stale open-question entries in 04_REQUIREMENTS_AND_RULES.txt with already confirmed MVP decisions (WP/PHP baseline, example activation limits, versioned releases, private-host ZIP storage, reissuable download links, guest checkout, deferred taxes/coupons/invoices/trials, and customer account scope).
 - Fetched 04_REQUIREMENTS_AND_RULES.txt after the correction and confirmed the contradictory open-question phrases were removed.
 - This check verifies documentation consistency only; it does not add runtime or integration-test evidence.
+
+
+Milestones 2–3 verification record — 2026-10-14
+- Source files committed/read back from GitHub: admin screens, expanded schema, private storage, license service, download service, versioned REST API, portable SDK, bootstrap, and README.
+- Latest syntax workflow: https://github.com/ruelporlas/dropkey-version2/actions/runs/38585122536 (commit e5043e5c21506245c0458d5acbf41d386e733754). PHP syntax jobs for PHP 7.4, 8.0, and 8.3 completed successfully.
+- Several intermediate workflow runs failed on newly introduced namespace-separator syntax while iterating. The errors were corrected, and the latest run passed all three PHP versions. Earlier failed runs are not evidence of current failure; latest run is the current syntax evidence.
+- WordPress integration/runtime testing: NOT RUN. No WordPress test environment was available through this work session. Database migration, menu rendering, form submissions, ZIP upload, storage path detection, license activation-limit behavior, REST behavior, and streamed download behavior remain unverified at runtime.
+- Payment/webhook, purchase email, subscriptions, customer account area, rate limiting, and complete WordPress plugin updater are not implemented in these milestones.
+- Production warning: before uploading real packages, configure a writable path outside DOCUMENT_ROOT and confirm the web server cannot serve it directly. The plugin adds .htaccess/index.php defense-in-depth only.
+- Static syntax success is not a security review or WordPress integration pass.
