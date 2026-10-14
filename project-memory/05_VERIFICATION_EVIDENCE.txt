@@ -7,11 +7,13 @@ INITIAL EVIDENCE
 - Repository metadata: default branch main; repository visibility public.
 - Initial contents check: GitHub reported the repository empty before project-memory/ was created.
 - Latest root contents check: GitHub Contents API returned only the project-memory/ directory.
-- Requirements documentation records product management, checkout, payment gateway scope, protected downloads, customer email, licensing, extensible hooks, multiple plan types, and guided admin UX. This is documentation, not feature implementation.
-- New licensing requirement: user specified that tiers such as Basic, Plus, and Pro should define how many websites a license can activate. The requirements file records this as confirmed; example tier names and activation counts are not final.
+- Requirements documentation records product management, checkout, payment gateway scope, protected downloads, customer email, licensing, extensible hooks, multiple billing options per tier, guided admin UX, and frontend customer account management. This is documentation, not feature implementation.
+- Licensing requirement: user specified that tiers such as Basic, Plus, and Pro should define how many websites a license can activate. The requirements file records configurable per-tier limits; example tier names and activation counts are not final.
+- Customer account requirement: user specified that customers need a frontend account-management area for their licenses and subscriptions. Detailed pages and self-service actions remain undecided.
+- Product model decision: user agreed to Product → Tier → Billing Options; tier-level activation limits are not duplicated across billing options.
 - Application source inspection: no application source files were present in the latest root listing.
-- Build, lint, automated tests, payment tests, API tests, admin UX checks, and runtime checks: not run; no application implementation is available to test.
-- Documentation write verification: fetch the current requirements, status, next-steps, evidence, and history files after updates and confirm the latest requirement appears. This is documentation verification only.
+- Build, lint, automated tests, payment tests, API tests, customer account UX checks, and runtime checks: not run; no application implementation is available to test.
+- Documentation write verification for this update: pending fetch-after-write; do not treat documentation as implementation verification.
 
 EVIDENCE RECORD FORMAT
 - Date:
