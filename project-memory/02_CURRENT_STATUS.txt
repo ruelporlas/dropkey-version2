@@ -28,7 +28,7 @@ CONFIRMED PRODUCT SCOPE
 - Customer email containing the download link and license key.
 - License key generation and administration.
 - A simple reusable PHP file/component to integrate license activation in sold plugins.
-- Free, monthly, and yearly offerings/subscriptions.
+- Free, one-time purchase, monthly, and yearly plans; one product may support multiple plans.
 - WordPress action hooks for future extension.
 
 NOT IMPLEMENTED / NOT VERIFIED
