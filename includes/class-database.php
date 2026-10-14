@@ -8,6 +8,7 @@ namespace DropKey\V2;
 defined( 'ABSPATH' ) || exit;
 final class Database {
 	const VERSION_OPTION = 'dk2_db_version';
+	const SCHEMA_VERSION = '1';
 
 	public static function table( $table ) {
 		global $wpdb;
@@ -74,6 +75,6 @@ final class Database {
 		dbDelta( $sql_products );
 		dbDelta( $sql_tiers );
 		dbDelta( $sql_billing_options );
-		update_option( self::VERSION_OPTION, DK2_VERSION, false );
+		update_option( self::VERSION_OPTION, self::SCHEMA_VERSION, false );
 	}
 }
