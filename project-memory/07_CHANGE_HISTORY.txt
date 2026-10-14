@@ -6,7 +6,7 @@ Newest entries first.
 - What changed: Recorded that customers need a frontend account area to view and manage their own licenses and subscriptions. Detailed pages and self-service actions remain undecided.
 - Why: The user explicitly requested customer-facing account management for licenses and subscriptions.
 - Files / areas affected: project-memory/04_REQUIREMENTS_AND_RULES.txt, project-memory/02_CURRENT_STATUS.txt, project-memory/05_VERIFICATION_EVIDENCE.txt, project-memory/06_NEXT_STEPS.txt.
-- Verification: Memory update and follow-up fetch are intended; no application code or tests are involved. Record final verification outcome after fetching the updated files.
+- Verification: Follow-up GitHub fetch confirmed the updated memory files were saved. No application code or tests are involved.
 
 2026-10-14 — Accepted Product → Tier → Billing Options model
 - What changed: Recorded the accepted model in architecture/decision memory: a product has tiers; each tier owns tier-level settings such as activation limit and can enable applicable billing options.
