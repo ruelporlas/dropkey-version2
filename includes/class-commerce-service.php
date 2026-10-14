@@ -32,10 +32,11 @@ final class Commerce_Service {
 			$settings=get_option('dk2_payment_settings',array()); $config=isset($settings[$gateway])?$settings[$gateway]:array();
 			if (empty($config['enabled'])||('stripe'===$gateway&&(empty($config['secret'])||empty($config['webhook_secret'])))||('paypal'===$gateway&&(empty($config['client_id'])||empty($config['secret'])||empty($config['webhook_id'])))) return new \WP_Error('dk2_checkout_gateway_disabled',__('That payment method is not currently available.','dropkey-v2'),array('status'=>503));
 		}
-		$public_id=wp_generate_uuid4(); $now=current_time('mysql',true);
+		$public_id=wp_generate_uuid4(); $now=current_time('mysql',true); $customer_user_id=null;
+		if (is_user_logged_in()) { $current_user=wp_get_current_user(); if ($current_user&&strtolower($current_user->user_email)===strtolower($email)) $customer_user_id=(int)$current_user->ID; }
 		$ok=$wpdb->insert(Database::table('orders'),array(
 			'public_id'=>$public_id,'product_id'=>$billing->product_id,'tier_id'=>$billing->tier_id,'billing_option_id'=>$billing_id,
-			'customer_email'=>$email,'customer_user_id'=>null,'gateway'=>$gateway,'gateway_order_id'=>'','gateway_session_id'=>'',
+			'customer_email'=>$email,'customer_user_id'=>$customer_user_id?:null,'gateway'=>$gateway,'gateway_order_id'=>'','gateway_session_id'=>'',
 			'status'=>'pending','amount'=>(float)$billing->price,'currency'=>strtoupper($billing->currency?$billing->currency:'USD'),
 			'created_at'=>$now,'updated_at'=>$now
 		));
@@ -78,7 +79,7 @@ final class Commerce_Service {
 		if (!$locked) { $wpdb->query('ROLLBACK'); return new \WP_Error('dk2_order_not_found',__('The checkout order was not found.','dropkey-v2'),array('status'=>404)); }
 		if ('paid'===$locked->status && $locked->license_id) { $wpdb->query('COMMIT'); return $locked; }
 		$wpdb->update($orders,array('status'=>'processing','updated_at'=>current_time('mysql',true)),array('id'=>$locked->id));
-		$license=(new License_Service())->issue($locked->product_id,$locked->tier_id,$locked->customer_email,$locked->billing_option_id,'');
+		$license=(new License_Service())->issue($locked->product_id,$locked->tier_id,$locked->customer_email,$locked->billing_option_id,'',(int)$locked->customer_user_id);
 		if (is_wp_error($license)) { $wpdb->query('ROLLBACK'); return $license; }
 		$now=current_time('mysql',true);
 		$updated=$wpdb->update($orders,array('status'=>'paid','license_id'=>$license['id'],'updated_at'=>$now),array('id'=>$locked->id));

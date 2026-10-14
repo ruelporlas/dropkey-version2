@@ -20,6 +20,7 @@ DropKey V2 manages digital products, tiered licensing, private versioned ZIP rel
 5. Under **DropKey → ZIP Releases**, upload and publish a versioned ZIP. Paid and free checkout is blocked unless the product has a published release.
 6. Under **DropKey → Payment Settings**, configure test/sandbox credentials and webhook identifiers. Do not enable live payments until the complete checkout and webhook path has been tested.
 7. Create a WordPress page and place the shortcode `[dropkey_store]` in its content.
+8. Create a customer account page and place `[dropkey_account]` in its content. Customers must sign in to view account-linked records. Guest purchases are not automatically claimed by email; secure account linking remains pending.
 
 The public storefront lists published product tiers and billing options. Customers enter their email and continue to the provider-hosted payment page. DropKey does not store payment-card data.
 
@@ -124,6 +125,12 @@ if ( is_wp_error( $result ) ) {
 }
 ```
 
+## Customer account area
+
+Add `[dropkey_account]` to a WordPress page to provide a signed-in customer dashboard with linked licenses, copyable license keys for newly issued licenses, activation-site management, subscription status, purchase history, fresh protected download links, and profile/password updates. Customers cannot cancel subscriptions from this page; cancellation remains administrator-managed at the end of the paid period. Customer records are queried by linked WordPress user ID, not email alone. Guest purchases remain unlinked until a verified account-claim flow is implemented. Older licenses issued before encrypted key storage was added cannot have their original key recovered from the hash.
+
+License keys remain hash-checked for validation and are additionally encrypted with authenticated AES-256-GCM for display to their owner. The encryption key is derived from the site's WordPress auth salt; keep WordPress salts stable or encrypted keys may no longer be decryptable.
+
 ## Admin interface
 
 - **Products:** product create/edit/publish/archive and next-step links.
@@ -144,8 +151,7 @@ These checks are not a substitute for running the plugin inside WordPress or tes
 
 ## Not yet implemented
 
-- Customer-facing account pages for licenses, activations, subscriptions, purchase history, and profile management.
-- Guest-purchase account linking and customer identity verification.
+- Verified guest-purchase account linking and customer identity verification.
 - Automated PayPal catalog/plan creation.
 - Full integration into WordPress's Plugins update screen.
 - Complete production security review, concurrency testing, and full WordPress integration test suite.

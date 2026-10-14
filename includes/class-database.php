@@ -7,7 +7,7 @@ namespace DropKey\V2;
 defined( 'ABSPATH' ) || exit;
 final class Database {
 	const VERSION_OPTION = 'dk2_db_version';
-	const SCHEMA_VERSION = '6';
+	const SCHEMA_VERSION = '7';
 	public static function table( $table ) {
 		global $wpdb;
 		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue', 'payments' );
@@ -50,11 +50,12 @@ final class Database {
 		dbDelta("CREATE TABLE {$l} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT, product_id bigint(20) unsigned NOT NULL,
 			tier_id bigint(20) unsigned NOT NULL, billing_option_id bigint(20) unsigned DEFAULT NULL,
-			customer_email varchar(191) NOT NULL, license_hash char(64) NOT NULL, key_prefix varchar(24) NOT NULL,
+			customer_email varchar(191) NOT NULL, customer_user_id bigint(20) unsigned DEFAULT NULL,
+			license_hash char(64) NOT NULL, key_prefix varchar(24) NOT NULL, key_encrypted longtext DEFAULT NULL,
 			status varchar(20) NOT NULL DEFAULT 'active', expires_at datetime DEFAULT NULL,
 			created_at datetime NOT NULL, updated_at datetime NOT NULL,
 			PRIMARY KEY  (id), UNIQUE KEY license_hash (license_hash), KEY product_id (product_id),
-			KEY tier_id (tier_id), KEY customer_email (customer_email), KEY status (status)
+			KEY tier_id (tier_id), KEY customer_email (customer_email), KEY customer_user_id (customer_user_id), KEY status (status)
 		) {$c};");
 		dbDelta("CREATE TABLE {$a} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT, license_id bigint(20) unsigned NOT NULL,

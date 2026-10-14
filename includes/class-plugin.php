@@ -20,6 +20,8 @@ final class Plugin {
 		$email_service->register_hooks();
 		$storefront=new Storefront();
 		$storefront->register();
+		$customer_account=new Customer_Account();
+		$customer_account->register();
 		add_action('dk2_process_subscription_lifecycle',array(new Commerce_Service(),'process_subscription_lifecycle'));
 		add_action('init',array($this,'schedule_maintenance'));
 		if (is_admin()) {

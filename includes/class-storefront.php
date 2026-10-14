@@ -57,7 +57,7 @@ final class Storefront {
 			echo '<p class="dk2-store-limit">'.sprintf(esc_html__('%d active website%s included','dropkey-v2'),(int)$row->activation_limit,(1===(int)$row->activation_limit?'':'s')).'</p>';
 			echo '<form class="dk2-store-checkout" method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="dk2_public_checkout"><input type="hidden" name="billing_option_id" value="'.(int)$row->billing_option_id.'">';
 			wp_nonce_field('dk2_public_checkout','dk2_checkout_nonce');
-			echo '<label>'.esc_html__('Email address','dropkey-v2').'<input required type="email" name="customer_email" autocomplete="email" placeholder="you@example.com"></label>';
+			echo '<label>'.esc_html__('Email address','dropkey-v2').'<input required type="email" name="customer_email" autocomplete="email" value="'.esc_attr(is_user_logged_in()?wp_get_current_user()->user_email:'').'" placeholder="you@example.com"></label>';
 			if ('free'===$row->billing_type) echo '<input type="hidden" name="gateway" value="free">';
 			else {
 				echo '<label>'.esc_html__('Payment method','dropkey-v2').'<select required name="gateway"><option value="">'.esc_html__('Choose a payment method','dropkey-v2').'</option>';
