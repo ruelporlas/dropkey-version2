@@ -1,3 +1,9 @@
+2026-10-14 — Reconciled confirmed MVP policies in requirements memory
+- What changed: Removed stale open-question entries that contradicted already accepted choices and clarified which implementation details remain unresolved.
+- Why: Keep the official requirements file consistent with the user's confirmed decisions and the Milestone 1 status.
+- Files affected: project-memory/04_REQUIREMENTS_AND_RULES.txt and project-memory/05_VERIFICATION_EVIDENCE.txt.
+- Verification: Re-fetched the requirements file and all eight official memory files; the updated text was present. This was a documentation consistency check only.
+
 2026-10-14 — Implemented Milestone 1 plugin foundation and core data model
 - What changed: Added the WordPress plugin entry point and bootstrap, dbDelta() schema installer, Product/Tier/Billing Option tables, shared repository base and three repositories, README installation notes, and GitHub Actions PHP syntax workflow.
 - Why: The user explicitly authorized Milestone 1 with GitHub-first development and requested static checks plus WordPress integration testing where an environment is available.
