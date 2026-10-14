@@ -4,7 +4,7 @@
  * Run: php tests/payment-webhook-contract.php
  */
 if (!defined('ABSPATH')) define('ABSPATH',__DIR__.'/');
-$GLOBALS['dk2_test_options']=array('dk2_payment_settings'=>array('stripe'=>array('enabled'=>'1','secret'=>'sk_test_placeholder','webhook_secret'=>'whsec_contract_test')));
+$GLOBALS['dk2_test_options']=array('dk2_payment_settings'=>array('stripe'=>array('enabled'=>'1','secret'=>'sk_test_placeholder','webhook_secret'=>'whsec_contract_test'),'paypal'=>array('enabled'=>'1','client_id'=>'client_test','secret'=>'secret_test','webhook_id'=>'WH-TEST','live_mode'=>'0')));
 function __($text,$domain=null) { return $text; }
 function get_option($key,$default=array()) { return isset($GLOBALS['dk2_test_options'][$key])?$GLOBALS['dk2_test_options'][$key]:$default; }
 function sanitize_text_field($value) { return trim(strip_tags((string)$value)); }
@@ -23,6 +23,10 @@ function wp_remote_post($url,$args=array()) {
 	$GLOBALS['dk2_mock_request']=array('url'=>$url,'args'=>$args);
 	return isset($GLOBALS['dk2_mock_response'])?$GLOBALS['dk2_mock_response']:new WP_Error('mock_transport','mock transport failure');
 }
+function wp_remote_request($url,$args=array()) {
+	$GLOBALS['dk2_mock_api_request']=array('url'=>$url,'args'=>$args);
+	return isset($GLOBALS['dk2_mock_api_response'])?$GLOBALS['dk2_mock_api_response']:new WP_Error('mock_transport','mock provider API failure');
+}
 function wp_remote_retrieve_response_code($response) { return isset($response['response']['code'])?(int)$response['response']['code']:0; }
 function wp_remote_retrieve_body($response) { return isset($response['body'])?$response['body']:''; }
 class WP_Error {
@@ -37,6 +41,7 @@ class DropKey_Test_Request {
 	public function __construct($body,$signature) { $this->body=$body; $this->signature=$signature; }
 	public function get_body() { return $this->body; }
 	public function get_header($name) { return 'stripe-signature'===$name?$this->signature:''; }
+	public function get_headers() { return isset($GLOBALS['dk2_test_paypal_headers'])?$GLOBALS['dk2_test_paypal_headers']:array(); }
 }
 function check_case($condition,$message) {
 	if (!$condition) { fwrite(STDERR,"FAIL: ".$message."\n"); exit(1); }
@@ -90,4 +95,27 @@ check_case($invalid instanceof WP_Error&&'dk2_license_inactive'===$invalid->get_
 $GLOBALS['dk2_mock_response']=new WP_Error('mock_transport','offline');
 $offline=$client->validate('DK2-TEST-KEY');
 check_case($offline instanceof WP_Error&&'dk2_client_transport_error'===$offline->get_error_code(),'client treats transport failure as an error, not an invalid license');
-echo "All webhook and PHP client contract tests passed.\\n";
+
+require_once dirname(__DIR__).'/includes/class-paypal-gateway.php';
+$GLOBALS['dk2_mock_response']=array('response'=>array('code'=>200),'body'=>json_encode(array('access_token'=>'access_token_test')));
+$paypal_event=array('id'=>'WH-EVENT-001','event_type'=>'PAYMENT.CAPTURE.COMPLETED','resource'=>array(
+	'id'=>'CAPTURE-001','custom_id'=>'order-contract-uuid','amount'=>array('value'=>'12.50','currency_code'=>'USD'),
+	'supplementary_data'=>array('related_ids'=>array('order_id'=>'PAYPAL-ORDER-001','capture_id'=>'CAPTURE-001'))
+));
+$paypal_raw=json_encode($paypal_event);
+$GLOBALS['dk2_test_paypal_headers']=array(
+	'paypal-auth-algo'=>array('SHA256withRSA'),'paypal-cert-url'=>array('https://api.paypal.com/certs/test'),
+	'paypal-transmission-id'=>array('transmission-test'),'paypal-transmission-sig'=>array('signature-test'),
+	'paypal-transmission-time'=>array(gmdate('Y-m-d\\TH:i:s\\Z'))
+);
+$GLOBALS['dk2_mock_api_response']=array('response'=>array('code'=>200),'body'=>json_encode(array('verification_status'=>'SUCCESS')));
+$paypal_gateway=new \\DropKey\\V2\\PayPal_Gateway();
+$paypal_result=$paypal_gateway->verify_webhook(new DropKey_Test_Request($paypal_raw,''));
+check_case(!($paypal_result instanceof WP_Error),'accepts PayPal webhook after provider verification succeeds');
+check_case(isset($GLOBALS['dk2_mock_api_request']['args']['body'])&&false!==strpos($GLOBALS['dk2_mock_api_request']['args']['body'],'WH-TEST'),'sends the configured PayPal webhook ID for verification');
+check_case(isset($paypal_result['gateway_payment_id'])&&'CAPTURE-001'===$paypal_result['gateway_payment_id'],'extracts PayPal capture reference for refund matching');
+check_case(isset($paypal_result['amount'])&&12.5===$paypal_result['amount']&&'USD'===$paypal_result['currency'],'normalizes PayPal amount and currency');
+$GLOBALS['dk2_mock_api_response']=array('response'=>array('code'=>200),'body'=>json_encode(array('verification_status'=>'FAILURE')));
+$paypal_bad=$paypal_gateway->verify_webhook(new DropKey_Test_Request($paypal_raw,''));
+check_case($paypal_bad instanceof WP_Error&&'dk2_paypal_signature_invalid'===$paypal_bad->get_error_code(),'rejects PayPal webhook when provider verification fails');
+\necho "All webhook and PHP client contract tests passed.\\n";
