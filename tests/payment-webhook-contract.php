@@ -65,7 +65,7 @@ check_case(isset($result['event_id'])&&'evt_contract_001'===$result['event_id'],
 check_case(isset($result['order_public_id'])&&'order-contract-uuid'===$result['order_public_id'],'extracts the DropKey order reference');
 check_case(isset($result['amount'])&&12.5===$result['amount'],'normalizes Stripe minor units to the order currency amount');
 check_case(isset($result['currency'])&&'USD'===$result['currency'],'normalizes currency to uppercase');
-check_case(1===Payment_Gateway::minor_unit_factor('JPY'),'uses zero minor units for zero-decimal Stripe currencies');
+check_case(1===\DropKey\V2\Payment_Gateway::minor_unit_factor('JPY'),'uses zero minor units for zero-decimal Stripe currencies');
 check_case(isset($result['subscription_id'])&&'sub_contract_001'===$result['subscription_id'],'extracts subscription reference');
 $tampered=str_replace('1250','9999',$raw);
 $bad=$gateway->verify_webhook(new DropKey_Test_Request($tampered,'t='.$timestamp.',v1='.$signature));
