@@ -119,7 +119,11 @@ final class Admin {
 			foreach(array('active'=>__('Reactivate','dropkey-v2'),'suspended'=>__('Suspend','dropkey-v2'),'revoked'=>__('Revoke','dropkey-v2'),'expired'=>__('Mark expired','dropkey-v2')) as $status=>$label) { $this->form_start('license_status'); echo '<input type="hidden" name="id" value="'.(int)$x->id.'"><input type="hidden" name="status" value="'.esc_attr($status).'"><button class="button button-small">'.esc_html($label).'</button></form> '; }
 			$this->form_start('download_link'); echo '<input type="hidden" name="license_id" value="'.(int)$x->id.'"><label>'.esc_html__('Release','dropkey-v2').' <select name="release_id">'; $rels=Database::table('releases'); $available=$wpdb->get_results($wpdb->prepare("SELECT id,version FROM {$rels} WHERE product_id=%d AND status='published' ORDER BY id DESC",$x->product_id)); foreach($available as $rel) echo '<option value="'.(int)$rel->id.'">'.esc_html($rel->version).'</option>'; echo '</select></label> <button class="button button-small">'.esc_html__('Create download link','dropkey-v2').'</button></form></td></tr>';
 		}
-		if(!$rows) echo '<tr><td colspan="6">'.esc_html__('No licenses yet.','dropkey-v2').'</td></tr>'; echo '</tbody></table>'; $this->footer();
+		if(!$rows) echo '<tr><td colspan="6">'.esc_html__('No licenses yet.','dropkey-v2').'</td></tr>'; echo '</tbody></table>';
+		$acts=Database::table('activations'); $active=$wpdb->get_results("SELECT a.*,l.customer_email,l.key_prefix,p.name AS product_name FROM {$acts} a INNER JOIN {$lt} l ON l.id=a.license_id INNER JOIN {$products} p ON p.id=l.product_id WHERE a.status='active' ORDER BY a.id DESC LIMIT 200");
+		echo '<h2>'.esc_html__('Active website activations','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Product / license','dropkey-v2').'</th><th>'.esc_html__('Customer','dropkey-v2').'</th><th>'.esc_html__('Site URL','dropkey-v2').'</th><th>'.esc_html__('Activated','dropkey-v2').'</th><th>'.esc_html__('Action','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($active as $act) { echo '<tr><td>'.(int)$act->id.'</td><td>'.esc_html($act->product_name.' / '.$act->key_prefix.'…').'</td><td>'.esc_html($act->customer_email).'</td><td>'.esc_html($act->site_url).'</td><td>'.esc_html($act->activated_at).'</td><td>'; $this->form_start('activation_status'); echo '<input type="hidden" name="id" value="'.(int)$act->id.'"><input type="hidden" name="status" value="inactive"><button class="button button-small">'.esc_html__('Deactivate site','dropkey-v2').'</button></form></td></tr>'; }
+		if(!$active) echo '<tr><td colspan="6">'.esc_html__('No active website activations.','dropkey-v2').'</td></tr>'; echo '</tbody></table>'; $this->footer();
 	}
 	public function handle() {
 		$this->guard(); global $wpdb; $action=isset($_POST['action'])?sanitize_key(wp_unslash($_POST['action'])):'';
@@ -147,6 +151,10 @@ final class Admin {
 		} elseif ('dk2_download_link'===$action) {
 			$page='dk2-licenses'; $result=(new Download_Service())->create_token(absint($_POST['license_id']??0),absint($_POST['release_id']??0));
 			if (!is_wp_error($result)) $this->redirect($page,'link',array('url'=>$result['url']));
+		} elseif ('dk2_activation_status'===$action) {
+			$page='dk2-licenses'; $activation_id=absint($_POST['id']??0); $status=sanitize_key($_POST['status']??'');
+			if ('inactive'!==$status) $result=new \\WP_Error('dk2_activation_status_invalid',__('Only deactivation is supported from this screen.','dropkey-v2'));
+			else { $result=$wpdb->update(Database::table('activations'),array('status'=>'inactive','deactivated_at'=>current_time('mysql',true)),array('id'=>$activation_id,'status'=>'active')); if(false!==$result) $result=true; else $result=new \\WP_Error('dk2_activation_update_failed',__('The activation could not be deactivated.','dropkey-v2')); }
 		} else { wp_die(esc_html__('Unknown DropKey action.','dropkey-v2')); }
 		if (is_wp_error($result)) $this->redirect($page,'error',array('message'=>rawurlencode($result->get_error_message())));
 		$this->redirect($page,$id?'saved':'created');
