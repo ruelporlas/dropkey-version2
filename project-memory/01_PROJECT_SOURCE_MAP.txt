@@ -15,8 +15,8 @@ SOURCE-OF-TRUTH ORDER
 
 CURRENT REPOSITORY BASELINE
 - Repository: ruelporlas/dropkey-version2, branch main.
-- Milestone 1 data foundation remains in place; Milestones 2 and 3 source were added on 2026-10-14.
-- Latest verified PHP syntax workflow at time of update: https://github.com/ruelporlas/dropkey-version2/actions/runs/38585122536; PHP 7.4, 8.0, and 8.3 passed.
+- Milestone 1 data foundation remains in place; Milestones 2–4 source and Milestone 5 contract tests were added on 2026-10-14.
+- Latest verified PHP syntax and contract-test workflow: https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895 (commit 57c7cb97788367f2169b73e33424ca3753ab840a); PHP 7.4, 8.0, and 8.3 passed.
 - WordPress runtime/integration tests have not been run; the user's previously activated copy must be updated with the latest repository files before testing these milestones.
 
 KEY FILES
@@ -31,16 +31,25 @@ KEY FILES
 - project-memory/AI_PROJECT_PROTOCOL.txt — mandatory working protocol for AI assistants.
 - dropkey-v2.php — plugin entry point, constants, class loading, and activation hook.
 - includes/class-plugin.php — plugin lifecycle, schema-version upgrade check, admin and REST route registration.
-- includes/class-database.php — prefixed table names and dbDelta() schema installer for products, tiers, billing options, releases, licenses, activations, and download tokens.
+- includes/class-database.php — schema version 6 and dbDelta() tables for products, tiers, billing options, releases, licenses, activations, download tokens, orders, subscriptions, payment events, email queue, and payment history.
 - includes/abstract-repository.php — shared CRUD operations and error handling.
 - includes/class-product-repository.php — product data validation and access.
 - includes/class-tier-repository.php — tier data validation, activation limits, product relation, and child-delete guard.
 - includes/class-billing-option-repository.php — billing option validation and tier relation.
-- includes/class-admin.php — DropKey admin menu, product/tier/billing/release/license management, activation deactivation, and protected download-link actions.
+- includes/class-admin.php — polished DropKey admin screens, dashboard counts/shortcuts, product/tier/billing/release/license management, payment settings, orders/subscriptions, email retry, activation deactivation, and protected download-link actions.
 - includes/class-private-storage.php — ZIP upload checks and private package storage path guard.
 - includes/class-license-service.php — license issuance, validation, activation-limit enforcement, and status changes.
 - includes/class-download-service.php — hashed expiring download tokens, download cap, and package integrity checks.
-- includes/class-rest-api.php — versioned activation, deactivation, validation, update-check, and protected download routes.
+- includes/class-rest-api.php — versioned activation, deactivation, validation, update-check, protected download, checkout, PayPal capture, and Stripe/PayPal webhook routes.
+- includes/class-payment-gateway.php — shared payment gateway boundary and currency minor-unit handling.
+- includes/class-stripe-gateway.php — hosted Stripe Checkout, signed webhook verification, subscription period lookup, and cancellation-at-period-end.
+- includes/class-paypal-gateway.php — hosted PayPal orders/subscriptions, provider-verified webhooks, server-side capture, subscription lookup, and deferred cancellation.
+- includes/class-commerce-service.php — checkout orders, fulfillment, subscription state, payment history, webhook idempotency, and lifecycle processing.
+- includes/class-email-service.php — authenticated encrypted email queue, retry scheduling, and admin resend support.
+- includes/class-storefront.php — public `[dropkey_store]` product catalog/checkout shortcode.
+- assets/css/admin.css — scoped WordPress admin styling and responsive dashboard cards.
+- assets/css/storefront.css — responsive public checkout cards and forms.
+- tests/payment-webhook-contract.php — network-free Stripe/PayPal webhook and reusable PHP client contract tests.
 - sdk/dropkey-license-client.php — reusable WordPress PHP client for sold plugins.
 - .github/workflows/php-lint.yml — PHP syntax checks on PHP 7.4, 8.0, and 8.3.
 - README.md — milestone scope and local installation notes.
