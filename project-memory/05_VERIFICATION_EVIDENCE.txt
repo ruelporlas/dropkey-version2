@@ -34,3 +34,12 @@ RULES
 - If a check fails, record the failure and relevant details; do not report it as passed.
 
 - REST API/PHP client planning decision (2026-10-14): user explicitly chose to design a versioned REST API and reusable PHP client together, with integration tests. Recorded as an architecture-planning decision in requirements and architecture memory. This confirms documentation only; no API, client, or tests have been implemented or run.
+
+
+Milestone 1 verification record — 2026-10-14
+- Source read-back: fetched all seven PHP/source files plus README and workflow from GitHub after writes; each file returned content and a blob SHA.
+- PHP syntax workflow: GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38578873138 completed successfully. Jobs php-lint (7.4), php-lint (8.0), and php-lint (8.3) all passed, including PHP file syntax lint.
+- Workflow correction: the first two workflow runs failed at the Set up PHP step because the matrix version interpolation included a literal backslash. Corrected the workflow and confirmed the later run passed; those initial failures were environment/workflow setup failures, not PHP syntax failures.
+- WordPress integration: not run. No configured WordPress installation/test database or WordPress test suite was available in this task. Plugin activation, dbDelta table creation/upgrades, repository CRUD, validation, and deletion guards remain unverified at runtime.
+- Payment/API/client tests: not applicable to implemented scope; those components do not exist yet.
+- Overall: static syntax verification passed for PHP 7.4, 8.0, and 8.3; WordPress integration status is not run, not passed.
