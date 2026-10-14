@@ -113,8 +113,8 @@ final class Commerce_Service {
 		}
 		if ($existing) $event_row_id=(int)$existing->id;
 		$result=true; $order=$this->find_order($gateway,$event);
-		if ('payment_succeeded'===$event['type']&&$order&&isset($event['amount'])&&null!==$event['amount']&&abs((float)$event['amount']-(float)$order->amount)>0.009) $result=new \\WP_Error('dk2_payment_amount_mismatch',__('The payment amount does not match the checkout order.','dropkey-v2'));
-		if ('payment_succeeded'===$event['type']&&$order&&!empty($event['currency'])&&strtoupper($event['currency'])!==strtoupper($order->currency)) $result=new \\WP_Error('dk2_payment_currency_mismatch',__('The payment currency does not match the checkout order.','dropkey-v2'));
+		if ('payment_succeeded'===$event['type']&&$order&&isset($event['amount'])&&null!==$event['amount']&&abs((float)$event['amount']-(float)$order->amount)>0.009) $result=new \WP_Error('dk2_payment_amount_mismatch',__('The payment amount does not match the checkout order.','dropkey-v2'));
+		if ('payment_succeeded'===$event['type']&&$order&&!empty($event['currency'])&&strtoupper($event['currency'])!==strtoupper($order->currency)) $result=new \WP_Error('dk2_payment_currency_mismatch',__('The payment currency does not match the checkout order.','dropkey-v2'));
 		if (is_wp_error($result)) {
 			// A signed provider event with mismatched money values is retained as a failed event for review.
 		} elseif ('ignored'===$event['type']) {
