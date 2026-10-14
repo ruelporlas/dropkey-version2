@@ -2,30 +2,10 @@ PROJECT CHANGE HISTORY
 Project: DropKey Version 2
 Newest entries first.
 
-2026-10-14 — Captured initial product requirements
-- What changed: Documented the user's initial scope for DropKey Version 2, including digital products, checkout, PayPal/Stripe MVP support, expiring download links, customer email, licensing, subscriptions, and action hooks.
-- Why: Establish the product scope before architecture or implementation.
+2026-10-14 — Confirmed one-time purchase plan option
+- What changed: Recorded that products may offer one-time purchase plans alongside free, monthly, and yearly options.
+- Why: The user explicitly requested a one-time purchase option.
 - Files / areas affected: project-memory/04_REQUIREMENTS_AND_RULES.txt, project-memory/02_CURRENT_STATUS.txt, project-memory/05_VERIFICATION_EVIDENCE.txt, project-memory/06_NEXT_STEPS.txt.
-- Verification: Read back the updated memory files after writing; repository root contents inspected and only project-memory/ was returned. No application tests run.
-- Commit or reference: GitHub commits created by the memory-file updates.
+- Verification: Updated project memory through GitHub; no application code or tests involved.
 
-2026-10-14 — Initialized project memory
-- Confirmed access to GitHub repository ruelporlas/dropkey-version2.
-- Identified main as the default branch.
-- GitHub contents API reported the repository empty before the memory folder was created.
-- Started a fresh project baseline; previous implementation details are not presumed to apply.
-- Created the project-memory documentation set and AI working protocol.
 
-ENTRY FORMAT
-Date — Short change title
-- What changed:
-- Why:
-- Files / areas affected:
-- Verification:
-- Commit or reference:
-
-RULES
-- Record meaningful implementation changes, requirement changes, and accepted decisions.
-- Keep entries factual and concise.
-- Do not invent commit identifiers.
-- Do not delete earlier history merely because a decision or implementation is later replaced.
