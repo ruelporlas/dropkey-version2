@@ -15,9 +15,9 @@ SOURCE-OF-TRUTH ORDER
 
 CURRENT REPOSITORY BASELINE
 - Repository: ruelporlas/dropkey-version2, branch main.
-- Milestone 1 source files were created and read back from GitHub on 2026-10-14.
-- Latest source commit for this milestone: https://github.com/ruelporlas/dropkey-version2/commit/002f5f26aae70d0e504e7ea8101e9d238668ffdc.
-- PHP syntax workflow passed on PHP 7.4, 8.0, and 8.3 for the latest commit. No WordPress runtime/integration environment was available in this task, so activation/database behavior remains unverified.
+- Milestone 1 data foundation remains in place; Milestones 2 and 3 source were added on 2026-10-14.
+- Latest verified PHP syntax workflow at time of update: https://github.com/ruelporlas/dropkey-version2/actions/runs/38585122536; PHP 7.4, 8.0, and 8.3 passed.
+- WordPress runtime/integration tests have not been run; the user's previously activated copy must be updated with the latest repository files before testing these milestones.
 
 KEY FILES
 - project-memory/01_PROJECT_SOURCE_MAP.txt — this map and source-of-truth rules.
@@ -30,12 +30,18 @@ KEY FILES
 - project-memory/08_WORKING_PREFERENCES_AND_PERMISSIONS.txt — collaboration preferences and access boundaries.
 - project-memory/AI_PROJECT_PROTOCOL.txt — mandatory working protocol for AI assistants.
 - dropkey-v2.php — plugin entry point, constants, class loading, and activation hook.
-- includes/class-plugin.php — plugin lifecycle and schema-version upgrade check.
-- includes/class-database.php — prefixed table names and dbDelta() schema installer.
+- includes/class-plugin.php — plugin lifecycle, schema-version upgrade check, admin and REST route registration.
+- includes/class-database.php — prefixed table names and dbDelta() schema installer for products, tiers, billing options, releases, licenses, activations, and download tokens.
 - includes/abstract-repository.php — shared CRUD operations and error handling.
 - includes/class-product-repository.php — product data validation and access.
 - includes/class-tier-repository.php — tier data validation, activation limits, product relation, and child-delete guard.
 - includes/class-billing-option-repository.php — billing option validation and tier relation.
+- includes/class-admin.php — DropKey admin menu, product/tier/billing/release/license management, activation deactivation, and protected download-link actions.
+- includes/class-private-storage.php — ZIP upload checks and private package storage path guard.
+- includes/class-license-service.php — license issuance, validation, activation-limit enforcement, and status changes.
+- includes/class-download-service.php — hashed expiring download tokens, download cap, and package integrity checks.
+- includes/class-rest-api.php — versioned activation, deactivation, validation, update-check, and protected download routes.
+- sdk/dropkey-license-client.php — reusable WordPress PHP client for sold plugins.
 - .github/workflows/php-lint.yml — PHP syntax checks on PHP 7.4, 8.0, and 8.3.
 - README.md — milestone scope and local installation notes.
 
