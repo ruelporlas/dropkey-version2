@@ -11,15 +11,15 @@ final class Email_Service {
 	}
 	private function encrypt($plain) {
 		if (!function_exists('openssl_encrypt')) return new \WP_Error('dk2_email_encryption_unavailable',__('Email retry storage requires OpenSSL.','dropkey-v2'));
-		$iv=openssl_random_pseudo_bytes(16);
-		if (false===$iv) return new \WP_Error('dk2_email_encryption_failed',__('The email could not be securely queued.','dropkey-v2'));
-		$cipher=openssl_encrypt($plain,'aes-256-cbc',hash('sha256',wp_salt('auth'),true),OPENSSL_RAW_DATA,$iv);
-		return false===$cipher?new \WP_Error('dk2_email_encryption_failed',__('The email could not be securely queued.','dropkey-v2')):base64_encode($iv.$cipher);
+		$strong=false; $iv=openssl_random_pseudo_bytes(12,$strong);
+		if (false===$iv||!$strong) return new \WP_Error('dk2_email_encryption_failed',__('The email could not be securely queued.','dropkey-v2'));
+		$tag=''; $cipher=openssl_encrypt($plain,'aes-256-gcm',hash('sha256',wp_salt('auth'),true),OPENSSL_RAW_DATA,$iv,$tag);
+		return false===$cipher||16!==strlen($tag)?new \WP_Error('dk2_email_encryption_failed',__('The email could not be securely queued.','dropkey-v2')):base64_encode($iv.$tag.$cipher);
 	}
 	private function decrypt($encoded) {
 		if (!function_exists('openssl_decrypt')) return false;
-		$data=base64_decode($encoded,true); if (false===$data||strlen($data)<17) return false;
-		return openssl_decrypt(substr($data,16),'aes-256-cbc',hash('sha256',wp_salt('auth'),true),OPENSSL_RAW_DATA,substr($data,0,16));
+		$data=base64_decode($encoded,true); if (false===$data||strlen($data)<29) return false;
+		return openssl_decrypt(substr($data,28),'aes-256-gcm',hash('sha256',wp_salt('auth'),true),OPENSSL_RAW_DATA,substr($data,0,12),substr($data,12,16));
 	}
 	public function enqueue($order_id,$recipient,$subject,$body) {
 		global $wpdb;
