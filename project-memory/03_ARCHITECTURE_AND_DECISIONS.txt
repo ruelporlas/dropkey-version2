@@ -2,7 +2,23 @@ ARCHITECTURE AND TECHNICAL DECISIONS
 Last updated: 2026-10-14
 
 STATUS
-No application architecture or technical decisions have been approved for this fresh start.
+No application architecture or technical implementation decisions have been approved for this fresh start. The product configuration model below is an accepted functional/domain decision, not a complete technical architecture.
+
+DECISION LOG
+
+Date: 2026-10-14
+Decision: Use Product → Tier → Billing Options as the product-offering model.
+Context / problem: The user wants multiple licensing tiers and needs the activation limit to be configurable per tier, while supporting free, one-time, monthly, and yearly offerings.
+Options considered: (1) Each tier has billing options; (2) each tier-and-billing combination is treated as a separate plan.
+Reason for choosing: The user asked to choose the simpler option and agreed to the recommendation. Keeping tier settings together avoids duplicating tier-level settings such as activation limits across billing variants.
+Consequences and trade-offs:
+- A product can have multiple tiers.
+- A tier owns tier-level entitlements, including its configurable maximum active website count.
+- Each tier can enable applicable billing options (free, one-time, monthly, yearly).
+- Prices and billing cadence belong to their respective billing options.
+- Tier names and activation counts are not fixed by this decision.
+Status: accepted.
+Evidence or related files: project-memory/04_REQUIREMENTS_AND_RULES.txt, DK-008 and DK-010.
 
 DECISION LOG FORMAT
 For every meaningful decision, record:
