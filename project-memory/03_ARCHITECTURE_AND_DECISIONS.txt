@@ -20,6 +20,32 @@ Consequences and trade-offs:
 Status: accepted.
 Evidence or related files: project-memory/04_REQUIREMENTS_AND_RULES.txt, DK-008 and DK-010.
 
+
+Date: 2026-10-14
+Decision: Confirmed 17 MVP product-policy selections supplied by the user.
+Context / problem: Resolve key scope and behavior choices before proposing technical architecture; the user asked to record selections and explicitly prohibited application implementation at this stage.
+Options considered: The choices are detailed in project-memory/04_REQUIREMENTS_AND_RULES.txt under “USER-CONFIRMED MVP DECISIONS — 2026-10-14”.
+Reason for choosing: These are the user's explicit selections, not AI defaults.
+Consequences and trade-offs:
+- Compatibility baseline: WordPress 6.4+ / PHP 7.4+ (broader option).
+- Guest and account checkout are both allowed; guest purchases must be linkable to accounts.
+- Activation identity is exact site URL; canonicalization details remain open.
+- Editable launch examples: Basic 1, Plus 3, Pro 10 activations.
+- Both customer and admin can deactivate activations; transfers remain open.
+- Subscription cancellation is admin-managed.
+- Failed-payment grace period is 3 days.
+- Refund/chargeback baseline follows provider state, with a distinct chargeback policy to be defined.
+- Versioned ZIP releases and update API are in MVP.
+- ZIPs are privately stored on the hosting server, outside direct public access.
+- Expired download links can be reissued; starting limit is 5 downloads per link.
+- Taxes/coupons/invoices/trials are deferred.
+- Transactional email failures need retry and admin resend support.
+- Full frontend customer account area is in MVP; customer self-service actions are scoped in requirements.
+- Hosted PayPal/Stripe payment flows; store provider references/status, never card data; use provider billing portals for payment-method changes when available.
+- Delivery approach is milestone-based secure MVP; this decision does not authorize implementation in this task.
+Status: accepted as product/MVP decisions; technical design details remain open.
+Evidence or related files: User's explicit selections on 2026-10-14; project-memory/04_REQUIREMENTS_AND_RULES.txt.
+
 DECISION LOG FORMAT
 For every meaningful decision, record:
 - Date:
