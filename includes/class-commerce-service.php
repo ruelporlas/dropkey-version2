@@ -32,12 +32,14 @@ final class Commerce_Service {
 		));
 		if (!$ok) return new \WP_Error('dk2_checkout_order_failed',__('The checkout order could not be created.','dropkey-v2'),array('status'=>500));
 		$order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE id=%d',$wpdb->insert_id));
+		$latest_release=$wpdb->get_var($wpdb->prepare("SELECT id FROM ".Database::table('releases')." WHERE product_id=%d AND status='published' ORDER BY created_at DESC,id DESC LIMIT 1",$billing->product_id));
+		if (!$latest_release) {
+			$wpdb->delete(Database::table('orders'),array('id'=>$order->id),array('%d'));
+			return new \WP_Error('dk2_checkout_release_missing',__('This product has no published download release yet.','dropkey-v2'),array('status'=>409));
+		}
 		if ('free'===$gateway) {
-			$license=(new License_Service())->issue($billing->product_id,$billing->tier_id,$email,$billing_id,'');
-			if (is_wp_error($license)) { $wpdb->update(Database::table('orders'),array('status'=>'failed','updated_at'=>current_time('mysql',true)),array('id'=>$order->id)); return $license; }
-			$wpdb->update(Database::table('orders'),array('status'=>'paid','license_id'=>$license['id'],'updated_at'=>current_time('mysql',true)),array('id'=>$order->id));
-			$this->queue_fulfillment_email($order,$license['id'],$license['license_key']);
-			do_action('dk2_order_paid',(int)$order->id,(int)$license['id'],'free');
+			$completed=$this->complete_order($order,array());
+			if (is_wp_error($completed)) return $completed;
 			return array('order_id'=>$public_id,'status'=>'completed','checkout_url'=>add_query_arg('dk2_order',$public_id,$success_url));
 		}
 		$success_url=wp_validate_redirect($success_url,home_url('/')); $cancel_url=wp_validate_redirect($cancel_url,home_url('/'));
@@ -50,15 +52,14 @@ final class Commerce_Service {
 	private function queue_fulfillment_email($order,$license_id,$license_key) {
 		global $wpdb;
 		$release=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".Database::table('releases')." WHERE product_id=%d AND status='published' ORDER BY created_at DESC,id DESC LIMIT 1",$order->product_id));
-		$download_url='';
-		if ($release) {
-			$link=(new Download_Service())->create_token($license_id,$release->id);
-			if (!is_wp_error($link)) $download_url=$link['url'];
-		}
-		$body="Thank you for your purchase.\n\nProduct: ".$order->product_id."\nLicense key: ".$license_key."\n";
-		if ($download_url) $body.="Download: ".$download_url."\nThis download link expires in 48 hours and allows up to 5 downloads.\n";
+		if (!$release) return new \WP_Error('dk2_fulfillment_release_missing',__('No published download release is available for this order.','dropkey-v2'));
+		$link=(new Download_Service())->create_token($license_id,$release->id);
+		if (is_wp_error($link)) return $link;
+		$product_name=$wpdb->get_var($wpdb->prepare('SELECT name FROM '.Database::table('products').' WHERE id=%d',$order->product_id));
+		$body="Thank you for your purchase.\n\nProduct: ".$product_name."\nLicense key: ".$license_key."\nDownload: ".$link['url']."\nThis download link expires in 48 hours and allows up to 5 downloads.\n";
 		$queued=(new Email_Service())->enqueue($order->id,$order->customer_email,'Your DropKey purchase',$body);
-		if (is_wp_error($queued)) do_action('dk2_fulfillment_email_queue_error',(int)$order->id,$queued->get_error_code());
+		if (is_wp_error($queued)) { do_action('dk2_fulfillment_email_queue_error',(int)$order->id,$queued->get_error_code()); return $queued; }
+		return $queued;
 	}
 	public function complete_order($order,$event=array()) {
 		global $wpdb;
@@ -71,13 +72,15 @@ final class Commerce_Service {
 		$license=(new License_Service())->issue($locked->product_id,$locked->tier_id,$locked->customer_email,$locked->billing_option_id,'');
 		if (is_wp_error($license)) { $wpdb->query('ROLLBACK'); return $license; }
 		$now=current_time('mysql',true);
-		$wpdb->update($orders,array('status'=>'paid','license_id'=>$license['id'],'updated_at'=>$now),array('id'=>$locked->id));
-		$wpdb->query('COMMIT');
+		$updated=$wpdb->update($orders,array('status'=>'paid','license_id'=>$license['id'],'updated_at'=>$now),array('id'=>$locked->id));
+		if (false===$updated) { $wpdb->query('ROLLBACK'); return new \WP_Error('dk2_order_fulfillment_failed',__('The order could not be marked as paid.','dropkey-v2'),array('status'=>500)); }
 		$locked->license_id=$license['id']; $locked->status='paid';
 		if (!empty($event['gateway_order_id'])) $wpdb->update($orders,array('gateway_order_id'=>$event['gateway_order_id']),array('id'=>$locked->id));
 		if (!empty($event['gateway_session_id'])) $wpdb->update($orders,array('gateway_session_id'=>$event['gateway_session_id']),array('id'=>$locked->id));
 		if (!empty($event['subscription_id'])) $this->save_subscription($locked,$license['id'],$event);
-		$this->queue_fulfillment_email($locked,$license['id'],$license['license_key']);
+		$queued=$this->queue_fulfillment_email($locked,$license['id'],$license['license_key']);
+		if (is_wp_error($queued)) { $wpdb->query('ROLLBACK'); return $queued; }
+		$wpdb->query('COMMIT');
 		do_action('dk2_order_paid',(int)$locked->id,(int)$license['id'],$locked->gateway);
 		return $locked;
 	}
