@@ -110,7 +110,7 @@ DKD-002 — Checkout accounts: guest checkout is allowed alongside account-based
 DKD-003 — Website activation identity: use the exact site URL as the activation identity. URL normalization, trailing slash, scheme, and URL-change behavior still need specification.
 DKD-004 — Example tiers/activation counts: use Basic (1 activation), Plus (3), and Pro (10) as initial editable examples, not hardcoded or mandatory global limits. Admin must be able to configure tier limits.
 DKD-005 — Activation management: customers and administrators can deactivate activations. Transfer behavior and any confirmation/cooldown rules remain open.
-DKD-006 — Subscription cancellation: cancellation is admin-managed; do not offer customer self-service cancellation in the initial account workflow unless later approved. Exact cancellation timing and customer messaging still need definition.
+DKD-006 — Subscription cancellation: cancellation is admin-managed and takes effect at the end of the paid period; the customer retains eligible access through the paid-through date. Do not offer customer self-service cancellation in the initial account workflow unless later approved. Admin override/exception behavior and customer messaging remain to be defined.
 DKD-007 — Failed payment: use a 3-day grace period as the initial policy. Exact status transitions, retry timing, timezone/boundary behavior, and entitlement behavior need specification.
 DKD-008 — Refunds/chargebacks: use payment-provider state as the baseline policy, with a separate chargeback policy rather than treating every case as automatically identical. Exact events and entitlement outcomes remain open.
 DKD-009 — Updates: include versioned ZIP releases and an update API/integration in the MVP, rather than deferring updates to a later release. Version retention and update compatibility rules remain open.
@@ -136,7 +136,7 @@ OPEN QUESTIONS — DO NOT GUESS
 - Minimum supported WordPress and PHP versions.
 - Exact activation counts for each tier.
 - How activations identify a website (domain, site URL, or another rule), and how administrators/customers deactivate or transfer activations.
-- Exact license and subscription statuses and how they affect activation after cancellation, failed renewal, refund, or chargeback.
+- Exact license and subscription statuses and how they affect activation after cancellation, failed renewal, refund, or chargeback; cancellation status transitions, customer notices, and whether/how admins can override a scheduled end-of-period cancellation.
 - Whether products may have multiple ZIP versions/releases and how updates are delivered.
 - Whether downloads can be reissued after the 48-hour link expires and whether there are download-count limits.
 - Whether files will be stored privately on the web host, in object storage, or elsewhere.
