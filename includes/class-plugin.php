@@ -17,6 +17,7 @@ final class Plugin {
 		add_action('init',array($this,'load_textdomain'));
 		add_action('rest_api_init',array($this,'register_rest_api'));
 		if (is_admin()) {
+			add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
 			$this->admin=new Admin();
 			add_action('admin_menu',array($this->admin,'register_menu'));
 			add_action('admin_init',array($this->admin,'register_handlers'));
@@ -31,5 +32,9 @@ final class Plugin {
 	public function register_rest_api() {
 		$api=new REST_API();
 		$api->register_routes();
+	}
+	public function enqueue_admin_assets($hook) {
+		if (false === strpos((string) $hook, 'dk2-')) return;
+		wp_enqueue_style('dropkey-v2-admin', DK2_URL . 'assets/css/admin.css', array(), DK2_VERSION);
 	}
 }
