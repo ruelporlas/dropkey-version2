@@ -65,7 +65,7 @@ final class REST_API {
 		$p=$this->payload($request);
 		$public_id=isset($p['order_id'])?sanitize_text_field($p['order_id']):'';
 		$paypal_id=isset($p['paypal_order_id'])?sanitize_text_field($p['paypal_order_id']):'';
-		if (''===$public_id||''===$paypal_id) return $this->error(new \\WP_Error('dk2_paypal_capture_fields',__('order_id and paypal_order_id are required.','dropkey-v2'),array('status'=>400)));
+		if (''===$public_id||''===$paypal_id) return $this->error(new \WP_Error('dk2_paypal_capture_fields',__('order_id and paypal_order_id are required.','dropkey-v2'),array('status'=>400)));
 		$result=(new Commerce_Service())->capture_paypal($public_id,$paypal_id);
 		if (is_wp_error($result)) return $this->error($result);
 		return $this->response($result,200);
