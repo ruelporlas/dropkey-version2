@@ -17,7 +17,7 @@ final class Admin {
 		add_submenu_page('dk2-products',__('Payment Settings','dropkey-v2'),__('Payment Settings','dropkey-v2'),'manage_options','dk2-settings',array($this,'settings'));
 	}
 	public function register_handlers() {
-		foreach(array('product','tier','billing','release','license','license_status','download_link','activation_status','gateway_settings','email_resend') as $action) add_action('admin_post_dk2_'.$action,array($this,'handle'));
+		foreach(array('product','tier','billing','release','license','license_status','download_link','activation_status','gateway_settings','email_resend','subscription_cancel') as $action) add_action('admin_post_dk2_'.$action,array($this,'handle'));
 	}
 	private function guard() {
 		if (!current_user_can('manage_options')) wp_die(esc_html__('You are not allowed to manage DropKey.','dropkey-v2'));
@@ -152,13 +152,29 @@ final class Admin {
 			echo '</td></tr>';
 		}
 		if (!$rows) echo '<tr><td colspan="7">'.esc_html__('No orders yet.','dropkey-v2').'</td></tr>';
-		echo '</tbody></table>'; $this->footer();
+		echo '</tbody></table>';
+
+		$subs=Database::table('subscriptions');
+		$subscription_rows=$wpdb->get_results("SELECT s.*,o.customer_email,p.name AS product_name,t.name AS tier_name FROM {$subs} s INNER JOIN {$orders} o ON o.id=s.order_id LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id ORDER BY s.id DESC LIMIT 200");
+		echo '<h2>'.esc_html__('Subscriptions','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Customer / product','dropkey-v2').'</th><th>'.esc_html__('Provider','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Paid through','dropkey-v2').'</th><th>'.esc_html__('Cancellation','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($subscription_rows as $sub) {
+			echo '<tr><td>'.(int)$sub->id.'</td><td>'.esc_html($sub->customer_email).'<br>'.esc_html($sub->product_name.' / '.$sub->tier_name).'</td><td>'.esc_html($sub->gateway).'</td><td><span class="dk2-status dk2-status-'.esc_attr(sanitize_html_class($sub->status)).'">'.esc_html($sub->status).'</span></td><td>'.esc_html($sub->current_period_end?$sub->current_period_end:__('Not reported','dropkey-v2')).'</td><td>';
+			if (in_array($sub->status,array('active','past_due'),true)&&empty($sub->cancel_at_period_end)) { $this->form_start('subscription_cancel'); echo '<input type="hidden" name="subscription_id" value="'.(int)$sub->id.'"><button class="button button-small">'.esc_html__('Cancel at period end','dropkey-v2').'</button></form>'; }
+			elseif (!empty($sub->cancel_at_period_end)) echo esc_html__('Scheduled','dropkey-v2');
+			else echo '—';
+			echo '</td></tr>';
+		}
+		if (!$subscription_rows) echo '<tr><td colspan="6">'.esc_html__('No subscriptions yet.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		$this->footer();
 	}
 
 	public function handle() {
 		$this->guard(); global $wpdb; $action=isset($_POST['action'])?sanitize_key(wp_unslash($_POST['action'])):'';
 		$id=isset($_POST['id'])?absint($_POST['id']):0; $page='dk2-products';
-		if ('dk2_gateway_settings'===$action) {
+		if ('dk2_subscription_cancel'===$action) {
+			$page='dk2-orders'; $result=(new Commerce_Service())->request_cancel_subscription(absint($_POST['subscription_id']??0)); if (!is_wp_error($result)) $this->redirect($page,'saved');
+		} elseif ('dk2_gateway_settings'===$action) {
 			$page='dk2-settings'; $all=get_option('dk2_payment_settings',array()); $all=is_array($all)?$all:array();
 			$stripe=isset($all['stripe'])?$all['stripe']:array(); $paypal=isset($all['paypal'])?$all['paypal']:array();
 			$new_stripe=array('enabled'=>isset($_POST['stripe_enabled'])?'1':'0','secret'=>sanitize_text_field(wp_unslash($_POST['stripe_secret']??'')),'webhook_secret'=>sanitize_text_field(wp_unslash($_POST['stripe_webhook_secret']??'')));
