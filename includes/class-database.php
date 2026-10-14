@@ -7,7 +7,7 @@ namespace DropKey\V2;
 defined( 'ABSPATH' ) || exit;
 final class Database {
 	const VERSION_OPTION = 'dk2_db_version';
-	const SCHEMA_VERSION = '4';
+	const SCHEMA_VERSION = '5';
 	public static function table( $table ) {
 		global $wpdb;
 		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue' );
@@ -76,11 +76,11 @@ final class Database {
 			billing_option_id bigint(20) unsigned NOT NULL, license_id bigint(20) unsigned DEFAULT NULL,
 			customer_email varchar(191) NOT NULL, customer_user_id bigint(20) unsigned DEFAULT NULL,
 			gateway varchar(20) NOT NULL, gateway_order_id varchar(191) NOT NULL DEFAULT '',
-			gateway_session_id varchar(191) NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'pending',
+			gateway_session_id varchar(191) NOT NULL DEFAULT '', gateway_payment_id varchar(191) NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'pending',
 			amount decimal(12,2) unsigned NOT NULL DEFAULT 0.00, currency char(3) NOT NULL,
 			created_at datetime NOT NULL, updated_at datetime NOT NULL,
 			PRIMARY KEY  (id), UNIQUE KEY public_id (public_id), KEY customer_email (customer_email),
-			KEY gateway_order_id (gateway,gateway_order_id), KEY gateway_session_id (gateway,gateway_session_id), KEY status (status)
+			KEY gateway_order_id (gateway,gateway_order_id), KEY gateway_session_id (gateway,gateway_session_id), KEY gateway_payment_id (gateway,gateway_payment_id), KEY status (status)
 		) {$c};");
 		dbDelta("CREATE TABLE {$s} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT, order_id bigint(20) unsigned NOT NULL,
