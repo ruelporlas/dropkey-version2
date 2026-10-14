@@ -3,7 +3,7 @@ Project: DropKey Version 2
 Last updated: 2026-10-14
 
 STATUS
-Initial product requirements were provided by the user on 2026-10-14. They define the intended product scope, but do not mean any feature is implemented. Architecture and implementation choices remain unapproved unless recorded separately as accepted decisions.
+Initial product requirements were provided by the user on 2026-10-14. They define intended product scope, but do not mean any feature is implemented. Architecture and implementation choices remain unapproved unless recorded separately as accepted decisions.
 
 CONFIRMED INITIAL REQUIREMENTS
 
@@ -64,14 +64,15 @@ Acceptance criteria:
 Status: confirmed; API contract remains undecided. Configurable per-tier activation limits are confirmed; actual counts and website identity rules remain open.
 
 DK-008 — Plan and subscription types
-Requirement: DropKey supports free, monthly, and yearly offerings, as well as the purchase flow needed to sell digital products.
+Requirement: DropKey supports free, monthly, and yearly offerings, as well as one-time purchases.
 Acceptance criteria:
 - Product offerings can represent free access, monthly subscriptions, yearly subscriptions, and one-time purchases.
-- One product may offer multiple plans, and the plan options may include any combination of free, one-time purchase, monthly, and yearly billing.
+- One product can have multiple tiers; each tier can offer any applicable combination of free, one-time, monthly, and yearly billing options.
+- Tier settings, including activation limits, belong to the tier; billing options define payment amount and cadence.
 - Prices and billing terms are configurable, not globally hardcoded.
 - The exact support for trial periods, proration, grace periods, and cancellation timing must be decided before implementation.
 - Subscription status and payment events determine the applicable product/license entitlement.
-Status: confirmed for the listed offering types and multiple plans; additional billing rules are open decisions.
+Status: confirmed for the listed offering types and Product → Tier → Billing Options model; additional billing rules are open decisions.
 
 DK-009 — Extensibility
 Requirement: DropKey exposes WordPress action hooks so future functionality can be added without rewriting core behavior.
@@ -80,17 +81,28 @@ Acceptance criteria:
 - Hook names and payloads are documented and covered by relevant tests when implemented.
 Status: confirmed; exact hook inventory to design.
 
-DK-010 — Configurable activation limit per plan tier
-Requirement: Each product plan/tier can define how many website activations a license permits. Example tier names include Basic, Plus, and Pro; these names are illustrative and are not mandated defaults.
+DK-010 — Configurable activation limit per tier
+Requirement: Each product tier can define how many website activations a license permits. Example tier names include Basic, Plus, and Pro; these names are illustrative and are not mandated defaults.
 Acceptance criteria:
-- The administrator can configure the maximum allowed active website activations for each plan/tier.
-- The activation limit is associated with the relevant product plan/tier and enforced by DropKey's licensing service.
+- The administrator can configure the maximum allowed active website activations for each tier.
+- The activation limit is associated with the relevant product tier and enforced by DropKey's licensing service.
 - Different products can define different limits; limits must not be globally hardcoded across all products.
-- The admin UI explains the activation limit clearly when creating or editing a plan/tier.
-Status: confirmed requirement; exact tier/billing relationship and actual activation counts remain undecided.
+- The admin UI explains the activation limit clearly when creating or editing a tier.
+Status: confirmed requirement; actual activation counts remain undecided.
+
+DK-011 — Customer frontend account management
+Requirement: Customers need a frontend account-management area to manage their licenses and subscriptions.
+Acceptance criteria:
+- Customers can access their own account area from the frontend, separate from WordPress admin.
+- Customers can view their licenses and relevant license details/status.
+- Customers can view their subscriptions and relevant status/billing information.
+- Customers must not be able to view or manage another customer's licenses, subscriptions, or purchases.
+- Customer actions such as cancellation, activation management, or license transfer must follow separately defined business rules and permissions.
+Status: confirmed requirement; exact pages, customer account/checkout flow, and available self-service actions remain to be designed.
 
 NONFUNCTIONAL AND SECURITY REQUIREMENTS
 - Protect download delivery and license API operations against unauthorized use.
+- Customer account pages and actions must enforce customer ownership/authorization.
 - Do not store payment-card details in DropKey; use the payment providers' supported checkout/payment mechanisms.
 - Verify payment events using provider-supported trusted mechanisms and handle duplicate/retried events safely.
 - Do not store secrets, credentials, or API keys in project-memory files or source control.
@@ -99,18 +111,18 @@ Status: security goals confirmed at a high level; detailed threat model and impl
 
 OPEN QUESTIONS — DO NOT GUESS
 - Minimum supported WordPress and PHP versions.
-- Whether Basic/Plus/Pro tiers should each offer multiple billing options (for example, Basic Monthly and Basic Yearly), or whether each plan is one tier-plus-billing combination.
-- Exact activation counts for each tier; the numbers used in conversation examples are not approved values.
+- Exact activation counts for each tier.
 - How activations identify a website (domain, site URL, or another rule), and how administrators/customers deactivate or transfer activations.
 - Exact license and subscription statuses and how they affect activation after cancellation, failed renewal, refund, or chargeback.
 - Whether products may have multiple ZIP versions/releases and how updates are delivered.
 - Whether downloads can be reissued after the 48-hour link expires and whether there are download-count limits.
 - Whether files will be stored privately on the web host, in object storage, or elsewhere.
-- Customer accounts, guest checkout, order history, and self-service subscription cancellation requirements.
+- Whether guest checkout is allowed or a customer account is required before purchase; the customer frontend account area itself is required.
 - Tax/VAT, coupons, refunds, invoices, and trial-period scope.
 - Payment provider account readiness, webhook setup, and credentials; no credentials should be shared in chat or committed.
 - Email template, retry behavior, and sender configuration.
 - Required public REST API routes and the precise client SDK integration contract.
+- Exact customer account pages, self-service subscription actions, and license activation/deactivation/transfer controls.
 
 GENERAL RULES
 - Actual repository files determine what is implemented.
