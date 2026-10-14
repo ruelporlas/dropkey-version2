@@ -1,3 +1,10 @@
+2026-10-14 — Implemented Milestone 1 plugin foundation and core data model
+- What changed: Added the WordPress plugin entry point and bootstrap, dbDelta() schema installer, Product/Tier/Billing Option tables, shared repository base and three repositories, README installation notes, and GitHub Actions PHP syntax workflow.
+- Why: The user explicitly authorized Milestone 1 with GitHub-first development and requested static checks plus WordPress integration testing where an environment is available.
+- Implementation notes: Product → Tier → Billing Option model; per-tier activation limit; configurable free/one-time/monthly/yearly billing types; status and field validation; parent-child deletion guards; separate schema version.
+- Verification: Latest GitHub Actions run passed PHP syntax checks on PHP 7.4, 8.0, and 8.3. WordPress integration tests were not run because no WordPress environment was available. Two earlier workflow runs failed at PHP setup due to a literal backslash in the version interpolation; the workflow was corrected and the later run passed.
+- Latest source commit: https://github.com/ruelporlas/dropkey-version2/commit/002f5f26aae70d0e504e7ea8101e9d238668ffdc
+
 PROJECT CHANGE HISTORY
 Project: DropKey Version 2
 Newest entries first.
