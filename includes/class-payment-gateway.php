@@ -11,6 +11,10 @@ abstract class Payment_Gateway {
 		$all=get_option('dk2_payment_settings',array());
 		$this->settings=is_array($all)?$all:array();
 	}
+	public static function minor_unit_factor($currency) {
+		$zero_decimals=array('BIF','CLP','DJF','GNF','JPY','KMF','KRW','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF');
+		return in_array(strtoupper((string)$currency),$zero_decimals,true)?1:100;
+	}
 	public static function make($gateway) {
 		if ('stripe'===$gateway) return new Stripe_Gateway();
 		if ('paypal'===$gateway) return new PayPal_Gateway();
