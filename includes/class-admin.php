@@ -58,10 +58,28 @@ final class Admin {
 		if (!$rows) echo '<tr><td colspan="5">'.esc_html__('No products yet. Create your first product below.','dropkey-v2').'</td></tr>';
 		echo '</tbody></table>';
 	}
+
+	private function dashboard_summary() {
+		global $wpdb;
+		$products=Database::table('products'); $tiers=Database::table('tiers'); $licenses=Database::table('licenses'); $orders=Database::table('orders');
+		$stats=array(
+			__('Published products','dropkey-v2')=>(int)$wpdb->get_var("SELECT COUNT(*) FROM {$products} WHERE status='published'"),
+			__('Published tiers','dropkey-v2')=>(int)$wpdb->get_var("SELECT COUNT(*) FROM {$tiers} WHERE status='published'"),
+			__('Active licenses','dropkey-v2')=>(int)$wpdb->get_var("SELECT COUNT(*) FROM {$licenses} WHERE status='active'"),
+			__('Pending orders','dropkey-v2')=>(int)$wpdb->get_var("SELECT COUNT(*) FROM {$orders} WHERE status IN ('pending','processing')")
+		);
+		echo '<div class="dk2-dashboard-stats">';
+		foreach($stats as $label=>$value) echo '<div class="dk2-stat-card"><span>'.esc_html($label).'</span><strong>'.number_format_i18n($value).'</strong></div>';
+		echo '</div><nav class="dk2-quick-links" aria-label="'.esc_attr__('DropKey management shortcuts','dropkey-v2').'">';
+		foreach(array('dk2-tiers'=>__('Manage tiers','dropkey-v2'),'dk2-billing'=>__('Billing options','dropkey-v2'),'dk2-releases'=>__('ZIP releases','dropkey-v2'),'dk2-licenses'=>__('Licenses and activations','dropkey-v2'),'dk2-orders'=>__('Orders and subscriptions','dropkey-v2'),'dk2-settings'=>__('Payment settings','dropkey-v2')) as $page=>$label) echo '<a href="'.esc_url(admin_url('admin.php?page='.$page)).'">'.esc_html($label).' <span aria-hidden="true">→</span></a>';
+		echo '</nav>';
+	}
+
 	public function products() {
 		if (!current_user_can('manage_options')) return;
 		$id=isset($_GET['edit'])?absint($_GET['edit']):0; $r=$id?(new Product_Repository())->get($id):null;
 		$this->header(__('Products','dropkey-v2'),__('Create and publish digital products. A published product can contain multiple configurable tiers and versioned ZIP releases.','dropkey-v2'));
+		$this->dashboard_summary();
 		echo '<h2>'.($r?esc_html__('Edit product','dropkey-v2'):esc_html__('Add a product','dropkey-v2')).'</h2>'; $this->form_start('product',$id);
 		echo '<table class="form-table"><tr><th><label for="dk2-name">'.esc_html__('Product name','dropkey-v2').'</label></th><td><input required class="regular-text" id="dk2-name" name="name" value="'.esc_attr($r?$r->name:'').'"></td></tr><tr><th><label for="dk2-slug">'.esc_html__('Product slug','dropkey-v2').'</label></th><td><input class="regular-text" id="dk2-slug" name="slug" value="'.esc_attr($r?$r->slug:'').'"><p class="description">'.esc_html__('Stable URL-safe identifier used by the update API. Leave blank to generate it from the name.','dropkey-v2').'</p></td></tr><tr><th><label for="dk2-description">'.esc_html__('Description','dropkey-v2').'</label></th><td><textarea class="large-text" rows="4" id="dk2-description" name="description">'.esc_textarea($r?$r->description:'').'</textarea></td></tr><tr><th>'.esc_html__('Status','dropkey-v2').'</th><td>'; $this->status_select($r?$r->status:'draft'); echo '</td></tr></table><p><button class="button button-primary">'.esc_html($r?__('Save product','dropkey-v2'):__('Create product','dropkey-v2')).'</button></p></form>';
 		$this->products_list(); $this->footer();
