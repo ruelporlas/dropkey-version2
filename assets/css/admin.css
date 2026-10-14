@@ -73,3 +73,14 @@ body[class*="dk2-"] .dk2-status { display:inline-block; padding:4px 9px; border-
 body[class*="dk2-"] .dk2-status-paid, body[class*="dk2-"] .dk2-status-sent, body[class*="dk2-"] .dk2-status-active { background:#e2f3ea; color:#236247; }
 body[class*="dk2-"] .dk2-status-pending, body[class*="dk2-"] .dk2-status-processing { background:#fff2d7; color:#8a5a10; }
 body[class*="dk2-"] .dk2-status-failed, body[class*="dk2-"] .dk2-status-refunded, body[class*="dk2-"] .dk2-status-disputed, body[class*="dk2-"] .dk2-status-suspended { background:#fde8e7; color:#9b2924; }
+
+body[class*="dk2-"] .dk2-dashboard-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:18px 0 20px; }
+body[class*="dk2-"] .dk2-stat-card { display:flex; flex-direction:column; gap:8px; padding:17px 20px; border:1px solid #e1e7ed; border-radius:12px; background:#fff; box-shadow:0 2px 7px rgba(20,38,54,.035); }
+body[class*="dk2-"] .dk2-stat-card span { color:#64748b; font-size:12px; font-weight:600; }
+body[class*="dk2-"] .dk2-stat-card strong { color:#244a43; font-size:28px; font-weight:750; letter-spacing:-.04em; line-height:1; }
+body[class*="dk2-"] .dk2-quick-links { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0 0 24px; }
+body[class*="dk2-"] .dk2-quick-links a { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 15px; border:1px solid #dfe7e3; border-radius:9px; background:#fff; color:#315e56; font-size:13px; font-weight:650; text-decoration:none; transition:background .15s,border-color .15s,transform .15s; }
+body[class*="dk2-"] .dk2-quick-links a:hover { background:#f0f7f4; border-color:#a8c5ba; transform:translateY(-1px); }
+body[class*="dk2-"] .dk2-quick-links a span { font-size:18px; }
+@media(max-width:1100px) { body[class*="dk2-"] .dk2-dashboard-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } body[class*="dk2-"] .dk2-quick-links { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { body[class*="dk2-"] .dk2-dashboard-stats, body[class*="dk2-"] .dk2-quick-links { grid-template-columns:1fr; } }
