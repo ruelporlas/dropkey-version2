@@ -74,7 +74,7 @@ final class PayPal_Gateway extends Payment_Gateway {
 		$webhook_id=$this->config('webhook_id');
 		if (''===$webhook_id) return new \WP_Error('dk2_paypal_webhook_unconfigured',__('PayPal webhook ID is not configured.','dropkey-v2'),array('status'=>503));
 		$token=$this->access_token(); if (is_wp_error($token)) return $token;
-		$raw=$request->get_body(); if (strlen($raw)>1000000) return new \\WP_Error('dk2_paypal_webhook_too_large',__('The webhook payload is too large.','dropkey-v2'),array('status'=>413)); $event=json_decode($raw,true);
+		$raw=$request->get_body(); if (strlen($raw)>1000000) return new \WP_Error('dk2_paypal_webhook_too_large',__('The webhook payload is too large.','dropkey-v2'),array('status'=>413)); $event=json_decode($raw,true);
 		if (!is_array($event)||empty($event['id'])||empty($event['event_type'])) return new \WP_Error('dk2_paypal_event_invalid',__('PayPal webhook payload is invalid.','dropkey-v2'),array('status'=>400));
 		$headers=$request->get_headers(); $get=function($name) use ($headers) { $key=strtolower($name); return isset($headers[$key])?(is_array($headers[$key])?reset($headers[$key]):$headers[$key]):''; };
 		$verification=array(
