@@ -109,7 +109,7 @@ $GLOBALS['dk2_test_paypal_headers']=array(
 	'paypal-transmission-time'=>array(gmdate('Y-m-d\\TH:i:s\\Z'))
 );
 $GLOBALS['dk2_mock_api_response']=array('response'=>array('code'=>200),'body'=>json_encode(array('verification_status'=>'SUCCESS')));
-$paypal_gateway=new \\DropKey\\V2\\PayPal_Gateway();
+$paypal_gateway=new \DropKey\V2\PayPal_Gateway();
 $paypal_result=$paypal_gateway->verify_webhook(new DropKey_Test_Request($paypal_raw,''));
 check_case(!($paypal_result instanceof WP_Error),'accepts PayPal webhook after provider verification succeeds');
 check_case(isset($GLOBALS['dk2_mock_api_request']['args']['body'])&&false!==strpos($GLOBALS['dk2_mock_api_request']['args']['body'],'WH-TEST'),'sends the configured PayPal webhook ID for verification');
@@ -118,4 +118,5 @@ check_case(isset($paypal_result['amount'])&&12.5===$paypal_result['amount']&&'US
 $GLOBALS['dk2_mock_api_response']=array('response'=>array('code'=>200),'body'=>json_encode(array('verification_status'=>'FAILURE')));
 $paypal_bad=$paypal_gateway->verify_webhook(new DropKey_Test_Request($paypal_raw,''));
 check_case($paypal_bad instanceof WP_Error&&'dk2_paypal_signature_invalid'===$paypal_bad->get_error_code(),'rejects PayPal webhook when provider verification fails');
-\necho "All webhook and PHP client contract tests passed.\\n";
+
+echo "All webhook and PHP client contract tests passed.\n";
