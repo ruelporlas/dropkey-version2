@@ -1,9 +1,10 @@
 PROJECT REQUIREMENTS AND RULES
 Project: DropKey Version 2
 Last updated: 2026-10-14
+Decision update: User-confirmed MVP choices recorded 2026-10-14
 
 STATUS
-Initial product requirements were provided by the user on 2026-10-14. They define intended product scope, but do not mean any feature is implemented. Architecture and implementation choices remain unapproved unless recorded separately as accepted decisions.
+Initial product requirements were provided by the user on 2026-10-14. On 2026-10-14, the user also explicitly selected the MVP policies recorded below and in 03_ARCHITECTURE_AND_DECISIONS.txt. These are approved product decisions, not evidence of implementation. Technical architecture and code-level choices remain unapproved unless recorded separately.
 
 CONFIRMED INITIAL REQUIREMENTS
 
@@ -99,6 +100,28 @@ Acceptance criteria:
 - Customers must not be able to view or manage another customer's licenses, subscriptions, or purchases.
 - Customer actions such as cancellation, activation management, or license transfer must follow separately defined business rules and permissions.
 Status: confirmed requirement; exact pages, customer account/checkout flow, and available self-service actions remain to be designed.
+
+
+USER-CONFIRMED MVP DECISIONS — 2026-10-14
+These choices were explicitly submitted by the user. They supersede the corresponding open questions below, but do not imply implementation.
+
+DKD-001 — Compatibility baseline: choose the broader compatibility option, WordPress 6.4+ and PHP 7.4+. Confirm exact support/testing matrix before release.
+DKD-002 — Checkout accounts: guest checkout is allowed alongside account-based checkout; guest purchases must be linkable to a customer account. Exact account creation/linking and verification flow remains to design.
+DKD-003 — Website activation identity: use the exact site URL as the activation identity. URL normalization, trailing slash, scheme, and URL-change behavior still need specification.
+DKD-004 — Example tiers/activation counts: use Basic (1 activation), Plus (3), and Pro (10) as initial editable examples, not hardcoded or mandatory global limits. Admin must be able to configure tier limits.
+DKD-005 — Activation management: customers and administrators can deactivate activations. Transfer behavior and any confirmation/cooldown rules remain open.
+DKD-006 — Subscription cancellation: cancellation is admin-managed; do not offer customer self-service cancellation in the initial account workflow unless later approved. Exact cancellation timing and customer messaging still need definition.
+DKD-007 — Failed payment: use a 3-day grace period as the initial policy. Exact status transitions, retry timing, timezone/boundary behavior, and entitlement behavior need specification.
+DKD-008 — Refunds/chargebacks: use payment-provider state as the baseline policy, with a separate chargeback policy rather than treating every case as automatically identical. Exact events and entitlement outcomes remain open.
+DKD-009 — Updates: include versioned ZIP releases and an update API/integration in the MVP, rather than deferring updates to a later release. Version retention and update compatibility rules remain open.
+DKD-010 — ZIP storage: store ZIP files privately on the hosting server, outside direct public web access. Exact filesystem location, web-server safeguards, and delivery mechanism remain technical design decisions.
+DKD-011 — Downloads: permit reissuing a fresh 48-hour download link; use a starting limit of 5 downloads per link. Whether the limit is configurable and how link reissue is rate-limited remain open.
+DKD-012 — Taxes/coupons/invoices/trials: defer these from the initial MVP. Refund handling still needs the provider-state policy above and must not be interpreted as a commitment to a full refund-management UI.
+DKD-013 — Email failures: implement observable transactional email failures, retry behavior, and administrator resend capability. Exact retry schedule, queue mechanism, and sender configuration remain open.
+DKD-014 — Customer account pages: full account area in MVP, covering dashboard, licenses, activations, subscriptions, purchases/downloads, and profile/password management, subject to the detailed actions below.
+DKD-015 — Customer self-service: customers can view/copy license keys, view activation sites, deactivate a site, manage profile/password, and access eligible downloads. Subscription cancellation remains admin-managed. Payment-method changes should use provider-supported billing portals where available; license transfer is not approved as a customer self-service action yet.
+DKD-016 — Billing/payment records: use hosted PayPal/Stripe payment flows; store provider references and payment status, never card details. Use provider billing portals for payment-method changes where supported. Receipt/invoice display beyond provider-provided records remains undecided and invoices are deferred.
+DKD-017 — Implementation approach: build a small secure MVP in milestones, prioritizing products/tiers, checkout, licenses, protected downloads, and then customer account/refinement work. This is a delivery approach, not permission to begin implementation without the user's request.
 
 NONFUNCTIONAL AND SECURITY REQUIREMENTS
 - Protect download delivery and license API operations against unauthorized use.
