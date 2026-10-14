@@ -66,10 +66,12 @@ Status: confirmed; API contract and activation limits remain undecided.
 DK-008 — Plan and subscription types
 Requirement: DropKey supports free, monthly, and yearly offerings, as well as the purchase flow needed to sell digital products.
 Acceptance criteria:
-- Product offerings can represent free access, monthly subscriptions, and yearly subscriptions.
-- The exact support for one-time purchase plans, trial periods, proration, grace periods, and cancellation timing must be decided before implementation.
+- Product offerings can represent free access, monthly subscriptions, yearly subscriptions, and one-time purchases.
+- One product may offer multiple plans, and the plan options may include any combination of free, one-time purchase, monthly, and yearly billing.
+- Prices and billing terms are configurable, not globally hardcoded.
+- The exact support for trial periods, proration, grace periods, and cancellation timing must be decided before implementation.
 - Subscription status and payment events determine the applicable product/license entitlement.
-Status: confirmed for free/monthly/yearly; additional billing rules are open decisions.
+Status: confirmed for the listed offering types and multiple plans; additional billing rules are open decisions.
 
 DK-009 — Extensibility
 Requirement: DropKey exposes WordPress action hooks so future functionality can be added without rewriting core behavior.
@@ -77,6 +79,15 @@ Acceptance criteria:
 - Important lifecycle events have documented, consistently named action hooks.
 - Hook names and payloads are documented and covered by relevant tests when implemented.
 Status: confirmed; exact hook inventory to design.
+
+DK-010 — Configurable activation limit per plan tier
+Requirement: Each product plan/tier can define how many website activations a license permits. Example tier names include Basic, Plus, and Pro; these names are illustrative and are not mandated defaults.
+Acceptance criteria:
+- The administrator can configure the maximum allowed active website activations for each plan/tier.
+- The activation limit is associated with the relevant product plan/tier and enforced by DropKey's licensing service.
+- Different products can define different limits; limits must not be globally hardcoded across all products.
+- The admin UI explains the activation limit clearly when creating or editing a plan/tier.
+Status: confirmed requirement; exact tier/billing relationship and actual activation counts remain undecided.
 
 NONFUNCTIONAL AND SECURITY REQUIREMENTS
 - Protect download delivery and license API operations against unauthorized use.
@@ -88,10 +99,11 @@ Status: security goals confirmed at a high level; detailed threat model and impl
 
 OPEN QUESTIONS — DO NOT GUESS
 - Minimum supported WordPress and PHP versions.
-- Whether products may have multiple ZIP versions/releases and how updates are delivered.
-- Whether one product may mix free, one-time purchase, monthly, and yearly plans (confirmed: yes).
-- Whether licenses are limited by activation count, domain, site, or another rule.
+- Whether Basic/Plus/Pro tiers should each offer multiple billing options (for example, Basic Monthly and Basic Yearly), or whether each plan is one tier-plus-billing combination.
+- Exact activation counts for each tier; the numbers used in conversation examples are not approved values.
+- How activations identify a website (domain, site URL, or another rule), and how administrators/customers deactivate or transfer activations.
 - Exact license and subscription statuses and how they affect activation after cancellation, failed renewal, refund, or chargeback.
+- Whether products may have multiple ZIP versions/releases and how updates are delivered.
 - Whether downloads can be reissued after the 48-hour link expires and whether there are download-count limits.
 - Whether files will be stored privately on the web host, in object storage, or elsewhere.
 - Customer accounts, guest checkout, order history, and self-service subscription cancellation requirements.
