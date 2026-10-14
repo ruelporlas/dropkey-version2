@@ -37,9 +37,9 @@ final class Email_Service {
 	public function resend($id) {
 		global $wpdb; $id=absint($id); $table=Database::table('email_queue');
 		$row=$wpdb->get_row($wpdb->prepare("SELECT id FROM {$table} WHERE id=%d",$id));
-		if (!$row) return new \\WP_Error('dk2_email_not_found',__('The queued email was not found.','dropkey-v2'));
+		if (!$row) return new \WP_Error('dk2_email_not_found',__('The queued email was not found.','dropkey-v2'));
 		$updated=$wpdb->update($table,array('status'=>'pending','attempts'=>0,'next_attempt_at'=>current_time('mysql',true),'last_error'=>''),array('id'=>$id));
-		if (false===$updated) return new \\WP_Error('dk2_email_retry_failed',__('The email could not be queued for retry.','dropkey-v2'));
+		if (false===$updated) return new \WP_Error('dk2_email_retry_failed',__('The email could not be queued for retry.','dropkey-v2'));
 		if (!wp_next_scheduled('dk2_process_email_queue')) wp_schedule_single_event(time()+10,'dk2_process_email_queue');
 		return true;
 	}
