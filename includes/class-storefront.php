@@ -77,7 +77,7 @@ final class Storefront {
 		$billing_id=absint($_POST['billing_option_id']??0); $email=sanitize_email(wp_unslash($_POST['customer_email']??'')); $gateway=sanitize_key($_POST['gateway']??'');
 		$result=(new Commerce_Service())->start_checkout($billing_id,$email,$gateway,$return,$return);
 		if (is_wp_error($result)) {
-			$url=add_query_arg('dk2_checkout_error',rawurlencode($result->get_error_message()),$return);
+			$url=add_query_arg('dk2_checkout_error',$result->get_error_message(),$return);
 			wp_safe_redirect($url); exit;
 		}
 		$target=esc_url_raw($result['checkout_url']); $parts=wp_parse_url($target); $host=isset($parts['host'])?strtolower($parts['host']):'';
