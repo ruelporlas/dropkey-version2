@@ -22,7 +22,7 @@ Newest entries first.
 - Verification: GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895 passed PHP syntax checks and 23 network-free contract assertions on PHP 7.4, 8.0, and 8.3. This is not a WordPress integration or live-provider test.
 - Main implementation commit: https://github.com/ruelporlas/dropkey-version2/commit/33cfae290d87cdbad145abc9d95aea3aa30eb20c
 - Latest test commit: https://github.com/ruelporlas/dropkey-version2/commit/57c7cb97788367f2169b73e33424ca3753ab840a
-- Memory files updated: source map, current status, architecture/decisions, requirements/status, verification evidence, next steps, and change history; read-back verification still required.
+- Memory files updated: source map, current status, architecture/decisions, requirements/status, verification evidence, next steps, and change history. Read-back verification completed on 2026-10-14; each updated file was fetched again and checked for the new status/evidence.
 
 
 2026-10-14 — Implemented Milestones 2 and 3 source
