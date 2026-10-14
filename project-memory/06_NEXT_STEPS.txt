@@ -3,9 +3,12 @@ Project: DropKey Version 2
 Last updated: 2026-10-14
 
 CURRENT TASK
-Turn the user's initial product description and 17 selected MVP policies into a clear, testable specification, resolve the remaining consequential edge cases, and then agree on architecture before implementation.
+Milestone 1 source implementation is committed. The next immediate action is to install it in a WordPress 6.4+ / PHP 7.4+ test site and verify plugin activation, table creation, schema-version handling, and repository CRUD/validation behavior.
 
 COMPLETED IN THIS STEP
+- Created the WordPress plugin bootstrap, schema installer, and repositories for products, tiers, and billing options.
+- Added GitHub Actions PHP syntax checks; the latest run passed on PHP 7.4, 8.0, and 8.3.
+- Updated the source map, status, architecture, verification evidence, and change history to reflect the implementation.
 - Captured the initial user-confirmed scope in 04_REQUIREMENTS_AND_RULES.txt.
 - Confirmed the Product → Tier → Billing Options model: each tier owns its activation limit and may offer applicable free, one-time, monthly, and yearly billing options.
 - Recorded admin UI/UX requirements for a guided product and tier creation journey, contextual help, tooltips/equivalent help, validation, and next-step guidance.
@@ -15,13 +18,11 @@ COMPLETED IN THIS STEP
 - Recorded all 17 user-selected MVP policy decisions and separated unresolved implementation-level details.
 
 IMMEDIATE NEXT ACTION
-Continue planning only; do not implement code until the user requests it.
-1. Resolve exact-URL canonicalization and activation-transfer rules.
-2. Define cancellation status transitions/notices and any admin override for the accepted end-of-paid-period policy; define license/subscription state transitions for the selected 3-day grace period, refunds, and chargebacks.
-3. Specify the versioned REST API and reusable PHP client together, including authentication, routes, request/response contracts, update flows, and integration-test coverage.
-4. Define guest purchase verification and account-linking flow.
-5. Confirm provider billing-portal fallbacks, webhooks/sandbox readiness, and email retry/sender behavior.
-6. Agree on the technical architecture, data model, API contracts, and acceptance criteria after the above policy edges are clear.
+1. Install the current plugin in a disposable WordPress 6.4+ test environment running PHP 7.4+ (or a newer supported PHP version).
+2. Activate the plugin and verify that the three dk2_ tables are created using the site's actual database prefix; repeat activation and verify schema-version handling.
+3. Exercise Product_Repository, Tier_Repository, and Billing_Option_Repository create/get/list/update/delete behavior, invalid inputs, relationships, and parent-child deletion guards. Record exact outcomes in 05_VERIFICATION_EVIDENCE.txt.
+4. Fix any runtime/integration issues found before proceeding to the next implementation milestone.
+5. Then plan the admin product → tiers → billing-options workflow, preserving the confirmed guided admin UX requirements. Before payment/licensing work, resolve the remaining subscription, guest-linking, provider, download, and API/client contract questions listed in 04_REQUIREMENTS_AND_RULES.txt.
 
 ADMIN UX REQUIREMENT
 During architecture/design, propose a clear product-to-tiers journey before implementation. It should explain product details and ZIP file separately from tiers/pricing, show the next action after a product is saved, and use concise helper text/tooltips and actionable validation without overwhelming the admin. Tier creation/editing must clearly expose the configured activation limit.
@@ -29,11 +30,11 @@ During architecture/design, propose a clear product-to-tiers journey before impl
 CUSTOMER ACCOUNT UX REQUIREMENT
 Plan a frontend account area, separate from WordPress admin, where an authenticated customer can view their own licenses and subscriptions. Enforce ownership checks on every customer-facing view/action. Define cancellation, activation management, and transfer behavior before enabling those actions.
 
-AFTER REQUIREMENTS ARE CLEAR
-- Propose an architecture for approval, including gateway adapters, payment/webhook processing, product/tier/billing/order/subscription/license relationships, protected download delivery, frontend customer account area, and the client-plugin license SDK/API. Design the versioned REST API and reusable PHP client together, and include integration tests in the acceptance plan.
-- Record accepted decisions in 03_ARCHITECTURE_AND_DECISIONS.txt.
-- Inspect the actual repository before creating implementation files.
-- Implement one agreed milestone at a time and update verification evidence.
+AFTER MILESTONE 1 INTEGRATION CHECKS
+- Implement one milestone at a time and update verification evidence.
+- Design the versioned REST API and reusable PHP client together, with integration tests, as already selected by the user.
+- Keep payment-provider adapters separate from core product, order, subscription, and licensing logic.
+- Preserve the confirmed private ZIP storage, expiring download links, activation limits, and customer ownership requirements.
 
 ACCEPTANCE CRITERIA FOR THE CURRENT PLANNING TASK
 - Confirmed requirements and unresolved decisions are clearly separated.
