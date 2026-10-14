@@ -19,10 +19,11 @@ final class Stripe_Gateway extends Payment_Gateway {
 			'line_items[0][price_data][currency]'=>$currency,
 			'line_items[0][price_data][unit_amount]'=> (string)round(((float)$billing->price)*100),
 			'line_items[0][price_data][product_data][name]'=>$product->name.' — '.$tier->name,
-			'subscription_data[metadata][order_public_id]'=>$order->public_id
+			
 		);
 		if ('subscription'===$mode) {
 			$body['line_items[0][price_data][recurring][interval]']='monthly'===$billing->billing_type?'month':'year';
+			$body['subscription_data[metadata][order_public_id]']=$order->public_id;
 		}
 		$result=$this->json_request('POST','https://api.stripe.com/v1/checkout/sessions',array(
 			'headers'=>array('Authorization'=>'Bearer '.$this->config('secret'),'Content-Type'=>'application/x-www-form-urlencoded'),
@@ -53,7 +54,8 @@ final class Stripe_Gateway extends Payment_Gateway {
 		if (empty($metadata['order_public_id'])&&isset($o['client_reference_id'])) $metadata['order_public_id']=$o['client_reference_id'];
 		if (empty($metadata['order_public_id'])&&isset($o['subscription_details']['metadata']['order_public_id'])) $metadata['order_public_id']=$o['subscription_details']['metadata']['order_public_id'];
 		$type='ignored';
-		if (in_array($event['type'],array('checkout.session.completed','checkout.session.async_payment_succeeded','invoice.payment_succeeded'),true)) $type='payment_succeeded';
+		if ('invoice.payment_succeeded'===$event['type']||'checkout.session.async_payment_succeeded'===$event['type']) $type='payment_succeeded';
+		elseif ('checkout.session.completed'===$event['type']&&isset($o['payment_status'])&&in_array($o['payment_status'],array('paid','no_payment_required'),true)) $type='payment_succeeded';
 		elseif (in_array($event['type'],array('invoice.payment_failed','checkout.session.async_payment_failed'),true)) $type='payment_failed';
 		elseif ('customer.subscription.updated'===$event['type']) $type='subscription_updated';
 		elseif ('customer.subscription.deleted'===$event['type']) $type='subscription_cancelled';
@@ -66,6 +68,8 @@ final class Stripe_Gateway extends Payment_Gateway {
 			'gateway_order_id'=>'','gateway_session_id'=>isset($o['id'])&&0===strpos($event['type'],'checkout.session.')?sanitize_text_field($o['id']):'',
 			'subscription_id'=>is_string($sub)?sanitize_text_field($sub):'','period_end'=>$period?gmdate('Y-m-d H:i:s',$period):'',
 			'status'=>isset($o['status'])?sanitize_key($o['status']):'','customer_email'=>isset($o['customer_details']['email'])?sanitize_email($o['customer_details']['email']):'',
+			'amount'=>isset($o['amount_total'])?((float)$o['amount_total']/100):(isset($o['amount_paid'])?((float)$o['amount_paid']/100):null),
+			'currency'=>isset($o['currency'])?strtoupper(sanitize_text_field($o['currency'])):'',
 			'payload_hash'=>hash('sha256',$raw),'raw'=>$event);
 	}
 }
