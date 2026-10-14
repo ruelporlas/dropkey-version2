@@ -6,7 +6,7 @@ Newest entries first.
 - What changed: Recorded the requirement that each product plan/tier can define its maximum number of active website activations. Basic, Plus, and Pro are examples only; actual names and counts are not finalized.
 - Why: The user wants to offer tiered licensing and control how many websites each tier can activate.
 - Files / areas affected: project-memory/04_REQUIREMENTS_AND_RULES.txt, project-memory/02_CURRENT_STATUS.txt, project-memory/05_VERIFICATION_EVIDENCE.txt, project-memory/06_NEXT_STEPS.txt.
-- Verification: Memory documentation update attempted through GitHub; no application code or tests involved. Follow-up fetch is required to confirm the resulting file contents.
+- Verification: GitHub updates succeeded for requirements, current status, next steps, and history. Follow-up fetch confirmed the activation-limit requirement is present in the requirements, status, and next-steps files. No application code or tests were involved.
 
 2026-10-14 — Confirmed one-time purchase plan option
 - What changed: Recorded that products may offer one-time purchase plans alongside free, monthly, and yearly options.
