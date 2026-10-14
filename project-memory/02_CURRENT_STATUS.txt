@@ -3,7 +3,7 @@ Project: DropKey Version 2
 Last updated: 2026-10-14
 
 PROJECT PURPOSE
-WordPress plugin intended to sell the user's own WordPress plugins and other digital products, including checkout, protected ZIP delivery, license keys, subscriptions, customer emails, and extensibility.
+WordPress plugin intended to sell the user's own WordPress plugins and other digital products, including checkout, protected ZIP delivery, license keys, subscriptions, customer emails, frontend customer account management, and extensibility.
 
 REPOSITORY BASELINE
 - Repository: ruelporlas/dropkey-version2
@@ -18,9 +18,10 @@ Initial requirements capture / pre-architecture planning.
 COMPLETED
 - Initialized project-memory documentation and AI project protocol.
 - Recorded initial product scope.
-- Confirmed a product may offer multiple plans: free, one-time purchase, monthly, and yearly.
-- Confirmed each product plan/tier must have its own configurable maximum website activation count.
-- Recorded guided admin UX expectations for product and plan setup.
+- Confirmed a product may offer multiple tiers and each tier may offer free, one-time purchase, monthly, and yearly billing options.
+- Confirmed each product tier must have its own configurable maximum website activation count.
+- Confirmed customers need a frontend account area to view and manage their own licenses and subscriptions; exact self-service actions remain open.
+- Recorded guided admin UX expectations for product and tier setup.
 - Inspected repository root; only project-memory/ was present.
 
 CONFIRMED PRODUCT SCOPE
@@ -31,17 +32,12 @@ CONFIRMED PRODUCT SCOPE
 - Customer email with download link and license key.
 - License key generation and administration.
 - Reusable PHP component for licensing in sold plugins.
-- Multiple plan types per product: free, one-time, monthly, yearly.
-- Per-plan/tier activation limits, configurable separately for each product.
+- Product → Tier → Billing Options model, including free, one-time, monthly, and yearly options as applicable.
+- Per-tier activation limits, configurable separately for each product.
+- Frontend customer account management for licenses and subscriptions.
 - WordPress action hooks for future extension.
 - Clear admin UI with contextual help, validation, and next-step guidance.
 
 NOT IMPLEMENTED / NOT VERIFIED
-All features above are requirements only. No application source code has been observed or verified. No architecture, schema, API contract, payment implementation, or deployment setup has been approved.
-Actual activation counts and the relationship between tiers and billing options remain undecided.
-
-OPEN ITEMS
-- Decide whether each tier has multiple billing options or each plan combines one tier and one billing option.
-- Decide actual activation counts and website identity/deactivation rules.
-- Resolve billing, subscription entitlement, download storage, compatibility, and customer-account decisions.
-- Establish minimum WordPress/PHP versions and the first implementation milestone.
+All features above are requirements only. No application source code has been observed or verified. No implementation, architecture, schema, API contract, payment integration, customer account UI, or deployment setup has been approved or tested.
+Actual activation counts, activation identity rules, and customer self-service actions remain undecided.
