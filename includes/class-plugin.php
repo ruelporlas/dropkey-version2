@@ -26,7 +26,7 @@ final class Plugin {
 	}
 
 	public function maybe_upgrade_database() {
-		if ( DK2_VERSION !== get_option( Database::VERSION_OPTION, '' ) ) {
+		if ( Database::SCHEMA_VERSION !== get_option( Database::VERSION_OPTION, '' ) ) {
 			Database::install();
 		}
 	}
