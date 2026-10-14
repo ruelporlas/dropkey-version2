@@ -1,0 +1,30 @@
+CURRENT PROJECT STATUS
+Project: DropKey Version 2
+Last updated: 2026-10-14
+
+BASELINE
+- The GitHub repository ruelporlas/dropkey-version2 is accessible through the connected GitHub integration.
+- Default branch: main.
+- The repository was reported empty by GitHub's contents API before the project-memory files were added.
+- The project-memory folder is being initialized.
+- No application implementation has been reviewed or verified.
+- No feature should be described as implemented unless current repository evidence supports that claim.
+
+CURRENT PHASE
+Fresh start / project baseline establishment.
+
+COMPLETED
+- Confirmed repository access and reported repository metadata.
+- Created the project-memory documentation structure (initialization in progress).
+
+IN PROGRESS
+- Establishing the initial project memory and collaboration protocol.
+
+BLOCKED / UNKNOWN
+- Product scope and initial requirements: not yet established in this fresh-start baseline.
+- Technology stack: not yet established.
+- Architecture: not yet established.
+- Existing implementation: none observed in the repository at initialization.
+- Test and deployment setup: not yet established.
+
+Update this file after meaningful work. Keep statements factual and distinguish verified facts from assumptions, proposals, and unknowns.
