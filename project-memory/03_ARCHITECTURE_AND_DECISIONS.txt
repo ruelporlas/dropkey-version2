@@ -1,0 +1,22 @@
+ARCHITECTURE AND TECHNICAL DECISIONS
+Last updated: 2026-10-14
+
+STATUS
+No application architecture or technical decisions have been approved for this fresh start.
+
+DECISION LOG FORMAT
+For every meaningful decision, record:
+- Date:
+- Decision:
+- Context / problem:
+- Options considered:
+- Reason for choosing:
+- Consequences and trade-offs:
+- Status: proposed / accepted / superseded
+- Evidence or related files:
+
+RULES
+- Do not treat a suggestion as an accepted decision until the user approves it or explicitly delegates the decision.
+- Do not infer the current architecture from old conversations or another repository.
+- Inspect the actual repository before describing its architecture.
+- When a decision changes, preserve the earlier entry and mark it superseded rather than silently erasing history.
