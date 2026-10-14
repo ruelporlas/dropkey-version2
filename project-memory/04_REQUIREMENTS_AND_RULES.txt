@@ -61,7 +61,7 @@ Acceptance criteria:
 - A documented, reusable PHP integration component can be added to a sold plugin.
 - The sold plugin can communicate with DropKey to activate, deactivate, and validate a license, once those API behaviors are specified.
 - The licensing API authenticates requests and validates product/license relationships.
-Status: confirmed; API contract and activation limits remain undecided.
+Status: confirmed; API contract remains undecided. Configurable per-tier activation limits are confirmed; actual counts and website identity rules remain open.
 
 DK-008 — Plan and subscription types
 Requirement: DropKey supports free, monthly, and yearly offerings, as well as the purchase flow needed to sell digital products.
