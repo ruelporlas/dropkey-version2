@@ -11,13 +11,13 @@ final class PayPal_Gateway extends Payment_Gateway {
 	private function access_token() {
 		$id=$this->config('client_id'); $secret=$this->config('secret');
 		if (''===$id||''===$secret||'1'!==$this->config('enabled')) return new \WP_Error('dk2_paypal_not_configured',__('PayPal is not enabled or credentials are missing.','dropkey-v2'),array('status'=>503));
-		$response=wp_remote_post($this->api_base().'/v1/oauth2/token',array('timeout'=>20,'headers'=>array('Authorization'=>'Basic '.base64_encode($id.':'.$secret),'Accept'=>'application/json','Content-Type'=>'application/x-www-form-urlencoded'),'body'=>'grant_type=client_credentials'));
+		$response=wp_remote_post($this->api_base().'/v1/oauth2/token',array('timeout'=>20,'redirection'=>0,'sslverify'=>true,'headers'=>array('Authorization'=>'Basic '.base64_encode($id.':'.$secret),'Accept'=>'application/json','Content-Type'=>'application/x-www-form-urlencoded'),'body'=>'grant_type=client_credentials'));
 		if (is_wp_error($response)||(int)wp_remote_retrieve_response_code($response)<200||(int)wp_remote_retrieve_response_code($response)>=300) return new \WP_Error('dk2_paypal_auth_failed',__('PayPal authentication failed. Check the selected environment and credentials.','dropkey-v2'),array('status'=>502));
 		$data=json_decode(wp_remote_retrieve_body($response),true);
 		return !empty($data['access_token'])?$data['access_token']:new \WP_Error('dk2_paypal_auth_failed',__('PayPal did not return an access token.','dropkey-v2'),array('status'=>502));
 	}
 	private function paypal_request($method,$path,$token,$body=null) {
-		$args=array('timeout'=>20,'headers'=>array('Authorization'=>'Bearer '.$token,'Accept'=>'application/json','Content-Type'=>'application/json'));
+		$args=array('timeout'=>20,'redirection'=>0,'sslverify'=>true,'headers'=>array('Authorization'=>'Bearer '.$token,'Accept'=>'application/json','Content-Type'=>'application/json'));
 		if (null!==$body) $args['body']=wp_json_encode($body);
 		$response=wp_remote_request($this->api_base().$path,array_merge($args,array('method'=>$method)));
 		if (is_wp_error($response)) return new \WP_Error('dk2_paypal_transport',__('PayPal could not be reached. Please try again.','dropkey-v2'),array('status'=>502));
@@ -74,7 +74,7 @@ final class PayPal_Gateway extends Payment_Gateway {
 		$webhook_id=$this->config('webhook_id');
 		if (''===$webhook_id) return new \WP_Error('dk2_paypal_webhook_unconfigured',__('PayPal webhook ID is not configured.','dropkey-v2'),array('status'=>503));
 		$token=$this->access_token(); if (is_wp_error($token)) return $token;
-		$raw=$request->get_body(); $event=json_decode($raw,true);
+		$raw=$request->get_body(); if (strlen($raw)>1000000) return new \\WP_Error('dk2_paypal_webhook_too_large',__('The webhook payload is too large.','dropkey-v2'),array('status'=>413)); $event=json_decode($raw,true);
 		if (!is_array($event)||empty($event['id'])||empty($event['event_type'])) return new \WP_Error('dk2_paypal_event_invalid',__('PayPal webhook payload is invalid.','dropkey-v2'),array('status'=>400));
 		$headers=$request->get_headers(); $get=function($name) use ($headers) { $key=strtolower($name); return isset($headers[$key])?(is_array($headers[$key])?reset($headers[$key]):$headers[$key]):''; };
 		$verification=array(
