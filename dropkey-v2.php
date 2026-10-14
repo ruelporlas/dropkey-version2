@@ -25,5 +25,5 @@ require_once DK2_PATH.'includes/class-download-service.php';
 require_once DK2_PATH.'includes/class-rest-api.php';
 require_once DK2_PATH.'includes/class-admin.php';
 require_once DK2_PATH.'includes/class-plugin.php';
-register_activation_hook(__FILE__,array('\\DropKey\\V2\\Database','install'));
-\\DropKey\\V2\\Plugin::instance();
+register_activation_hook(__FILE__,array('DropKey\\V2\\Database','install'));
+\DropKey\V2\Plugin::instance();
