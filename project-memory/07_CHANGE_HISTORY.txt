@@ -1,0 +1,23 @@
+PROJECT CHANGE HISTORY
+Newest entries first.
+
+2026-10-14 — Initialized project memory
+- Confirmed access to GitHub repository ruelporlas/dropkey-version2.
+- Identified main as the default branch.
+- GitHub contents API reported the repository empty before the memory folder was created.
+- Started a fresh project baseline; previous implementation details are not presumed to apply.
+- Created the project-memory documentation set and AI working protocol.
+
+ENTRY FORMAT
+Date — Short change title
+- What changed:
+- Why:
+- Files / areas affected:
+- Verification:
+- Commit or reference:
+
+RULES
+- Record meaningful implementation changes, requirement changes, and accepted decisions.
+- Keep entries factual and concise.
+- Do not invent commit identifiers.
+- Do not delete earlier history merely because a decision or implementation is later replaced.
