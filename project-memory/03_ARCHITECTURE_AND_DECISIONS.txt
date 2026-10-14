@@ -2,7 +2,7 @@ ARCHITECTURE AND TECHNICAL DECISIONS
 Last updated: 2026-10-14
 
 STATUS
-No application architecture or technical implementation decisions have been approved for this fresh start. The product configuration model below is an accepted functional/domain decision, not a complete technical architecture.
+The user-approved product/domain decisions are being implemented in a WordPress-native PHP plugin. The current code architecture uses dbDelta() tables and repositories, an admin controller, separate private-storage/license/download services, versioned REST routes, and a portable PHP client. Static syntax checks passed; WordPress runtime behavior remains unverified.
 
 DECISION LOG
 
@@ -102,3 +102,14 @@ Reason: These are scoped implementation choices needed to deliver the authorized
 Consequences / limits: No admin UI, checkout, payment gateway, licensing API/client, download delivery, update mechanism, or customer account area is included. WordPress runtime behavior remains unverified until tested in a WordPress environment.
 Status: implemented in source; static syntax checks passed; runtime/integration verification pending.
 Evidence: https://github.com/ruelporlas/dropkey-version2/commit/002f5f26aae70d0e504e7ea8101e9d238668ffdc
+
+
+2026-10-14 — Milestone 2–3 implementation decisions recorded from the current source
+- Database schema version: 3; added release, license, activation, and download-token tables while preserving products, tiers, and billing options.
+- Admin screens are registered under DropKey and use manage_options capability checks, action nonces, and admin-post handlers.
+- License keys and download tokens are stored as SHA-256 hashes; the full license key is shown once during manual issuance.
+- Site activation uses the submitted site URL with trailing slash removal. The URL canonicalization policy remains a technical choice to revisit if testing identifies mismatch cases.
+- Download links expire after 48 hours and allow five successful downloads each. The package digest is checked before streaming.
+- Package storage defaults to a sibling directory, but upload handling rejects paths inside ABSPATH or the detected DOCUMENT_ROOT; hosts must configure a writable absolute private path and verify server-level access restrictions.
+- The REST client requires HTTPS and enables TLS certificate verification. License keys are bearer credentials; rate limiting and broader production hardening remain outstanding.
+- Status: implementation choices in current source, not yet runtime-verified.
