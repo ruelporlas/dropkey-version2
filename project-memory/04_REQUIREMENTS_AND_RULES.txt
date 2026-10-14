@@ -89,7 +89,7 @@ Status: security goals confirmed at a high level; detailed threat model and impl
 OPEN QUESTIONS — DO NOT GUESS
 - Minimum supported WordPress and PHP versions.
 - Whether products may have multiple ZIP versions/releases and how updates are delivered.
-- Whether a product supports one-time purchases in addition to free/monthly/yearly plans.
+- Whether one product may mix free, one-time purchase, monthly, and yearly plans (confirmed: yes).
 - Whether licenses are limited by activation count, domain, site, or another rule.
 - Exact license and subscription statuses and how they affect activation after cancellation, failed renewal, refund, or chargeback.
 - Whether downloads can be reissued after the 48-hour link expires and whether there are download-count limits.
