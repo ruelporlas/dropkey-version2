@@ -87,6 +87,7 @@ final class Commerce_Service {
 		if (!empty($event['gateway_order_id'])) $wpdb->update($orders,array('gateway_order_id'=>$event['gateway_order_id']),array('id'=>$locked->id));
 		if (!empty($event['gateway_session_id'])) $wpdb->update($orders,array('gateway_session_id'=>$event['gateway_session_id']),array('id'=>$locked->id));
 		if (!empty($event['gateway_payment_id'])) $wpdb->update($orders,array('gateway_payment_id'=>$event['gateway_payment_id']),array('id'=>$locked->id));
+		if (!empty($event['gateway_payment_id'])) $this->record_payment_reference($locked,$event);
 		if (!empty($event['subscription_id'])) $this->save_subscription($locked,$license['id'],$event);
 		$queued=$this->queue_fulfillment_email($locked,$license['id'],$license['license_key']);
 		if (is_wp_error($queued)) { $wpdb->query('ROLLBACK'); return $queued; }
@@ -104,12 +105,26 @@ final class Commerce_Service {
 		else { $data['created_at']=$now; $wpdb->insert($table,$data); }
 		$wpdb->update(Database::table('licenses'),array('status'=>'active','updated_at'=>$now),array('id'=>$license_id));
 	}
+	private function record_payment_reference($order,$event) {
+		global $wpdb;
+		if (empty($event['gateway_payment_id'])) return true;
+		$table=Database::table('payments'); $gateway=sanitize_key($order->gateway); $payment_id=sanitize_text_field($event['gateway_payment_id']);
+		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_payment_id=%s",$gateway,$payment_id));
+		$data=array('order_id'=>(int)$order->id,'gateway'=>$gateway,'gateway_payment_id'=>$payment_id,
+			'provider_event_id'=>isset($event['event_id'])?sanitize_text_field($event['event_id']):'',
+			'amount'=>isset($event['amount'])&&null!==$event['amount']?(float)$event['amount']:(float)$order->amount,
+			'currency'=>!empty($event['currency'])?strtoupper($event['currency']):strtoupper($order->currency),
+			'status'=>'paid','updated_at'=>current_time('mysql',true));
+		if ($existing) return false===$wpdb->update($table,$data,array('id'=>$existing->id))?new \\WP_Error('dk2_payment_record_failed',__('Payment history could not be updated.','dropkey-v2')):true;
+		$data['created_at']=current_time('mysql',true);
+		return $wpdb->insert($table,$data)?true:new \\WP_Error('dk2_payment_record_failed',__('Payment history could not be saved.','dropkey-v2'));
+	}
 	private function find_order($gateway,$event) {
 		global $wpdb; $table=Database::table('orders'); $order=null;
 		if (!empty($event['order_public_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE public_id=%s AND gateway=%s",$event['order_public_id'],$gateway));
 		if (!$order&&!empty($event['gateway_order_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_order_id=%s",$gateway,$event['gateway_order_id']));
 		if (!$order&&!empty($event['gateway_session_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_session_id=%s",$gateway,$event['gateway_session_id']));
-		if (!$order&&!empty($event['gateway_payment_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_payment_id=%s",$gateway,$event['gateway_payment_id']));
+		if (!$order&&!empty($event['gateway_payment_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT o.* FROM {$table} o LEFT JOIN ".Database::table('payments')." pay ON pay.order_id=o.id WHERE o.gateway=%s AND (o.gateway_payment_id=%s OR pay.gateway_payment_id=%s) LIMIT 1",$gateway,$event['gateway_payment_id'],$event['gateway_payment_id']));
 		if (!$order&&!empty($event['subscription_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT o.* FROM {$table} o INNER JOIN ".Database::table('subscriptions')." s ON s.order_id=o.id WHERE s.gateway=%s AND s.gateway_subscription_id=%s",$gateway,$event['subscription_id']));
 		return $order;
 	}
@@ -158,6 +173,11 @@ final class Commerce_Service {
 			$wpdb->update($events,array('status'=>'failed','error_message'=>$result->get_error_code()),array('id'=>$event_row_id));
 			return $result;
 		}
+		if ('payment_succeeded'===$event['type']&&$order&&!empty($event['gateway_payment_id'])) {
+			$payment_record=$this->record_payment_reference($order,$event);
+			if (is_wp_error($payment_record)) { $wpdb->update($events,array('status'=>'failed','error_message'=>$payment_record->get_error_code()),array('id'=>$event_row_id)); return $payment_record; }
+		}
+		if (in_array($event['type'],array('refunded','chargeback'),true)&&!empty($event['gateway_payment_id'])) $wpdb->update(Database::table('payments'),array('status'=>'refunded'===$event['type']?'refunded':'disputed','updated_at'=>current_time('mysql',true)),array('gateway'=>$gateway,'gateway_payment_id'=>$event['gateway_payment_id']));
 		$wpdb->update($events,array('status'=>'processed','error_message'=>'','processed_at'=>current_time('mysql',true)),array('id'=>$event_row_id));
 		do_action('dk2_payment_event_processed',$gateway,$event_id,$event['event_type']);
 		return array('processed'=>true,'duplicate'=>false);
