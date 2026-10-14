@@ -1,15 +1,15 @@
 VERIFICATION EVIDENCE
+Project: DropKey Version 2
 Last updated: 2026-10-14
-
-PURPOSE
-Record checks that were actually performed and their observed outcomes. This file must make it possible to distinguish evidence from claims.
 
 INITIAL EVIDENCE
 - Repository lookup: found ruelporlas/dropkey-version2 through the connected GitHub integration.
 - Repository metadata: default branch main; repository visibility public; connected integration reported admin, push, and pull permissions.
-- Contents check: GitHub returned a 404 response stating that the repository was empty when project-memory/ was first checked.
-- Application code checks: not performed; no application source files were present at initialization.
-- Build, lint, automated tests, and runtime checks: not performed.
+- Initial contents check: GitHub reported the repository empty before project-memory/ was created.
+- Current root contents check on 2026-10-14: GitHub Contents API returned only the project-memory/ directory.
+- Requirements documentation update: recorded the user's initial product requirements in project-memory/04_REQUIREMENTS_AND_RULES.txt. This confirms documentation was written, not that any feature exists.
+- Application source inspection: no application source files were present in the latest root listing.
+- Build, lint, automated tests, payment tests, API tests, and runtime checks: not run; no application implementation is available to test.
 
 EVIDENCE RECORD FORMAT
 - Date:
@@ -22,4 +22,5 @@ EVIDENCE RECORD FORMAT
 RULES
 - Never invent test results, command output, screenshots, commit hashes, or verification.
 - Clearly label checks that were not run.
+- Documentation presence is not implementation verification.
 - If a check fails, record the failure and relevant details; do not report it as passed.
