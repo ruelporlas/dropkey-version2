@@ -66,6 +66,10 @@ final class PayPal_Gateway extends Payment_Gateway {
 		if (null===$amount||strtoupper($order->currency)!==strtoupper($currency)||abs($amount-(float)$order->amount)>0.009) return new \WP_Error('dk2_paypal_amount_mismatch',__('The captured PayPal amount does not match this order.','dropkey-v2'),array('status'=>409));
 		return array('provider_capture_id'=>isset($result['purchase_units'][0]['payments']['captures'][0]['id'])?sanitize_text_field($result['purchase_units'][0]['payments']['captures'][0]['id']):'','status'=>'paid');
 	}
+	public function cancel_subscription_now($subscription_id) {
+		$token=$this->access_token(); if (is_wp_error($token)) return $token;
+		return $this->paypal_request('POST','/v1/billing/subscriptions/'.rawurlencode($subscription_id).'/cancel',$token,array('reason'=>'Subscription period ended as scheduled by DropKey.'));
+	}
 	public function verify_webhook($request) {
 		$webhook_id=$this->config('webhook_id');
 		if (''===$webhook_id) return new \WP_Error('dk2_paypal_webhook_unconfigured',__('PayPal webhook ID is not configured.','dropkey-v2'),array('status'=>503));
