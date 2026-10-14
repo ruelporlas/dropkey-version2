@@ -153,8 +153,8 @@ final class Admin {
 			if (!is_wp_error($result)) $this->redirect($page,'link',array('url'=>$result['url']));
 		} elseif ('dk2_activation_status'===$action) {
 			$page='dk2-licenses'; $activation_id=absint($_POST['id']??0); $status=sanitize_key($_POST['status']??'');
-			if ('inactive'!==$status) $result=new \\WP_Error('dk2_activation_status_invalid',__('Only deactivation is supported from this screen.','dropkey-v2'));
-			else { $result=$wpdb->update(Database::table('activations'),array('status'=>'inactive','deactivated_at'=>current_time('mysql',true)),array('id'=>$activation_id,'status'=>'active')); if(false!==$result) $result=true; else $result=new \\WP_Error('dk2_activation_update_failed',__('The activation could not be deactivated.','dropkey-v2')); }
+			if ('inactive'!==$status) $result=new \WP_Error('dk2_activation_status_invalid',__('Only deactivation is supported from this screen.','dropkey-v2'));
+			else { $result=$wpdb->update(Database::table('activations'),array('status'=>'inactive','deactivated_at'=>current_time('mysql',true)),array('id'=>$activation_id,'status'=>'active')); if(false!==$result) $result=true; else $result=new \WP_Error('dk2_activation_update_failed',__('The activation could not be deactivated.','dropkey-v2')); }
 		} else { wp_die(esc_html__('Unknown DropKey action.','dropkey-v2')); }
 		if (is_wp_error($result)) $this->redirect($page,'error',array('message'=>rawurlencode($result->get_error_message())));
 		$this->redirect($page,$id?'saved':'created');
