@@ -15,6 +15,13 @@ PROJECT CHANGE HISTORY
 Project: DropKey Version 2
 Newest entries first.
 
+2026-10-14 — Implemented Milestones 2 and 3 source
+- What changed: Added DropKey admin screens for products, tiers, billing options, versioned ZIP releases, license issuance/status, active-site activation management, and protected download-link generation. Expanded schema to version 3 with releases, licenses, activations, and download tokens. Added private ZIP storage validation, license issuance/activation/validation service, hashed expiring download tokens, versioned REST routes, and portable PHP client. Updated bootstrap and README.
+- Why: The user explicitly asked to complete Milestones 2 and 3 before doing another WordPress test.
+- Important boundaries: Checkout, PayPal/Stripe, orders/subscriptions, payment webhooks, purchase emails, customer account pages, rate limiting, and complete plugin updater UI are not included. Admin license issuance is manual and does not prove payment.
+- Verification: Latest GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38585122536 passed PHP syntax checks on PHP 7.4, 8.0, and 8.3. Intermediate syntax failures during implementation were corrected; the latest run is the current evidence. WordPress integration/runtime tests were not run.
+- Latest source commit: https://github.com/ruelporlas/dropkey-version2/commit/e5043e5c21506245c0458d5acbf41d386e733754.
+
 2026-10-14 — Confirmed versioned REST API and reusable PHP client approach
 - What changed: Recorded the decision to design the versioned REST API and reusable PHP client together, with integration tests; updated requirements, architecture planning, current status, verification evidence, and next steps.
 - Why: The user explicitly selected this approach for licensing/update integration planning.
