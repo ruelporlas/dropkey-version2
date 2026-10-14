@@ -1,0 +1,15 @@
+NEXT STEPS
+Last updated: 2026-10-14
+
+IMMEDIATE
+1. Ask the user to establish or confirm the project's purpose and desired first milestone.
+2. Capture confirmed scope, requirements, constraints, and acceptance criteria in 04_REQUIREMENTS_AND_RULES.txt.
+3. Inspect the actual repository contents before proposing or implementing an architecture.
+4. Record only accepted technical decisions in 03_ARCHITECTURE_AND_DECISIONS.txt.
+5. Update this file when priorities change or an item is completed.
+
+RULES
+- Keep the list short, ordered, and actionable.
+- Do not begin unrelated work or silently expand the current task.
+- Mark items complete only when there is evidence that the action was completed.
+- If a necessary decision is unclear and has not been delegated, ask the user.
