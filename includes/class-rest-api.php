@@ -36,7 +36,7 @@ final class REST_API {
 	}
 	public function updates($request) {
 		global $wpdb; $p=$this->payload($request); $key=isset($p['license_key'])?sanitize_text_field($p['license_key']):''; $site=isset($p['site_url'])?$p['site_url']:''; $current=isset($p['current_version'])?sanitize_text_field($p['current_version']):'0.0.0';
-		if (''===trim((string)$site)) return $this->error(new \\WP_Error('dk2_site_url_required',__('A site_url is required for update checks.','dropkey-v2'),array('status'=>400)));
+		if (''===trim((string)$site)) return $this->error(new \WP_Error('dk2_site_url_required',__('A site_url is required for update checks.','dropkey-v2'),array('status'=>400)));
 		$service=new License_Service(); $valid=$service->validate($key,$site); if(is_wp_error($valid)) return $this->error($valid);
 		$products=Database::table('products'); $product=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$products} WHERE id=%d AND slug=%s AND status='published'",$valid['license']->product_id,sanitize_title($request['slug'])));
 		if(!$product) return $this->error(new \WP_Error('dk2_product_license_mismatch',__('This license does not belong to the requested product.','dropkey-v2'),array('status'=>403)));
