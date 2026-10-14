@@ -46,6 +46,19 @@ Consequences and trade-offs:
 Status: accepted as product/MVP decisions; technical design details remain open.
 Evidence or related files: User's explicit selections on 2026-10-14; project-memory/04_REQUIREMENTS_AND_RULES.txt.
 
+
+Date: 2026-10-14
+Decision: Admin-managed subscription cancellation takes effect at the end of the paid period.
+Context / problem: The cancellation operator and effective timing needed an explicit policy.
+Options considered: Immediate cancellation; end-of-paid-period cancellation; admin chooses either timing.
+Reason for choosing: The user explicitly selected end-of-paid-period cancellation.
+Consequences and trade-offs:
+- Cancellation is initiated by an administrator, not by customer self-service in the initial workflow.
+- The customer retains eligible paid access through the paid-through date.
+- Status transitions, notices, and any admin override/exception flow still need specification.
+Status: accepted.
+Evidence or related files: User instruction on 2026-10-14; project-memory/04_REQUIREMENTS_AND_RULES.txt, DKD-006.
+
 DECISION LOG FORMAT
 For every meaningful decision, record:
 - Date:
