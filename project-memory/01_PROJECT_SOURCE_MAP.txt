@@ -55,3 +55,9 @@ KEY FILES
 - README.md — milestone scope and local installation notes.
 
 Update this file whenever the project structure or authoritative source locations change.
+
+
+SOURCE MAP UPDATE — 2026-10-15
+- `includes/class-customer-account.php` — `[dropkey_account]` frontend portal for customer-owned licenses, activation deactivation, subscription status, purchases/downloads, and profile/password management.
+- `assets/css/account.css` — responsive, scoped customer-account styles.
+- `includes/class-database.php` now defines schema version 7; licenses gain `customer_user_id` and nullable `key_encrypted` columns.
