@@ -7,7 +7,7 @@ Newest entries first.
 - Why: The user supplied explicit selections and asked that they be recorded, verified, and distinguished from remaining open details; implementation was expressly prohibited for this task.
 - Decisions recorded: broader WP/PHP compatibility (WP 6.4+/PHP 7.4+); guest-optional checkout; exact-URL activation identity; editable Basic/Plus/Pro examples (1/3/10); customer/admin deactivation; admin-managed cancellation; 3-day failed-payment grace; provider-state refund/chargeback baseline; versioned releases/update API in MVP; private-host ZIP storage; reissueable 48-hour links with 5 downloads per link; tax/coupons/invoices/trials deferred; email retry/admin resend; full customer account pages; scoped customer self-service; provider-hosted billing/payment references without card storage; milestone-based MVP.
 - Files / areas affected: project-memory/02_CURRENT_STATUS.txt, 03_ARCHITECTURE_AND_DECISIONS.txt, 04_REQUIREMENTS_AND_RULES.txt, 05_VERIFICATION_EVIDENCE.txt, 06_NEXT_STEPS.txt.
-- Verification: pending final GitHub fetch/read-back after writes; no application code or tests were run.
+- Verification: fetched all six updated memory files from GitHub after writes and confirmed the recorded decisions and planning updates were present. No application code or tests were run.
 
 2026-10-14 — Added frontend customer account management requirement
 - What changed: Recorded that customers need a frontend account area to view and manage their own licenses and subscriptions. Detailed pages and self-service actions remain undecided.
