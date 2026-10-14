@@ -20,3 +20,9 @@ UNCONFIRMED
 
 UPDATE RULE
 Record explicit user preferences, permissions, and changes to them. Do not turn a one-time task instruction into broad permission for unrelated work.
+
+
+SCOPED AUTHORIZATION — 2026-10-14
+- The user explicitly authorized implementation of DropKey V2 Milestone 1 (plugin foundation and core data model), with GitHub as the first development target.
+- Verification requested: static checks plus WordPress integration testing where an environment is available. Do not claim tests that were not run.
+- This is authorization for the named milestone, not blanket authorization for unrelated or later milestone work.
