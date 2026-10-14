@@ -18,7 +18,7 @@ final class Private_Storage {
 		$wp=realpath(ABSPATH); $wp_normalized=$wp ? trailingslashit(wp_normalize_path($wp)) : '';
 		$docroot=isset($_SERVER['DOCUMENT_ROOT']) ? realpath($_SERVER['DOCUMENT_ROOT']) : false;
 		$docroot_normalized=$docroot ? trailingslashit(wp_normalize_path($docroot)) : '';
-		if (($wp_normalized && 0===strpos($normalized,$wp_normalized)) || ($docroot_normalized && 0===strpos($normalized,$docroot_normalized))) return new \\WP_Error('dk2_storage_path_public',__('The package directory must be outside the WordPress directory and public document root. Configure dk2_private_storage_path.','dropkey-v2'));
+		if (($wp_normalized && 0===strpos($normalized,$wp_normalized)) || ($docroot_normalized && 0===strpos($normalized,$docroot_normalized))) return new \WP_Error('dk2_storage_path_public',__('The package directory must be outside the WordPress directory and public document root. Configure dk2_private_storage_path.','dropkey-v2'));
 		if (!file_exists($path) && !wp_mkdir_p($path)) return new \WP_Error('dk2_storage_create_failed',__('DropKey could not create its private package directory. Check server permissions.','dropkey-v2'));
 		if (!is_dir($path)||!is_writable($path)) return new \WP_Error('dk2_storage_not_writable',__('The private package directory is not writable by PHP.','dropkey-v2'));
 		if (!file_exists($path.'/index.php')) @file_put_contents($path.'/index.php',"<?php\nhttp_response_code(404); exit;\n");
