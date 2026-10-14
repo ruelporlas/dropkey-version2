@@ -171,8 +171,30 @@ final class Commerce_Service {
 		$completed=$this->complete_order($order,$event); if (is_wp_error($completed)) return $completed;
 		return array('order_id'=>$public_id,'status'=>'completed');
 	}
+	public function request_cancel_subscription($subscription_id) {
+		global $wpdb; $id=absint($subscription_id); $table=Database::table('subscriptions');
+		$sub=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE id=%d",$id));
+		if (!$sub||!in_array($sub->status,array('active','past_due'),true)) return new \\WP_Error('dk2_subscription_not_cancellable',__('This subscription cannot be scheduled for cancellation.','dropkey-v2'),array('status'=>409));
+		if (empty($sub->current_period_end)||strtotime($sub->current_period_end.' UTC')<=time()) return new \\WP_Error('dk2_subscription_period_missing',__('A future paid-through date is required before cancellation can be scheduled.','dropkey-v2'));
+		if ('stripe'===$sub->gateway) {
+			$gateway=Payment_Gateway::make('stripe'); $result=$gateway->schedule_cancel($sub->gateway_subscription_id);
+			if (is_wp_error($result)) return $result;
+		}
+		$updated=$wpdb->update($table,array('cancel_at_period_end'=>1,'updated_at'=>current_time('mysql',true)),array('id'=>$id));
+		if (false===$updated) return new \\WP_Error('dk2_subscription_cancel_failed',__('The cancellation could not be saved.','dropkey-v2'));
+		do_action('dk2_subscription_cancel_scheduled',$id,$sub->current_period_end);
+		return true;
+	}
 	public function process_subscription_lifecycle() {
 		global $wpdb; $subs=Database::table('subscriptions'); $licenses=Database::table('licenses'); $now=current_time('mysql',true);
+		$due=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$subs} WHERE cancel_at_period_end=1 AND current_period_end IS NOT NULL AND current_period_end<=%s AND status IN ('active','past_due')",$now));
+		foreach($due as $sub) {
+			if ('paypal'===$sub->gateway) {
+				$gateway=Payment_Gateway::make('paypal'); $cancel=$gateway->cancel_subscription_now($sub->gateway_subscription_id);
+				if (is_wp_error($cancel)) { do_action('dk2_subscription_cancel_provider_error',(int)$sub->id,$cancel->get_error_code()); continue; }
+			}
+			$wpdb->update($subs,array('status'=>'cancelled','updated_at'=>$now),array('id'=>$sub->id));
+		}
 		$expired=$wpdb->get_results($wpdb->prepare("SELECT license_id FROM {$subs} WHERE (status='cancelled' AND current_period_end IS NOT NULL AND current_period_end<=%s) OR (status='past_due' AND grace_until IS NOT NULL AND grace_until<=%s)",$now,$now));
 		foreach($expired as $row) $wpdb->update($licenses,array('status'=>'suspended','updated_at'=>$now),array('id'=>$row->license_id,'status'=>'active'));
 	}
