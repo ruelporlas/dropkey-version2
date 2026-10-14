@@ -87,7 +87,7 @@ final class Commerce_Service {
 		if (!empty($event['gateway_order_id'])) $wpdb->update($orders,array('gateway_order_id'=>$event['gateway_order_id']),array('id'=>$locked->id));
 		if (!empty($event['gateway_session_id'])) $wpdb->update($orders,array('gateway_session_id'=>$event['gateway_session_id']),array('id'=>$locked->id));
 		if (!empty($event['gateway_payment_id'])) $wpdb->update($orders,array('gateway_payment_id'=>$event['gateway_payment_id']),array('id'=>$locked->id));
-		if (!empty($event['gateway_payment_id'])) $this->record_payment_reference($locked,$event);
+		if (!empty($event['gateway_payment_id'])) { $payment_record=$this->record_payment_reference($locked,$event); if (is_wp_error($payment_record)) { $wpdb->query('ROLLBACK'); return $payment_record; } }
 		if (!empty($event['subscription_id'])) $this->save_subscription($locked,$license['id'],$event);
 		$queued=$this->queue_fulfillment_email($locked,$license['id'],$license['license_key']);
 		if (is_wp_error($queued)) { $wpdb->query('ROLLBACK'); return $queued; }
@@ -115,9 +115,9 @@ final class Commerce_Service {
 			'amount'=>isset($event['amount'])&&null!==$event['amount']?(float)$event['amount']:(float)$order->amount,
 			'currency'=>!empty($event['currency'])?strtoupper($event['currency']):strtoupper($order->currency),
 			'status'=>'paid','updated_at'=>current_time('mysql',true));
-		if ($existing) return false===$wpdb->update($table,$data,array('id'=>$existing->id))?new \\WP_Error('dk2_payment_record_failed',__('Payment history could not be updated.','dropkey-v2')):true;
+		if ($existing) return false===$wpdb->update($table,$data,array('id'=>$existing->id))?new \WP_Error('dk2_payment_record_failed',__('Payment history could not be updated.','dropkey-v2')):true;
 		$data['created_at']=current_time('mysql',true);
-		return $wpdb->insert($table,$data)?true:new \\WP_Error('dk2_payment_record_failed',__('Payment history could not be saved.','dropkey-v2'));
+		return $wpdb->insert($table,$data)?true:new \WP_Error('dk2_payment_record_failed',__('Payment history could not be saved.','dropkey-v2'));
 	}
 	private function find_order($gateway,$event) {
 		global $wpdb; $table=Database::table('orders'); $order=null;
@@ -161,9 +161,13 @@ final class Commerce_Service {
 		} elseif ('subscription_updated'===$event['type']||'subscription_cancelled'===$event['type']) {
 			if (!empty($event['subscription_id'])) {
 				$status='subscription_cancelled'===$event['type']?'cancelled':('past_due'===(isset($event['status'])?$event['status']:'')?'past_due':'active');
-				$wpdb->update(Database::table('subscriptions'),array('status'=>$status,'current_period_end'=>!empty($event['period_end'])?$event['period_end']:null,'updated_at'=>current_time('mysql',true)),array('gateway'=>$gateway,'gateway_subscription_id'=>$event['subscription_id']));
+				$update=array('status'=>$status,'updated_at'=>current_time('mysql',true));
+				if (!empty($event['period_end'])) $update['current_period_end']=$event['period_end'];
+				if (isset($event['cancel_at_period_end'])) $update['cancel_at_period_end']=absint($event['cancel_at_period_end']);
+				$wpdb->update(Database::table('subscriptions'),$update,array('gateway'=>$gateway,'gateway_subscription_id'=>$event['subscription_id']));
 			}
 		} elseif ('refunded'===$event['type']||'chargeback'===$event['type']) {
+			if (!$order) $result=new \WP_Error('dk2_payment_event_order_missing',__('A refund or dispute event could not be matched to an order.','dropkey-v2'),array('status'=>500));
 			if ($order) {
 				$wpdb->update(Database::table('orders'),array('status'=>'refunded'===$event['type']?'refunded':'disputed','updated_at'=>current_time('mysql',true)),array('id'=>$order->id));
 				if ($order->license_id) $wpdb->update(Database::table('licenses'),array('status'=>'suspended','updated_at'=>current_time('mysql',true)),array('id'=>$order->license_id));
