@@ -31,7 +31,7 @@ CONFIRMED PRODUCT SCOPE
 - Protected download links expiring after 48 hours.
 - Customer email with download link and license key.
 - License key generation and administration.
-- Reusable PHP component for licensing in sold plugins.
+- Versioned REST API and reusable PHP licensing client are to be designed together, with integration tests; implementation has not started.
 - Product → Tier → Billing Options model, including free, one-time, monthly, and yearly options as applicable.
 - Per-tier activation limits, configurable separately for each product.
 - Frontend customer account management for licenses and subscriptions.
@@ -40,7 +40,7 @@ CONFIRMED PRODUCT SCOPE
 
 USER-CONFIRMED MVP POLICIES RECORDED
 - WordPress 6.4+ / PHP 7.4+ baseline; guest and account checkout; exact-URL activation identity.
-- Editable example tiers Basic (1), Plus (3), Pro (10); customer and admin activation deactivation; admin-managed subscription cancellation; 3-day failed-payment grace period.
+- Editable example tiers Basic (1), Plus (3), Pro (10); customer and admin activation deactivation; admin-managed subscription cancellation at the end of the paid period; 3-day failed-payment grace period.
 - Provider-state-based refund/chargeback baseline with separate chargeback policy; versioned ZIP releases and update API in MVP; private ZIP storage on host.
 - Reissuable 48-hour download links with 5 downloads per link; taxes/coupons/invoices/trials deferred; email retry and admin resend.
 - Full customer account pages and specified customer self-service actions; hosted provider payment flows, provider references/status only, no card storage.
