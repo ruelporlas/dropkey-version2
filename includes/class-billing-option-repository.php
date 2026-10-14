@@ -70,6 +70,11 @@ final class Billing_Option_Repository extends Abstract_Repository {
 			}
 			$allowed['currency'] = $currency;
 		}
+		if ( isset( $data['paypal_plan_id'] ) ) {
+			$allowed['paypal_plan_id'] = sanitize_text_field( $data['paypal_plan_id'] );
+		} elseif ( $creating ) {
+			$allowed['paypal_plan_id'] = '';
+		}
 		if ( isset( $data['status'] ) || $creating ) {
 			$status = isset( $data['status'] ) ? sanitize_key( $data['status'] ) : 'draft';
 			if ( ! in_array( $status, array( 'draft', 'published', 'archived' ), true ) ) {
