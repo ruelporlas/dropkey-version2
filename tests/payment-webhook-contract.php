@@ -4,7 +4,7 @@
  * Run: php tests/payment-webhook-contract.php
  */
 if (!defined('ABSPATH')) define('ABSPATH',__DIR__.'/');
-$GLOBALS['dk2_test_options']=array('stripe'=>array('enabled'=>'1','secret'=>'sk_test_placeholder','webhook_secret'=>'whsec_contract_test'));
+$GLOBALS['dk2_test_options']=array('dk2_payment_settings'=>array('stripe'=>array('enabled'=>'1','secret'=>'sk_test_placeholder','webhook_secret'=>'whsec_contract_test')));
 function __($text,$domain=null) { return $text; }
 function get_option($key,$default=array()) { return isset($GLOBALS['dk2_test_options'][$key])?$GLOBALS['dk2_test_options'][$key]:$default; }
 function sanitize_text_field($value) { return trim(strip_tags((string)$value)); }
@@ -12,6 +12,19 @@ function sanitize_key($value) { return preg_replace('/[^a-z0-9_\-]/','',strtolow
 function sanitize_email($value) { return filter_var((string)$value,FILTER_SANITIZE_EMAIL); }
 function wp_parse_args($args,$defaults=array()) { return array_merge($defaults,is_array($args)?$args:array()); }
 function wp_json_encode($value) { return json_encode($value); }
+function untrailingslashit($value) { return rtrim((string)$value,'/\\\\'); }
+function esc_url_raw($value) { return trim((string)$value); }
+function sanitize_title($value) { return trim(preg_replace('/[^a-z0-9]+/','-',strtolower((string)$value)),'-'); }
+function absint($value) { return abs((int)$value); }
+function home_url($path='/') { return 'https://client.example/'.ltrim($path,'/'); }
+function wp_parse_url($url) { return parse_url($url); }
+function is_wp_error($value) { return $value instanceof WP_Error; }
+function wp_remote_post($url,$args=array()) {
+	$GLOBALS['dk2_mock_request']=array('url'=>$url,'args'=>$args);
+	return isset($GLOBALS['dk2_mock_response'])?$GLOBALS['dk2_mock_response']:new WP_Error('mock_transport','mock transport failure');
+}
+function wp_remote_retrieve_response_code($response) { return isset($response['response']['code'])?(int)$response['response']['code']:0; }
+function wp_remote_retrieve_body($response) { return isset($response['body'])?$response['body']:''; }
 class WP_Error {
 	private $code; private $message; private $data;
 	public function __construct($code,$message='',$data=array()) { $this->code=$code; $this->message=$message; $this->data=$data; }
