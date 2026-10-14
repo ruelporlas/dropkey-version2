@@ -14,7 +14,7 @@ Acceptance criteria:
 - An authorized administrator can create and manage a digital product.
 - A product can be associated with its intended plugin ZIP package.
 - Product and file associations are managed by DropKey, not by a specific payment gateway.
-Status: partially implemented in Milestones 2–3 (product administration and versioned ZIP release management); checkout/purchase association remains unimplemented.
+Status: product/tier admin and versioned ZIP releases are implemented in source; the storefront checkout now associates published billing options with orders and fulfillment. WordPress runtime remains unverified.
 
 DK-002 — Checkout and purchase records
 Requirement: DropKey provides the customer checkout/purchase flow and records the result of each purchase.
@@ -22,14 +22,14 @@ Acceptance criteria:
 - Customers can complete a purchase through DropKey checkout.
 - Paid-product access is not granted solely because a browser returns to a success page; payment must be confirmed through a trusted gateway result.
 - A free product/plan can be obtained without charging a payment method.
-Status: confirmed; details to design.
+Status: public storefront shortcode, hosted checkout creation, free acquisition, order recording, and provider-confirmed paid fulfillment are implemented in source; browser/runtime testing remains outstanding.
 
 DK-003 — Payment gateways
 Requirement: MVP supports PayPal and Stripe. DropKey should allow additional payment gateways to be added later.
 Acceptance criteria:
 - PayPal and Stripe are supported in the MVP, subject to required account credentials and provider capabilities.
 - Gateway-specific code is separated behind an extensible integration boundary rather than scattered through core product, order, subscription, download, and license logic.
-Status: confirmed; integration design not yet approved.
+Status: Stripe and PayPal hosted-checkout adapters, settings, webhook verification, order matching, and payment lifecycle handlers are implemented in source; provider sandbox testing remains outstanding.
 
 DK-004 — Protected downloads
 Requirement: After the customer completes the required purchase flow, DropKey provides a secure download link for the product ZIP that expires after 48 hours.
@@ -38,7 +38,7 @@ Acceptance criteria:
 - The download link has a verifiable expiration of 48 hours.
 - Expired or invalid links cannot download the file.
 - Download delivery is restricted to an eligible purchase/entitlement.
-Status: partially implemented in Milestone 3 (private package storage, hashed 48-hour tokens, five-download per-link cap, and integrity checks); purchase entitlement integration and runtime verification remain outstanding.
+Status: private storage, hashed 48-hour tokens, five-download cap, integrity checks, and checkout fulfillment download-token issuance exist in source; storage and download runtime checks remain outstanding.
 
 DK-005 — Purchase email
 Requirement: Email the customer the download link and license key after purchase.
@@ -46,7 +46,7 @@ Acceptance criteria:
 - For an eligible paid purchase, the customer receives an email containing the download link and generated license key.
 - The message is sent only after the relevant payment is confirmed; free-plan delivery follows the defined free acquisition flow.
 - Email failures should be observable and should not silently erase the purchase or license record.
-Status: confirmed; exact retry/admin workflow to design.
+Status: encrypted email queue, bounded WP-Cron retries, admin retry action, and purchase fulfillment email creation are implemented in source; actual email delivery remains unverified.
 
 DK-006 — License key generation and management
 Requirement: DropKey generates a license key for an eligible purchase and provides tools to manage it.
@@ -54,7 +54,7 @@ Acceptance criteria:
 - Keys are generated uniquely and are associated with the relevant customer, product, and purchase/plan.
 - Administrators can inspect and manage license records and statuses.
 - Licensing behavior can reflect the associated plan/subscription entitlement.
-Status: partially implemented in Milestone 3 (manual license issuance, hashed keys, status controls, and activation service); purchase linkage and runtime verification remain outstanding.
+Status: manual license administration and purchase-linked license issuance are implemented in source; keys remain hashed at rest and checkout fulfillment is transactional. WordPress runtime remains unverified.
 
 DK-007 — Client-plugin license integration
 Requirement: It should be straightforward to add license activation support to the WordPress plugins sold through DropKey, ideally by adding a reusable file to each client plugin.
@@ -62,7 +62,7 @@ Acceptance criteria:
 - A documented, reusable PHP integration component can be added to a sold plugin.
 - The sold plugin can communicate with DropKey to activate, deactivate, and validate a license, once those API behaviors are specified.
 - The licensing API authenticates requests and validates product/license relationships.
-Status: partially implemented in Milestone 3: versioned REST routes and reusable PHP client exist. Integration tests, rate limiting, and production security review remain outstanding. Configurable per-tier activation limits are implemented in source; exact URL canonicalization still needs runtime validation.
+Status: versioned REST routes and reusable PHP client exist; network-free contract tests cover Stripe webhook verification, PayPal verification-result handling, and client HTTPS/request/error behavior. Public checkout rate limiting is implemented. Full WordPress/API integration tests, production security review, and activation URL runtime validation remain outstanding.
 
 DK-008 — Plan and subscription types
 Requirement: DropKey supports free, monthly, and yearly offerings, as well as one-time purchases.
@@ -73,7 +73,7 @@ Acceptance criteria:
 - Prices and billing terms are configurable, not globally hardcoded.
 - Trials are deferred; failed-payment grace period is initially 3 days; cancellation is admin-managed and effective at the end of the paid period. Proration behavior remains open.
 - Subscription status and payment events determine the applicable product/license entitlement.
-Status: confirmed for the listed offering types and Product → Tier → Billing Options model; additional billing rules are open decisions.
+Status: Product → Tier → Billing Options plus free, one-time, monthly, and yearly configuration exists. Hosted Stripe checkout and PayPal one-time/recurring paths, order/subscription records, payment webhooks, three-day grace handling, and admin-managed end-of-period cancellation exist in source; provider sandbox/runtime behavior remains unverified.
 
 DK-009 — Extensibility
 Requirement: DropKey exposes WordPress action hooks so future functionality can be added without rewriting core behavior.
@@ -155,10 +155,13 @@ GENERAL RULES
 
 IMPLEMENTATION STATUS SUPPLEMENT — 2026-10-14
 This supplement updates implementation status only; it does not change the confirmed product requirements or imply runtime acceptance.
-- DK-001: product admin create/edit/status and versioned ZIP release upload exist in source.
-- DK-004: hashed expiring download tokens and protected streaming exist in source; checkout/purchase eligibility linkage is not implemented because checkout is outside these milestones.
-- DK-006: administrators can manually issue licenses, change status, view active website activations, and deactivate activations. Purchase/subscription automation is not implemented.
-- DK-007: initial activate/deactivate/validate/update REST endpoints and a portable PHP client exist in source. Integration tests and rate limiting remain outstanding.
-- DK-008: product-tier-billing option configuration exists; no payment checkout or subscription engine exists.
+- DK-001: product admin, published ZIP releases, storefront listing, and checkout/order association exist in source.
+- DK-002: [dropkey_store] storefront, public checkout route/handler, free acquisition, hosted paid checkout, and order recording exist in source; runtime tests remain outstanding.
+- DK-003: Stripe and PayPal adapters, provider settings, signed/provider-verified webhooks, and payment event processing exist in source; real sandbox flows remain unverified.
+- DK-004: hashed expiring download tokens, protected streaming, and purchase fulfillment token issuance exist in source; storage and download runtime tests remain outstanding.
+- DK-005: authenticated-encrypted email queue, bounded retries, and administrator retry action exist in source; real mail delivery is not verified.
+- DK-006: manual license administration and transactional purchase-linked license issuance exist in source; WordPress runtime remains unverified.
+- DK-007: versioned REST routes and PHP client exist; network-free Stripe/PayPal/client contract tests pass in CI. Full WordPress API integration tests and production security review remain outstanding.
+- DK-008: hosted checkout, order/subscription records, provider event handling, three-day grace, and end-of-period admin cancellation exist in source; sandbox behavior remains unverified.
 - DK-010: per-tier activation limit is exposed in admin and enforced by the activation service in source.
 - No payment is verified by this code. Manual license issuance is an administrator-granted license only, not a completed purchase.
