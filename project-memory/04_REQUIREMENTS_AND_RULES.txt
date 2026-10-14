@@ -165,3 +165,11 @@ This supplement updates implementation status only; it does not change the confi
 - DK-008: hosted checkout, order/subscription records, provider event handling, three-day grace, and end-of-period admin cancellation exist in source; sandbox behavior remains unverified.
 - DK-010: per-tier activation limit is exposed in admin and enforced by the activation service in source.
 - No payment is verified by this code. Manual license issuance is an administrator-granted license only, not a completed purchase.
+
+CUSTOMER ACCOUNT PORTAL IMPLEMENTATION UPDATE — 2026-10-15
+- `[dropkey_account]` source now implements account-linked licenses, key copy for newly issued keys, activation-site display/deactivation, subscription status and paid-through details, purchase history, fresh protected download links, profile updates, and password changes with current-password verification.
+- New account-associated orders/licenses use WordPress user IDs. The frontend does not use email alone to grant record access. Matching signed-in checkout email is required before an order is linked to that user.
+- Subscription cancellation remains administrator-managed. Payment-method portal actions are not yet implemented.
+- Guest-purchase linking and identity verification remain unimplemented and require a verified claim flow. Existing keys issued before encrypted storage cannot be recovered from hashes.
+- Schema version 7 adds `customer_user_id` and `key_encrypted` to licenses. New key copies use AES-256-GCM while SHA-256 remains the validation source.
+- Status: source implemented; PHP CI passed; WordPress runtime, ownership/action testing, and visual review NOT RUN.
