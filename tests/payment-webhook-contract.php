@@ -69,4 +69,25 @@ $expired=$gateway->verify_webhook(new DropKey_Test_Request($raw,'t='.$old.',v1='
 check_case($expired instanceof WP_Error && 'dk2_stripe_signature_invalid'===$expired->get_error_code(),'rejects an expired webhook timestamp');
 $malformed=$gateway->verify_webhook(new DropKey_Test_Request('{not-json}','t='.$timestamp.',v1='.hash_hmac('sha256',$timestamp.'.{not-json}',$secret)));
 check_case($malformed instanceof WP_Error && 'dk2_stripe_event_invalid'===$malformed->get_error_code(),'rejects malformed signed event bodies');
-echo "All Stripe webhook contract tests passed.\n";
+
+require_once dirname(__DIR__).'/sdk/dropkey-license-client.php';
+$GLOBALS['dk2_mock_response']=array('response'=>array('code'=>200),'body'=>json_encode(array('success'=>true,'valid'=>true)));
+$client=new DropKey_License_Client('https://licenses.example/','My Product');
+$before=isset($GLOBALS['dk2_mock_request']);
+$http_client=new DropKey_License_Client('http://licenses.example','my-product');
+$http_result=$http_client->activate('not-a-real-key');
+check_case($http_result instanceof WP_Error&&'dk2_client_https_required'===$http_result->get_error_code(),'client refuses non-HTTPS licensing endpoints');
+check_case($before===isset($GLOBALS['dk2_mock_request']),'non-HTTPS request is blocked before network access');
+$client_result=$client->activate('DK2-TEST-KEY');
+check_case(is_array($client_result)&&!empty($client_result['valid']),'client accepts a valid JSON success response');
+check_case('https://licenses.example/wp-json/dropkey/v1/licenses/activate'===$GLOBALS['dk2_mock_request']['url'],'client calls the versioned activation route');
+check_case(true===$GLOBALS['dk2_mock_request']['args']['sslverify']&&0===$GLOBALS['dk2_mock_request']['args']['redirection'],'client keeps TLS verification and disables redirects');
+$payload=json_decode($GLOBALS['dk2_mock_request']['args']['body'],true);
+check_case(isset($payload['license_key'],$payload['site_url'])&&'https://client.example/'===$payload['site_url'],'client sends the license key and its own site URL');
+$GLOBALS['dk2_mock_response']=array('response'=>array('code'=>403),'body'=>json_encode(array('success'=>false,'code'=>'dk2_license_inactive','message'=>'This license is not active.')));
+$invalid=$client->validate('DK2-TEST-KEY');
+check_case($invalid instanceof WP_Error&&'dk2_license_inactive'===$invalid->get_error_code(),'client preserves API error codes');
+$GLOBALS['dk2_mock_response']=new WP_Error('mock_transport','offline');
+$offline=$client->validate('DK2-TEST-KEY');
+check_case($offline instanceof WP_Error&&'dk2_client_transport_error'===$offline->get_error_code(),'client treats transport failure as an error, not an invalid license');
+echo "All webhook and PHP client contract tests passed.\\n";
