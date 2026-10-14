@@ -174,14 +174,14 @@ final class Commerce_Service {
 	public function request_cancel_subscription($subscription_id) {
 		global $wpdb; $id=absint($subscription_id); $table=Database::table('subscriptions');
 		$sub=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE id=%d",$id));
-		if (!$sub||!in_array($sub->status,array('active','past_due'),true)) return new \\WP_Error('dk2_subscription_not_cancellable',__('This subscription cannot be scheduled for cancellation.','dropkey-v2'),array('status'=>409));
-		if (empty($sub->current_period_end)||strtotime($sub->current_period_end.' UTC')<=time()) return new \\WP_Error('dk2_subscription_period_missing',__('A future paid-through date is required before cancellation can be scheduled.','dropkey-v2'));
+		if (!$sub||!in_array($sub->status,array('active','past_due'),true)) return new \WP_Error('dk2_subscription_not_cancellable',__('This subscription cannot be scheduled for cancellation.','dropkey-v2'),array('status'=>409));
+		if (empty($sub->current_period_end)||strtotime($sub->current_period_end.' UTC')<=time()) return new \WP_Error('dk2_subscription_period_missing',__('A future paid-through date is required before cancellation can be scheduled.','dropkey-v2'));
 		if ('stripe'===$sub->gateway) {
 			$gateway=Payment_Gateway::make('stripe'); $result=$gateway->schedule_cancel($sub->gateway_subscription_id);
 			if (is_wp_error($result)) return $result;
 		}
 		$updated=$wpdb->update($table,array('cancel_at_period_end'=>1,'updated_at'=>current_time('mysql',true)),array('id'=>$id));
-		if (false===$updated) return new \\WP_Error('dk2_subscription_cancel_failed',__('The cancellation could not be saved.','dropkey-v2'));
+		if (false===$updated) return new \WP_Error('dk2_subscription_cancel_failed',__('The cancellation could not be saved.','dropkey-v2'));
 		do_action('dk2_subscription_cancel_scheduled',$id,$sub->current_period_end);
 		return true;
 	}
