@@ -81,3 +81,13 @@ NOT IMPLEMENTED / NOT VERIFIED
 
 IMPORTANT REMAINING OPEN DETAILS
 Runtime verification of schema version 6 and all 12 tables; sandbox checkout and provider webhook configuration; live provider payload variation and subscription event ordering; paid-through/grace boundary behavior; real email delivery and WP-Cron reliability; private storage server-level denial; guest identity/account-linking and frontend customer account pages; complete plugin updater UI; production security/concurrency review; tax/coupon/invoice/trial features remain deferred.
+
+CURRENT OVERRIDE — 2026-10-15
+Customer-facing account portal source was added in commit https://github.com/ruelporlas/dropkey-version2/commit/65af56a43bb0a82ff9791a44db0426a2043a4f24. GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38655993037 passed PHP syntax checks and existing network-free contract tests on PHP 7.4, 8.0, and 8.3. WordPress runtime and browser verification remain NOT RUN.
+
+- Shortcode `[dropkey_account]` displays account-linked licenses, copyable keys for newly issued licenses, activations and deactivation, subscription state, purchase history, fresh protected download links, and profile/password forms.
+- Schema version is now 7. The licenses table adds `customer_user_id` and nullable `key_encrypted`. New keys remain SHA-256 hashed for validation and also receive AES-256-GCM encrypted storage for owner display.
+- Signed-in checkout links an order only when the submitted email matches the logged-in WordPress user's email. New licenses inherit that user ID. Customer record queries and actions use user-ID ownership checks.
+- Guest-purchase linking remains unimplemented; guest purchases are not auto-claimed by email. Existing keys issued before encrypted storage cannot be recovered from hashes. Encryption depends on stable WordPress auth salts.
+- Subscription cancellation remains administrator-managed. Payment-method portal actions are not implemented.
+- Next step: install on backed-up WordPress staging and test schema migration, account ownership, deactivation, download link generation, key display, profile/password behavior, and mobile layout.
