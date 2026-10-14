@@ -146,3 +146,10 @@ Evidence: https://github.com/ruelporlas/dropkey-version2/commit/002f5f26aae70d0e
 - Package storage defaults to a sibling directory, but upload handling rejects paths inside ABSPATH or the detected DOCUMENT_ROOT; hosts must configure a writable absolute private path and verify server-level access restrictions.
 - The REST client requires HTTPS and enables TLS certificate verification. License keys are bearer credentials; rate limiting and broader production hardening remain outstanding.
 - Status: implementation choices in current source, not yet runtime-verified.
+
+Date: 2026-10-15
+Decision: Implement the initial customer portal with WordPress-user ownership and encrypted display copies of newly issued license keys.
+Context: Customers need access to licenses, activations, subscriptions, purchase/download history, and profile/password information without cross-account exposure.
+Implementation: `[dropkey_account]` is a WordPress shortcode with scoped CSS. Account queries/actions use `customer_user_id` and linked orders; signed-in checkout associates an order only when checkout email matches the logged-in account email. Schema version 7 adds `customer_user_id` and nullable `key_encrypted` to licenses. SHA-256 remains the validation source; new key copies use AES-256-GCM with a key derived from `wp_salt('auth')`.
+Consequences: Stable WordPress auth salts are required for decryption. Keys issued before this change remain unrecoverable from hashes. Guest-purchase claiming must use a verified flow; email-only ownership matching is prohibited. Subscription cancellation remains administrator-managed.
+Status: source implementation committed; PHP CI passed; WordPress runtime/security verification pending. Evidence: https://github.com/ruelporlas/dropkey-version2/commit/65af56a43bb0a82ff9791a44db0426a2043a4f24 and https://github.com/ruelporlas/dropkey-version2/actions/runs/38655993037.
