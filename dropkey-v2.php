@@ -27,6 +27,7 @@ require_once DK2_PATH.'includes/class-stripe-gateway.php';
 require_once DK2_PATH.'includes/class-paypal-gateway.php';
 require_once DK2_PATH.'includes/class-email-service.php';
 require_once DK2_PATH.'includes/class-commerce-service.php';
+require_once DK2_PATH.'includes/class-storefront.php';
 require_once DK2_PATH.'includes/class-rest-api.php';
 require_once DK2_PATH.'includes/class-admin.php';
 require_once DK2_PATH.'includes/class-plugin.php';
