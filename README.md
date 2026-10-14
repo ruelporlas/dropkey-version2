@@ -38,6 +38,7 @@ Configure these events in Stripe as applicable:
 - `checkout.session.async_payment_failed`
 - `invoice.payment_succeeded`
 - `invoice.payment_failed`
+- `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
 - `charge.refunded`
@@ -61,6 +62,7 @@ Subscribe to the applicable events:
 - `BILLING.SUBSCRIPTION.PAYMENT.COMPLETED`
 - `BILLING.SUBSCRIPTION.PAYMENT.FAILED`
 - `BILLING.SUBSCRIPTION.ACTIVATED`
+- `BILLING.SUBSCRIPTION.UPDATED`
 - `BILLING.SUBSCRIPTION.CANCELLED`
 - `BILLING.SUBSCRIPTION.EXPIRED`
 - `BILLING.SUBSCRIPTION.SUSPENDED`
