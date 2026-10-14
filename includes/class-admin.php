@@ -165,11 +165,11 @@ final class Admin {
 			$new_paypal=array('enabled'=>isset($_POST['paypal_enabled'])?'1':'0','live_mode'=>isset($_POST['paypal_live_mode'])?'1':'0','client_id'=>sanitize_text_field(wp_unslash($_POST['paypal_client_id']??'')),'secret'=>sanitize_text_field(wp_unslash($_POST['paypal_secret']??'')),'webhook_id'=>sanitize_text_field(wp_unslash($_POST['paypal_webhook_id']??'')));
 			foreach(array('secret','webhook_secret') as $key) if (''===$new_stripe[$key]&&!empty($stripe[$key])) $new_stripe[$key]=$stripe[$key];
 			foreach(array('client_id','secret','webhook_id') as $key) if (''===$new_paypal[$key]&&!empty($paypal[$key])) $new_paypal[$key]=$paypal[$key];
-			if ('1'===$new_stripe['enabled']&&(''===$new_stripe['secret']||''===$new_stripe['webhook_secret'])) $result=new \\WP_Error('dk2_stripe_settings_required',__('Stripe requires both a secret key and webhook signing secret before it can be enabled.','dropkey-v2'));
-			elseif ('1'===$new_paypal['enabled']&&(''===$new_paypal['client_id']||''===$new_paypal['secret']||''===$new_paypal['webhook_id'])) $result=new \\WP_Error('dk2_paypal_settings_required',__('PayPal requires a client ID, client secret, and webhook ID before it can be enabled.','dropkey-v2'));
+			if ('1'===$new_stripe['enabled']&&(''===$new_stripe['secret']||''===$new_stripe['webhook_secret'])) $result=new \WP_Error('dk2_stripe_settings_required',__('Stripe requires both a secret key and webhook signing secret before it can be enabled.','dropkey-v2'));
+			elseif ('1'===$new_paypal['enabled']&&(''===$new_paypal['client_id']||''===$new_paypal['secret']||''===$new_paypal['webhook_id'])) $result=new \WP_Error('dk2_paypal_settings_required',__('PayPal requires a client ID, client secret, and webhook ID before it can be enabled.','dropkey-v2'));
 			else { $all['stripe']=$new_stripe; $all['paypal']=$new_paypal; update_option('dk2_payment_settings',$all,false); $this->redirect($page,'saved'); }
 		} elseif ('dk2_email_resend'===$action) {
-			$page='dk2-orders'; $result=(new Email_Service())->resend(absint($_POST['email_id']??0));
+			$page='dk2-orders'; $result=(new Email_Service())->resend(absint($_POST['email_id']??0)); if (!is_wp_error($result)) $this->redirect($page,'saved');
 		} elseif ('dk2_product'===$action) {
 			$data=array('name'=>isset($_POST['name'])?wp_unslash($_POST['name']):'','slug'=>isset($_POST['slug'])?wp_unslash($_POST['slug']):'','description'=>isset($_POST['description'])?wp_unslash($_POST['description']):'','status'=>isset($_POST['status'])?sanitize_key($_POST['status']):'draft');
 			$repo=new Product_Repository(); $result=$id?$repo->update($id,$data):$repo->create($data); $page='dk2-products';
