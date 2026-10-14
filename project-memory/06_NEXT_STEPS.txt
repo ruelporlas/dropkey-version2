@@ -2,41 +2,39 @@ NEXT STEPS
 Project: DropKey Version 2
 Last updated: 2026-10-14
 
-CURRENT TASK
-Milestone 1 source implementation is committed. The next immediate action is to install it in a WordPress 6.4+ / PHP 7.4+ test site and verify plugin activation, table creation, schema-version handling, and repository CRUD/validation behavior.
-
-COMPLETED IN THIS STEP
-- Created the WordPress plugin bootstrap, schema installer, and repositories for products, tiers, and billing options.
-- Added GitHub Actions PHP syntax checks; the latest run passed on PHP 7.4, 8.0, and 8.3.
-- Updated the source map, status, architecture, verification evidence, and change history to reflect the implementation.
-- Captured the initial user-confirmed scope in 04_REQUIREMENTS_AND_RULES.txt.
-- Confirmed the Product → Tier → Billing Options model: each tier owns its activation limit and may offer applicable free, one-time, monthly, and yearly billing options.
-- Recorded admin UI/UX requirements for a guided product and tier creation journey, contextual help, tooltips/equivalent help, validation, and next-step guidance.
-- Recorded that each product tier can define its own maximum website activation count.
-- Added the confirmed requirement for a frontend customer account area to view/manage licenses and subscriptions.
-- Inspected the repository root; only project-memory/ was present.
-- Recorded all 17 user-selected MVP policy decisions and separated unresolved implementation-level details.
+CURRENT STATUS
+Milestones 1–3 source is committed to main. GitHub Actions PHP syntax checks passed on PHP 7.4, 8.0, and 8.3 for the latest implementation commit. WordPress integration/runtime tests have not yet been run.
 
 IMMEDIATE NEXT ACTION
-1. Install the current plugin in a disposable WordPress 6.4+ test environment running PHP 7.4+ (or a newer supported PHP version).
-2. Activate the plugin and verify that the three dk2_ tables are created using the site's actual database prefix; repeat activation and verify schema-version handling.
-3. Exercise Product_Repository, Tier_Repository, and Billing_Option_Repository create/get/list/update/delete behavior, invalid inputs, relationships, and parent-child deletion guards. Record exact outcomes in 05_VERIFICATION_EVIDENCE.txt.
-4. Fix any runtime/integration issues found before proceeding to the next implementation milestone.
-5. Then plan the admin product → tiers → billing-options workflow, preserving the confirmed guided admin UX requirements. Before payment/licensing work, resolve the remaining subscription, guest-linking, provider, download, and API/client contract questions listed in 04_REQUIREMENTS_AND_RULES.txt.
+Update the plugin files installed on the user's WordPress test site from the latest repository source before beginning the next test. Changes pushed to GitHub do not automatically update an already installed plugin; the current source version is 0.2.0.
+
+TEST ORDER AFTER INSTALLING THE UPDATED SOURCE
+1. Confirm the plugin activates without a fatal error and the DropKey admin menu appears.
+2. Confirm schema version 3 and all seven dk2_ tables are created/upgraded with the site's real database prefix.
+3. Create and edit a product; publish it.
+4. Create a tier for that product, set an activation limit, publish it; create billing options and test free/paid field validation.
+5. Configure dk2_private_storage_path to a writable directory outside DOCUMENT_ROOT before uploading a test ZIP. Confirm the ZIP is not reachable through a public URL.
+6. Upload a versioned ZIP release, publish it, and verify the stored digest.
+7. Manually issue a license for a published product/tier. Copy the key once and confirm only its hash/prefix is stored.
+8. Test REST activate/deactivate/validate and activation-limit enforcement across multiple distinct site URLs; test wrong product slug on update checks.
+9. Create a protected download link. Test valid download, invalid token, expiry, five-download cap, inactive/expired license, and package integrity failure.
+10. Record actual outcomes and any reproduced errors in 05_VERIFICATION_EVIDENCE.txt before calling these milestones verified.
+
+IMPORTANT SCOPE BOUNDARIES
+- Milestone 2 provides admin product, tier, billing option, and versioned ZIP release screens.
+- Milestone 3 provides manual license administration, website activations, expiring protected downloads, REST licensing/update endpoints, and a reusable PHP client.
+- Checkout, PayPal/Stripe, payment webhooks, orders/subscriptions, purchase emails, customer-facing account pages, rate limiting, and the full WordPress plugin update-screen integration are not implemented yet.
+- Never treat manual license issuance as proof of payment.
+- Configure and verify private storage outside the public document root before storing real product ZIPs.
 
 ADMIN UX REQUIREMENT
-During architecture/design, propose a clear product-to-tiers journey before implementation. It should explain product details and ZIP file separately from tiers/pricing, show the next action after a product is saved, and use concise helper text/tooltips and actionable validation without overwhelming the admin. Tier creation/editing must clearly expose the configured activation limit.
+Product setup separates product details from tiers/pricing and exposes the next actions to add tiers or a ZIP release. Tier creation/editing exposes the configurable activation limit and gives helper text with editable examples.
 
 CUSTOMER ACCOUNT UX REQUIREMENT
-Plan a frontend account area, separate from WordPress admin, where an authenticated customer can view their own licenses and subscriptions. Enforce ownership checks on every customer-facing view/action. Define cancellation, activation management, and transfer behavior before enabling those actions.
+A frontend account area remains required for a later milestone. It must show only the authenticated customer's own licenses and subscriptions and enforce ownership checks for every action.
 
-AFTER MILESTONE 1 INTEGRATION CHECKS
-- Implement one milestone at a time and update verification evidence.
-- Design the versioned REST API and reusable PHP client together, with integration tests, as already selected by the user.
-- Keep payment-provider adapters separate from core product, order, subscription, and licensing logic.
-- Preserve the confirmed private ZIP storage, expiring download links, activation limits, and customer ownership requirements.
-
-ACCEPTANCE CRITERIA FOR THE CURRENT PLANNING TASK
-- Confirmed requirements and unresolved decisions are clearly separated.
-- No implementation is claimed or performed without authorization.
-- Next action is clear and actionable.
+WORKING RULES
+- Actual repository files and latest verification results are the source of truth.
+- Ask when scope is unclear; do not get ahead of the user's request.
+- Keep implementation and runtime verification status separate.
+- Update these memory files after substantial project changes and verify each memory write by fetching the file again.
