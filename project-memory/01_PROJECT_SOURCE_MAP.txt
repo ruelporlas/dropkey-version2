@@ -1,0 +1,30 @@
+PROJECT SOURCE MAP
+Project: DropKey Version 2
+Repository: https://github.com/ruelporlas/dropkey-version2
+Default branch: main
+Last initialized: 2026-10-14
+
+PURPOSE
+This file identifies where authoritative project information lives. Update it when project files or documentation locations change.
+
+SOURCE-OF-TRUTH ORDER
+1. Actual files in this repository are the source of truth for what is implemented.
+2. The project-memory files document status, decisions, requirements, verification, and work history.
+3. Conversation history may provide context, but must not override current repository evidence.
+4. If sources conflict, inspect the actual files and report the conflict instead of guessing.
+
+CURRENT REPOSITORY BASELINE
+The repository was confirmed to exist and be accessible through the connected GitHub integration. A GitHub contents request reported that the repository was empty before this project-memory folder was created. No application source files have been inspected or established yet.
+
+KEY FILES
+- project-memory/01_PROJECT_SOURCE_MAP.txt — this map and source-of-truth rules.
+- project-memory/02_CURRENT_STATUS.txt — verified current implementation status.
+- project-memory/03_ARCHITECTURE_AND_DECISIONS.txt — accepted architecture and technical decisions.
+- project-memory/04_REQUIREMENTS_AND_RULES.txt — confirmed requirements and constraints.
+- project-memory/05_VERIFICATION_EVIDENCE.txt — tests, checks, and evidence actually observed.
+- project-memory/06_NEXT_STEPS.txt — immediate agreed next actions.
+- project-memory/07_CHANGE_HISTORY.txt — dated project changes and important decisions.
+- project-memory/08_WORKING_PREFERENCES_AND_PERMISSIONS.txt — collaboration preferences and access boundaries.
+- project-memory/AI_PROJECT_PROTOCOL.txt — mandatory working protocol for AI assistants.
+
+Update this file whenever the project structure or authoritative source locations change.
