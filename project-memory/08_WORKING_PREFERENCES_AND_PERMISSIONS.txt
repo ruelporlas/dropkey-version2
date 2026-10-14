@@ -1,0 +1,22 @@
+WORKING PREFERENCES AND PERMISSIONS
+Last updated: 2026-10-14
+
+CONFIRMED WORKING PREFERENCES
+- The user has explicitly said this project is starting over.
+- Do not assume that previous implementation details, task priorities, or decisions apply to this fresh start.
+- Ask for clarification when the goal or necessary context is unclear.
+- Stay within the current task; do not get ahead of the user's request.
+- Inspect actual files before making claims about implementation status.
+- Report what was changed and what was actually verified.
+
+PERMISSIONS
+- Repository: ruelporlas/dropkey-version2.
+- The connected GitHub integration reported admin, push, and pull permissions.
+- The user has authorized creation of the requested project-memory folder and files.
+- This authorization does not automatically authorize destructive changes or unrelated implementation work.
+
+UNCONFIRMED
+- No additional repository-specific access restrictions or coding conventions have been established for this repository in the fresh-start baseline.
+
+UPDATE RULE
+Record explicit user preferences, permissions, and changes to them. Do not turn a one-time task instruction into broad permission for unrelated work.
