@@ -58,6 +58,7 @@ final class Stripe_Gateway extends Payment_Gateway {
 		if (empty($metadata['order_public_id'])&&isset($o['client_reference_id'])) $metadata['order_public_id']=$o['client_reference_id'];
 		if (empty($metadata['order_public_id'])&&isset($o['subscription_details']['metadata']['order_public_id'])) $metadata['order_public_id']=$o['subscription_details']['metadata']['order_public_id'];
 		if (empty($metadata['order_public_id'])&&isset($o['parent']['subscription_details']['metadata']['order_public_id'])) $metadata['order_public_id']=$o['parent']['subscription_details']['metadata']['order_public_id'];
+		if (empty($metadata['order_public_id'])&&isset($o['parent']['subscription_details']['metadata']['order_public_id'])) $metadata['order_public_id']=$o['parent']['subscription_details']['metadata']['order_public_id'];
 		$type='ignored';
 		if ('invoice.payment_succeeded'===$event['type']||'checkout.session.async_payment_succeeded'===$event['type']) $type='payment_succeeded';
 		elseif ('checkout.session.completed'===$event['type']&&isset($o['payment_status'])&&in_array($o['payment_status'],array('paid','no_payment_required'),true)) $type='payment_succeeded';
