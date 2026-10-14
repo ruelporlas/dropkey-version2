@@ -87,3 +87,18 @@ Consequences and trade-offs:
 - This is an architecture-planning decision only; it does not authorize implementation.
 Status: accepted for architecture planning; detailed contract remains open.
 Evidence or related files: User instruction on 2026-10-14; project-memory/04_REQUIREMENTS_AND_RULES.txt, DK-007.
+
+
+Date: 2026-10-14
+Decision: Implement the Milestone 1 WordPress foundation and core data model.
+Context / problem: The user explicitly authorized coding Milestone 1 with GitHub as the first development target.
+Implementation choices made within this milestone:
+- Plugin entry point: dropkey-v2.php; namespace: DropKey\\V2; text domain: dropkey-v2; custom table prefix suffix: dk2_.
+- Use WordPress dbDelta() for the three core tables and keep a schema version independent of the plugin release version.
+- Data relationships: Product → Tier → Billing Option. Product and tier records use draft/published/archived statuses. Tier activation limits are stored on tiers; billing type, price, and currency are stored on billing options.
+- Use repository classes for CRUD and field validation. Avoid database foreign-key constraints in the initial schema migration; prevent deleting a product with tiers or a tier with billing options through repository guards.
+- Add PHP syntax CI for PHP 7.4, 8.0, and 8.3.
+Reason: These are scoped implementation choices needed to deliver the authorized foundation while preserving the confirmed domain model and compatibility baseline.
+Consequences / limits: No admin UI, checkout, payment gateway, licensing API/client, download delivery, update mechanism, or customer account area is included. WordPress runtime behavior remains unverified until tested in a WordPress environment.
+Status: implemented in source; static syntax checks passed; runtime/integration verification pending.
+Evidence: https://github.com/ruelporlas/dropkey-version2/commit/002f5f26aae70d0e504e7ea8101e9d238668ffdc
