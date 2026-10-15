@@ -192,3 +192,10 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 
 2026-10-15 — Staging test purchase evidence received
 User-provided staging Order #19 screen shows the PayPal order and payment marked paid for USD 9.99, active subscription #4, and linked license #4. This does not verify email delivery, license usability, or checkout return behavior. No additional payment, source change, or runtime test was performed. Next action is to inspect the email queue and linked license in staging admin.
+
+
+2026-10-15 — PR #1 review and recurring renewal hardening
+- Review confirmed the feature branch diff would remove all nine official project-memory files because it had diverged from main. Restored the files on `feature/complete-customer-checkout` from current main content; the PR diff now modifies rather than deletes them.
+- Found recurring renewal processing accepted any non-negative amount and skipped amount validation on renewal/idempotent paths. Added positive numeric amount validation, matching ISO-style currency, exact match to the original order amount, and moved validation before duplicate-payment recovery. Added four contract cases.
+- GitHub Actions run 38693385142 passed PHP lint and all network-free contract tests on PHP 7.4, 8.0, and 8.3.
+- Remaining pre-merge blocker: account creation/linking can attach a guest purchase to an existing WordPress account based only on the submitted email; require authentication/verified ownership before linking. README also needs to match current PayPal auto-provisioning and account behavior. No staging deployment, merge, or new payment attempt.
