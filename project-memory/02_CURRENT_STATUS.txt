@@ -263,3 +263,11 @@ PR REVIEW / HARDENING UPDATE — 2026-10-15
 PR DOCUMENTATION FOLLOW-UP — 2026-10-15
 - Corrected the stale PayPal recurring-plan instructions in the feature-branch README to match `includes/class-paypal-gateway.php` automatic product/plan provisioning. This README change is pending PR review/merge; main was not changed for application/docs.
 - The customer-account paragraph remains inconsistent with actual code and is intentionally left as a review blocker until the account-ownership behavior is resolved. Do not merge while email-only linking to an existing account remains possible.
+
+
+CUSTOMER ACCOUNT CHECKOUT POLICY — 2026-10-15
+- User explicitly superseded the earlier guest-checkout decision: account creation is mandatory; guest checkout is prohibited.
+- Feature branch now renders an account-registration gate for signed-out customers, offers a sign-in route for existing customers, creates a subscriber account with a password before checkout, and signs the new customer in.
+- `Commerce_Service::start_checkout()` rejects unauthenticated checkout and requires checkout email to match the authenticated WordPress account. Fulfillment no longer creates or links accounts by email alone; it requires an order's customer_user_id to resolve to a WordPress user whose email matches the order.
+- Added network-free checkout contract tests for unauthenticated checkout and account-email mismatch; the existing contract suite includes the new test file.
+- Latest CI attempt before final syntax corrections failed on a PHP parse error from over-escaped namespace separators; that source was corrected, but a post-correction CI run has not yet been observed. WordPress runtime and staging behavior are unverified. Existing pending guest orders without customer_user_id may require support resolution; do not attach them to an existing account by email alone.
