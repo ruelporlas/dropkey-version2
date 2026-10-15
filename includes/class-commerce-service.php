@@ -342,7 +342,7 @@ final class Commerce_Service {
 		global $wpdb;
 		$events=Database::table('payment_events'); $event_id=sanitize_text_field($event['event_id']); $hash=isset($event['payload_hash'])?$event['payload_hash']:hash('sha256',wp_json_encode($event));
 		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$events} WHERE gateway=%s AND event_id=%s",$gateway,$event_id));
-		if ($existing&&!$this->webhook_event_payload_matches($existing,$hash)) return new \\WP_Error('dk2_webhook_event_conflict',__('A provider event ID was received with a different payload.','dropkey-v2'),array('status'=>409));
+		if ($existing&&!$this->webhook_event_payload_matches($existing,$hash)) return new \WP_Error('dk2_webhook_event_conflict',__('A provider event ID was received with a different payload.','dropkey-v2'),array('status'=>409));
 		if ($existing&&'processed'===$existing->status) return array('duplicate'=>true,'processed'=>true);
 		if ($existing&&'processing'===$existing->status&&strtotime($existing->created_at.' UTC')>time()-600) return new \WP_Error('dk2_webhook_in_progress',__('This provider event is already being processed. Retry delivery shortly.','dropkey-v2'),array('status'=>503));
 		if ($existing) $wpdb->update($events,array('status'=>'processing','error_message'=>''),array('id'=>$existing->id));
