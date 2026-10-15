@@ -14,7 +14,7 @@ final class Commerce_Service {
 		foreach($keys as $key) set_transient($key,(int)get_transient($key)+1,HOUR_IN_SECONDS);
 		return true;
 	}
-	public function start_checkout($billing_id,$email,$gateway,$success_url,$cancel_url) {
+	public function start_checkout($billing_id,$email,$gateway,$success_url,$cancel_url,$customer_details=array()) {
 		global $wpdb;
 		$billing_id=absint($billing_id); $email=sanitize_email($email); $gateway=sanitize_key($gateway);
 		Logger::info('checkout','checkout_started','Checkout attempt started',array('billing_option_id'=>$billing_id,'gateway'=>$gateway));
@@ -37,7 +37,10 @@ final class Commerce_Service {
 		if (is_user_logged_in()) { $current_user=wp_get_current_user(); if ($current_user&&strtolower($current_user->user_email)===strtolower($email)) $customer_user_id=(int)$current_user->ID; }
 		$ok=$wpdb->insert(Database::table('orders'),array(
 			'public_id'=>$public_id,'product_id'=>$billing->product_id,'tier_id'=>$billing->tier_id,'billing_option_id'=>$billing_id,
-			'customer_email'=>$email,'customer_user_id'=>$customer_user_id?:null,'gateway'=>$gateway,'gateway_order_id'=>'','gateway_session_id'=>'',
+			'customer_email'=>$email,'customer_user_id'=>$customer_user_id?:null,
+			'customer_first_name'=>isset($customer_details['first_name'])?sanitize_text_field($customer_details['first_name']):'', 'customer_last_name'=>isset($customer_details['last_name'])?sanitize_text_field($customer_details['last_name']):'', 'customer_phone'=>isset($customer_details['phone'])?sanitize_text_field($customer_details['phone']):'',
+			'billing_address_1'=>isset($customer_details['address_1'])?sanitize_text_field($customer_details['address_1']):'', 'billing_address_2'=>isset($customer_details['address_2'])?sanitize_text_field($customer_details['address_2']):'', 'billing_city'=>isset($customer_details['city'])?sanitize_text_field($customer_details['city']):'',
+			'billing_state'=>isset($customer_details['state'])?sanitize_text_field($customer_details['state']):'', 'billing_postcode'=>isset($customer_details['postcode'])?sanitize_text_field($customer_details['postcode']):'', 'billing_country'=>isset($customer_details['country'])?sanitize_text_field($customer_details['country']):'', 'gateway'=>$gateway,'gateway_order_id'=>'','gateway_session_id'=>'',
 			'status'=>'pending','amount'=>(float)$billing->price,'currency'=>strtoupper($billing->currency?$billing->currency:'USD'),
 			'created_at'=>$now,'updated_at'=>$now
 		));
