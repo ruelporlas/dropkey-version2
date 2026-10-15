@@ -145,4 +145,4 @@ CHECKOUT URL FALLBACK FOLLOW-UP — 2026-10-15
 - User tested version 0.3.5 and still received the plugin-generated “The checkout return URL is invalid” message. This means the current code path is still rejecting its URL inputs before PayPal; the exact generated URL is not yet known.
 - Changed includes/class-commerce-service.php to validate only parsed HTTP(S) scheme and host after sanitization. If the referer-derived URLs fail, it now falls back to the sanitized canonical home URL (success URL includes dk2_order). It logs a safe diagnostic when fallback is used, and logs only canonical URL scheme, host-presence, and length if even the fallback is invalid. It does not log the full URL or query values.
 - Source commit: f931a0a20080b193c46de43c9c1915da5f7791bb. Plugin version bumped to 0.3.6 in commit 1cf3130d3544e82d345f77cbdb8b85c847de3313.
-- Status: source committed; CI status has not yet been confirmed. WordPress/PayPal Sandbox runtime verification remains pending.
+- Status: source committed; PHP syntax CI passed for both the source and version commits (runs 38662620511 and 38662636601). WordPress/PayPal Sandbox runtime verification remains pending.
