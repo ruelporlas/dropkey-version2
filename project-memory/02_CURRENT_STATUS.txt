@@ -219,3 +219,11 @@ CHECKOUT RETRY/LAYOUT HOTFIX — 2026-10-15
 - Added stronger scoped checkout CSS to isolate labels, inputs, field grids, and payment radio options from theme/page-builder styles.
 - Plugin version bumped to 0.4.1 to invalidate cached assets. Source commits: a6b38bc, 1a94606, 2a9f9c5.
 - CI and WordPress runtime verification remain outstanding; user must update installed plugin to 0.4.1 and hard-refresh/clear cache to see the fix.
+
+
+CHECKOUT ORDER INSERT FAILURE — 2026-10-15
+- User reports the new checkout form now reaches submission but displays: “The checkout order could not be created.” This occurs at the database insert in Commerce_Service::start_checkout(), before calling PayPal/Stripe.
+- Source review found the order insert now includes customer/billing columns added in schema v9. The schema installer unconditionally wrote the schema version after dbDelta() without checking that those columns were actually present. This makes an incomplete migration a plausible cause, but the actual WordPress database error has not yet been observed; do not claim root cause confirmed.
+- Commits on main: bb34afc563a0d1679b76936c1f0e862107d1c311 adds safe order-insert failure diagnostics (database error and column names only); 73257df4e00fdd5b01712b81ab1715317d74dce2 bumps schema version to 10 and verifies the required checkout columns exist before marking the migration complete; 2fb28bf77891868a0d409b60a3ea93b9e676c7c3 bumps plugin version to 0.4.2.
+- If migration columns are missing, the installer logs the missing columns and leaves the schema version unadvanced so it retries on a later request. The order insert now logs the database error to DropKey structured logs and PHP error log without customer data or secrets.
+- Verification status: GitHub combined commit status returned no reported statuses for 0.4.2 at the time of this note. PHP syntax CI, WordPress runtime, and live checkout remain UNVERIFIED. Do not ask the user to retest until source/static checks are completed; a staging-only database inspection may still be needed to establish the actual root cause.
