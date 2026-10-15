@@ -103,5 +103,5 @@ BILLING OPTION UX AND PAYPAL PLAN PROVISIONING — 2026-10-15
 - If billing type, amount, or currency changes, the saved PayPal plan reference is cleared so checkout can provision a plan with matching terms. Existing subscriptions on the previous PayPal plan are not migrated by this change.
 - Admin billing form displays a read-only existing plan ID or explains that DropKey will create it automatically at first PayPal checkout.
 - Admin CSS now styles untyped text inputs and provides a consistent accent for checkbox/radio inputs. Plugin version bumped to 0.3.1 for asset cache invalidation.
-- PHP syntax CI status at time of update: pending. PayPal Sandbox/Live API behavior and WordPress visual/runtime testing remain unverified.
+- PHP syntax CI passed for code commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d` on PHP 7.4, 8.0, and 8.3: https://github.com/ruelporlas/dropkey-version2/actions/runs/38658721423. PayPal Sandbox/Live API behavior and WordPress visual/runtime testing remain unverified.
 - Important: the earlier reported generic database save failure has not been confirmed as caused by a missing PayPal plan ID. If billing-option saving still fails after installing this version, inspect the existing database-failure log; do not assume this change identifies that separate failure's root cause.
