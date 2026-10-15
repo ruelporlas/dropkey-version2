@@ -167,3 +167,10 @@ Decision — Structured operational logging (2026-10-15)
 - Logger class: `includes/class-logger.php`; schema version 8; log levels debug/info/warning/error/critical; per-request correlation ID; 30-day cleanup; logging enabled by default and configurable on the Debug Logs screen.
 - Context redaction and bounded field sizes are applied before persistence. The logger must never store provider credentials, auth headers, passwords, license keys, raw request/response bodies, customer email addresses, or complete checkout URLs. If the log table write fails, fallback is a generic PHP error_log message to avoid recursive logging or leaking context.
 - Admin log viewer requires manage_options, supports level filter/pagination and clear-all. This feature is source-implemented but WordPress runtime verification remains pending.
+
+
+2026-10-15 — Checkout return-URL behavior observed in source and staging log
+- Finding: The current main-branch storefront renders a hidden `return_url` derived from the checkout page URL and validates/sanitizes it before starting checkout. The commerce service contains a `return_url_fallback_used` warning: when referer-derived checkout URLs fail parsing, it falls back to the canonical home URL.
+- Evidence: Source review of `includes/class-storefront.php` and `includes/class-commerce-service.php`; user-reported staging log at 2026-10-15 01:21:51: “Referer-derived checkout URLs failed parsing; canonical home URL used.”
+- Interpretation: This records observed implementation behavior, not an approved change to the checkout design. The exact malformed/empty input and the resulting customer redirect have not yet been reproduced in WordPress runtime. The warning alone does not establish whether payment capture, order fulfillment, or email delivery failed.
+- Status: observed; root cause and runtime impact unverified.
