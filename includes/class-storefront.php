@@ -73,7 +73,7 @@ final class Storefront {
 		global $wpdb;
 		$products=Database::table('products'); $tiers=Database::table('tiers'); $billing=Database::table('billing_options');
 		$settings=$this->payment_settings();
-		$rows=$wpdb->get_results("SELECT p.id AS product_id,p.name AS product_name,p.description AS product_description,t.id AS tier_id,t.name AS tier_name,t.description AS tier_description,t.activation_limit,b.id AS billing_option_id,b.billing_type,b.price,b.currency,b.paypal_plan_id FROM {$products} p INNER JOIN {$tiers} t ON t.product_id=p.id INNER JOIN {$billing} b ON b.tier_id=t.id WHERE p.status='published' AND t.status='published' AND b.status='published' ORDER BY p.name,t.sort_order,t.id,b.id");
+		$rows=$wpdb->get_results("SELECT p.id AS product_id,p.name AS product_name,p.description AS product_description,COUNT(DISTINCT b.id) AS option_count FROM {$products} p INNER JOIN {$tiers} t ON t.product_id=p.id INNER JOIN {$billing} b ON b.tier_id=t.id WHERE p.status='published' AND t.status='published' AND b.status='published' GROUP BY p.id,p.name,p.description ORDER BY p.name");
 		ob_start();
 		echo '<div class="dk2-store">';
 		echo $this->current_order_notice();
