@@ -11,6 +11,24 @@ namespace {
 	if (!function_exists('is_email')) { function is_email($value) { return false!==filter_var((string)$value,FILTER_VALIDATE_EMAIL); } }
 	if (!function_exists('is_user_logged_in')) { function is_user_logged_in() { return !empty($GLOBALS['dk2_test_logged_in']); } }
 	if (!function_exists('wp_get_current_user')) { function wp_get_current_user() { return isset($GLOBALS['dk2_test_user'])?$GLOBALS['dk2_test_user']:(object)array('ID'=>0,'user_email'=>''); } }
+	if (!function_exists('home_url')) { function home_url($path='/') { return 'https://client.example/'.ltrim($path,'/'); } }
+	if (!function_exists('wp_parse_url')) { function wp_parse_url($url) { return parse_url($url); } }
+	if (!function_exists('esc_url_raw')) { function esc_url_raw($url,$protocols=null) { return trim((string)$url); } }
+	if (!function_exists('wp_sanitize_redirect')) { function wp_sanitize_redirect($url) { return preg_replace('/[\\r\\n\\t]/','',(string)$url); } }
+	if (!function_exists('wp_json_encode')) { function wp_json_encode($value) { return json_encode($value); } }
+	if (!function_exists('add_query_arg')) { function add_query_arg($key,$value,$url) {
+		$parts=parse_url((string)$url); if (!is_array($parts)) return (string)$url;
+		$query=array(); if (!empty($parts['query'])) parse_str($parts['query'],$query); $query[$key]=$value;
+		$result=isset($parts['scheme'])?$parts['scheme'].'://':'';
+		if (isset($parts['host'])) $result.=$parts['host']; if (isset($parts['port'])) $result.=':'.$parts['port'];
+		$result.=isset($parts['path'])?$parts['path']:''; $result.='?'.http_build_query($query);
+		if (isset($parts['fragment'])) $result.='#'.$parts['fragment']; return $result;
+	} }
+	if (!function_exists('wp_validate_redirect')) { function wp_validate_redirect($url,$fallback='') {
+		$url=(string)$url; $parts=parse_url($url); $home=parse_url(home_url('/'));
+		if (!is_array($parts)||empty($parts['host'])||empty($parts['scheme'])||!in_array(strtolower($parts['scheme']),array('http','https'),true)||!isset($home['host'])||strtolower($parts['host'])!==strtolower($home['host'])) return $fallback;
+		return $url;
+	} }
 	if (!function_exists('absint')) { function absint($value) { return abs((int)$value); } }
 	if (!defined('MINUTE_IN_SECONDS')) define('MINUTE_IN_SECONDS',60);
 	if (!defined('HOUR_IN_SECONDS')) define('HOUR_IN_SECONDS',3600);
@@ -34,6 +52,8 @@ namespace {
 namespace DropKey\V2 {
 	final class Logger {
 		public static function info($category,$event,$message,$context=array()) {}
+		public static function warning($category,$event,$message,$context=array()) {}
+		public static function error($category,$event,$message,$context=array()) {}
 	}
 }
 namespace {
@@ -43,7 +63,18 @@ namespace {
 		if (!$condition) { fwrite(STDERR,"FAIL: ".$message."\n"); exit(1); }
 		echo "PASS: ".$message."\n";
 	}
-	$service=new \DropKey\V2\Commerce_Service();
+	$service=new \\DropKey\\V2\\Commerce_Service();
+	$return_url_method=new \\ReflectionMethod('DropKey'.chr(92).'V2'.chr(92).'Commerce_Service','validate_checkout_return_urls');
+	$return_url_method->setAccessible(true);
+	$valid_returns=$return_url_method->invoke($service,'https://client.example/checkout?product_id=7','https://client.example/checkout?product_id=7','order-test-uuid');
+	check_checkout_case(is_array($valid_returns)&&empty($valid_returns['fallback_used'])&&false!==strpos($valid_returns['success_url'],'dk2_order=order-test-uuid'),'preserves a valid same-site return URL and appends the order reference');
+	check_checkout_case('https://client.example/checkout?product_id=7'===$valid_returns['cancel_url'],'preserves the valid same-site cancellation URL');
+	$external_return=$return_url_method->invoke($service,'https://attacker.example/return','https://client.example/checkout','order-test-uuid');
+	check_checkout_case(is_array($external_return)&&!empty($external_return['fallback_used'])&&false!==strpos($external_return['success_url'],'https://client.example/'),'rejects an external return URL and falls back to the canonical site');
+	check_checkout_case(false===strpos($external_return['cancel_url'],'attacker.example'),'does not pass an untrusted host to the payment provider');
+	$malformed_return=$return_url_method->invoke($service,"not a valid URL","https://client.example/checkout","order-test-uuid");
+	check_checkout_case(is_array($malformed_return)&&!empty($malformed_return['fallback_used']),'falls back safely when a submitted return URL is malformed');
+
 	$GLOBALS['dk2_test_logged_in']=false;
 	$GLOBALS['dk2_test_user']=(object)array('ID'=>0,'user_email'=>'');
 	$guest=$service->start_checkout(1,'buyer@example.test','stripe','https://example.test/success','https://example.test/cancel');
