@@ -177,3 +177,14 @@ CUSTOMER ACCOUNT PORTAL IMPLEMENTATION UPDATE — 2026-10-15
 IMPLEMENTATION STATUS UPDATE — PAYPAL PLAN PROVISIONING — 2026-10-15
 - DK-003 / DK-008: Monthly/yearly billing options no longer require an administrator-entered PayPal plan ID to save. The PayPal gateway provisions a provider product and fixed-price recurring plan on first PayPal checkout and stores the plan ID. Provider Sandbox/Live runtime behavior remains unverified.
 - Admin styling: the DropKey admin stylesheet now covers inputs without an explicit type attribute, plus checkbox/radio accents. This is a UI consistency fix, not a change to payment or product requirements.
+
+
+DK-OPS-001 — Operational debug logging (user-confirmed, 2026-10-15)
+Requirement: DropKey must provide diagnostic logging for actions, activity, and errors to make troubleshooting easier.
+Acceptance criteria:
+- Authorized administrators can review logs from WordPress Admin.
+- Logs capture key admin actions, checkout flow, payment-provider errors, REST/webhook processing, email delivery outcomes, and database write failures.
+- Entries identify timestamp, severity, source/event, request correlation ID, and safe diagnostic context.
+- The administrator can enable/disable structured logging and clear stored entries; old entries are pruned after 30 days when the logger runs.
+- Structured logs must exclude credentials, authorization headers, passwords, license keys, raw payment payloads, customer email addresses, and full checkout URLs.
+Status: implemented in source, plugin version 0.3.7, automated CI passed. WordPress migration and UI/runtime verification not yet run.
