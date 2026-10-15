@@ -277,3 +277,13 @@ IMMEDIATE NEXT ACTION — POST-REGISTRATION HARDENING CI GREEN — 2026-10-15
 
 2026-10-15 — Next security checks
 Keep PR #1 draft/unmerged. Add tests for webhook payload-hash conflicts and legacy orders without customer_user_id. Review license API throttling and download-token expiry/count behavior. Verify order ownership and payment retries on WordPress staging before merge or deployment. CI run 38704141899 passed PHP 7.4, 8.0 and 8.3.
+
+
+
+IMMEDIATE NEXT ACTION — CHECKOUT RETURN URL DIAGNOSIS — 2026-10-15
+1. Do not edit application code until the user agrees on the proposed fix. Keep PR #1 draft/unmerged; do not deploy and do not repeat a payment.
+2. Establish which plugin version/commit is actually installed on staging and whether it matches repository `main` or `feature/complete-customer-checkout`; the current repository storefront already posts an explicit hidden `return_url`.
+3. Obtain the safe structured log context around the fallback event and inspect the effective WordPress Home URL / Site URL and checkout page permalink. Do not log credentials, full customer data, or sensitive query values.
+4. Reproduce with a non-paying checkout/session attempt if the environment permits, or add a focused network-free regression test only after the user approves implementation. Trace both storefront and REST checkout entry points.
+5. Acceptance criteria for a fix: success/cancel URLs are absolute HTTP(S) URLs on an explicitly allowed site origin; success returns to the correct checkout/order confirmation page; cancel returns to the expected checkout page; no Referer-derived fallback is needed for normal storefront submission; malformed/untrusted inputs fail safely; regression coverage proves the behavior.
+6. After the diagnosis is agreed, implement only the approved narrow fix, run PHP lint and contract tests on PHP 7.4/8.0/8.3 via CI, and schedule a WordPress staging/browser verification. Update this memory with actual results only.
