@@ -118,3 +118,8 @@ IMMEDIATE — checkout URL validator follow-up (2026-10-15)
 2. If CI passes, update DropKey V2 on https://driftbyte.sellersage.shop to version 0.3.5 and retry PayPal Sandbox checkout.
 3. If the same plugin-generated invalid-URL message appears, instrument safe diagnostics (only URL scheme, host presence, parse result, and character-check result; do not log query values or credentials) before another validation change. If PayPal again returns INVALID_PARAMETER_SYNTAX, use safe diagnostics to identify which URL component is malformed.
 - CI PASSED for URL validation commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc` and plugin version 0.3.5 commit `abe1b8dc94ea2669df03f44035f1efb190120557` (runs 38662089337 and 38662107088). Next: update the installed plugin to 0.3.5 on driftbyte.sellersage.shop and retry Sandbox checkout.
+
+IMMEDIATE — checkout URL fallback v0.3.6 (2026-10-15)
+1. Confirm GitHub Actions status for source commit f931a0a20080b193c46de43c9c1915da5f7791bb and version commit 1cf3130d3544e82d345f77cbdb8b85c847de3313. Do not claim CI passed until confirmed.
+2. Update the installed plugin on https://driftbyte.sellersage.shop to 0.3.6 and retry the same PayPal Sandbox checkout.
+3. If checkout proceeds to PayPal but PayPal rejects return_url/cancel_url, inspect the new safe DropKey log and PayPal issue fields. If the plugin still emits the local invalid-URL message, capture the new safe “Checkout canonical URL invalid” diagnostic and inspect WordPress home/site URL configuration. Do not log or share full query strings or credentials.
