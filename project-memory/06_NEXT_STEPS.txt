@@ -245,3 +245,11 @@ IMMEDIATE NEXT ACTION — PR #1 REVIEW / HARDENING — 2026-10-15
 PR REVIEW CLARIFICATION — 2026-10-15
 - The feature-branch README now accurately describes automatic PayPal recurring product/plan provisioning. This documentation-only commit does not change main and did not require rerunning PHP CI.
 - Still fix the existing-account ownership check in checkout/fulfillment and then revise the customer-account README paragraph to describe the verified behavior. Do not merge until both code and docs agree.
+
+
+IMMEDIATE NEXT ACTION — ACCOUNT-REQUIRED CHECKOUT
+1. Obtain a fresh CI run on the current feature head; require PHP 7.4/8.0/8.3 lint and all contract tests to pass. The last observed run failed before final syntax corrections.
+2. Review the diverged PR diff against current `main`.
+3. Test on staging: registration/sign-in redirect preservation, no checkout fields for logged-out users, REST guest rejection, email mismatch rejection, authenticated free/paid orders with customer_user_id, and webhook retries.
+4. Safely resolve legacy pending guest orders without customer_user_id; never attach them to existing accounts by email alone.
+5. Keep PR draft/unmerged and do not deploy until CI and staging acceptance pass.
