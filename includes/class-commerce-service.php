@@ -54,6 +54,7 @@ final class Commerce_Service {
 			if (is_wp_error($completed)) return $completed;
 			return array('order_id'=>$public_id,'status'=>'completed','checkout_url'=>add_query_arg('dk2_order',$public_id,$success_url));
 		}
+		$return_url_fallback_used=false;
 		$success_url=wp_validate_redirect($success_url,home_url('/')); $cancel_url=wp_validate_redirect($cancel_url,home_url('/'));
 		$success_url=esc_url_raw(wp_sanitize_redirect(add_query_arg('dk2_order',$public_id,$success_url)),array('http','https'));
 		$cancel_url=esc_url_raw(wp_sanitize_redirect($cancel_url),array('http','https'));
@@ -69,6 +70,7 @@ final class Commerce_Service {
 			if ($valid_url($fallback_success)&&$valid_url($fallback_cancel)) {
 				$success_url=$fallback_success;
 				$cancel_url=$fallback_cancel;
+				$return_url_fallback_used=true;
 				error_log('[DropKey V2] Checkout return URL fallback used; the referer URL failed URL parsing.');
 				Logger::warning('checkout','return_url_fallback_used','Referer-derived checkout URLs failed parsing; canonical home URL used');
 			} else {
@@ -78,6 +80,11 @@ final class Commerce_Service {
 				return new \WP_Error('dk2_checkout_return_url_invalid',__('The checkout return URL is invalid. Please contact the site administrator.','dropkey-v2'),array('status'=>500));
 			}
 		}
+		Logger::info('checkout','checkout_urls_validated','Final checkout return and cancel URLs validated',array(
+			'return_url_valid'=>$valid_url($success_url),
+			'cancel_url_valid'=>$valid_url($cancel_url),
+			'return_url_fallback_used'=>$return_url_fallback_used
+		));
 		$session=$instance->create_checkout($order,$billing,$product,$tier,$success_url,$cancel_url);
 		if (is_wp_error($session)) { Logger::error('checkout','gateway_checkout_failed','Payment gateway could not create a checkout session',array('order_id'=>(int)$order->id,'gateway'=>$gateway,'error_code'=>$session->get_error_code())); $wpdb->update(Database::table('orders'),array('status'=>'failed','updated_at'=>current_time('mysql',true)),array('id'=>$order->id)); return $session; }
 		$wpdb->update(Database::table('orders'),array('gateway_order_id'=>$session['order_id'],'gateway_session_id'=>$session['session_id'],'updated_at'=>current_time('mysql',true)),array('id'=>$order->id));
