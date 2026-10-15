@@ -26,11 +26,13 @@ final class REST_API {
 	public function activate($request) {
 		$p=$this->payload($request); $result=(new License_Service())->activate(isset($p['license_key'])?sanitize_text_field($p['license_key']):'',isset($p['site_url'])?esc_url_raw($p['site_url']):'');
 		if(is_wp_error($result)) return $this->error($result);
+		Logger::info('license_api','activation_succeeded','License activation request succeeded',array('activation_id'=>isset($result['activation_id'])?(int)$result['activation_id']:0,'already_active'=>!empty($result['already_active'])));
 		return $this->response(array('valid'=>true,'already_active'=>!empty($result['already_active']),'activation_id'=>isset($result['activation_id'])?$result['activation_id']:null));
 	}
 	public function deactivate($request) {
 		$p=$this->payload($request); $result=(new License_Service())->deactivate(isset($p['license_key'])?$p['license_key']:'',isset($p['site_url'])?$p['site_url']:'');
 		if(is_wp_error($result)) return $this->error($result);
+		Logger::info('license_api','deactivation_succeeded','License deactivation request succeeded',array('deactivated'=>!empty($result['deactivated'])));
 		return $this->response(array('valid'=>true,'deactivated'=>!empty($result['deactivated'])));
 	}
 	public function validate($request) {
@@ -60,6 +62,7 @@ final class REST_API {
 		$cancel=isset($p['cancel_url'])?esc_url_raw($p['cancel_url']):home_url('/');
 		$result=(new Commerce_Service())->start_checkout($billing_id,$email,$gateway,$success,$cancel);
 		if (is_wp_error($result)) return $this->error($result);
+		Logger::info('rest','checkout_session_started','REST checkout session created',array('billing_option_id'=>$billing_id,'gateway'=>$gateway,'status'=>isset($result['status'])?$result['status']:'unknown'));
 		return $this->response($result,200);
 	}
 	public function capture_paypal($request) {
