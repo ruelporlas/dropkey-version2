@@ -224,12 +224,14 @@ final class Commerce_Service {
 				Logger::warning('commerce','subscription_period_estimated','Provider did not supply a billing period end; a temporary period was estimated from the plan interval',array('order_id'=>(int)$order->id,'license_id'=>(int)$license_id,'billing_type'=>$billing_type));
 			}
 		}
+		$status_raw=isset($event['status'])?sanitize_key($event['status']):'';
+		if (isset($event['type'])&&'payment_succeeded'===$event['type']&&!in_array($status_raw,array('active','approved','trialing','past_due','suspended','unpaid','cancelled','canceled','expired','cancel_pending'),true)) $status_raw=$existing?$existing->status:'active';
 		$data=array(
 			'order_id'=>$existing?(int)$existing->order_id:(int)$order->id,
 			'license_id'=>(int)$license_id,
 			'gateway'=>$order->gateway,
 			'gateway_subscription_id'=>$sub_id,
-			'status'=>$this->normalize_subscription_status(isset($event['status'])?$event['status']:'',isset($event['type'])?$event['type']:'payment_succeeded'),
+			'status'=>$this->normalize_subscription_status($status_raw,isset($event['type'])?$event['type']:'payment_succeeded'),
 			'grace_until'=>null,
 			'updated_at'=>$now
 		);
