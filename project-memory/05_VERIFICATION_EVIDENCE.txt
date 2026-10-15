@@ -107,3 +107,11 @@ FOLLOW-UP — VERSION 0.3.2 AND CI — 2026-10-15
 - PHP syntax CI for the actual storefront visibility logic commit `4ae978906cc9bd2d7f81340a899bea2241806a4d` passed: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659803790.
 - CI for the latest version-bump commit was queued at the time of this note: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659918482.
 - No live WordPress/TasteWP or PayPal Sandbox transaction has been executed by the assistant.
+
+PAYPAL CHECKOUT DIAGNOSTIC LOGGING — 2026-10-15
+- Source inspection: confirmed PayPal gateway's generic API error did not expose the provider's `name`, `debug_id`, or issue fields to the PHP error log; no registered listener for `dk2_gateway_request_failed` was found in the inspected bootstrap.
+- Added safe logging for OAuth/API transport and HTTP failures. Intended log prefixes: `[DropKey V2] PayPal OAuth transport failed:`, `[DropKey V2] PayPal OAuth rejected:`, `[DropKey V2] PayPal API transport failed:`, and `[DropKey V2] PayPal API request rejected:`.
+- Read back `includes/class-paypal-gateway.php` after write and corrected namespaced `WP_Error` references in a follow-up commit.
+- Plugin version changed to 0.3.3 in both header and `DK2_VERSION`.
+- GitHub Actions PHP syntax workflow for latest code/version commits: queued when checked; not yet passed. Workflow: https://github.com/ruelporlas/dropkey-version2/actions/runs/38660336643 (this run is for the diagnostic code commit before the subsequent version bump).
+- TasteWP install/reproduction and PHP error-log review: NOT RUN. No PayPal Sandbox request has been tested by the assistant. Actual provider rejection cause remains unknown.
