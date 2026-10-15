@@ -186,3 +186,6 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - Recorded latest known successful feature-branch CI evidence at SHA `c128dcd1efb408388ec75b0eccd1828dc5f671b3`, run https://github.com/ruelporlas/dropkey-version2/actions/runs/38690007102: PHP lint on 7.4, 8.0, and 8.3 passed. This is not staging verification.
 - Recorded user-reported staging test purchase and warning `return_url_fallback_used` at 2026-10-15 01:21:51. The fallback used the canonical home URL after referer URL parsing failed. Actual payment/order reconciliation, return behavior, and email delivery remain unverified.
 - Next focus: inspect the actual live checkout return URL code path, reconcile the test order/payment/license/subscription/email queue, then continue end-to-end staging checks before merge.
+
+
+2026-10-15 — Memory protocol/source review: read AI_PROJECT_PROTOCOL.txt and all eight official memory files; inspected current main plugin/database/storefront/commerce source and README. Current main is plugin 0.4.8/schema 11. Return URL fallback and README PayPal-provisioning discrepancy remain unresolved; PR #1 remains draft/unmerged. No PHP or staging tests were run.
