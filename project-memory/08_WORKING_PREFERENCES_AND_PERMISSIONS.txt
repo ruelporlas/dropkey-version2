@@ -26,3 +26,10 @@ SCOPED AUTHORIZATION — 2026-10-14
 - The user explicitly authorized implementation of DropKey V2 Milestone 1 (plugin foundation and core data model), with GitHub as the first development target.
 - Verification requested: static checks plus WordPress integration testing where an environment is available. Do not claim tests that were not run.
 - This is authorization for the named milestone, not blanket authorization for unrelated or later milestone work.
+
+
+PROJECT CONTINUITY INSTRUCTION — 2026-10-15
+- Before meaningful project work, read AI_PROJECT_PROTOCOL.txt and relevant official memory files, inspect the actual source needed for the task, and reconcile stale/conflicting records before proceeding.
+- Do not begin implementation until the requested task and scope are understood. Follow recorded permissions and working preferences.
+- At the end of substantial work, update the memory files required by the protocol and report exactly which files were updated; never claim a write succeeded without confirmation.
+- The user specifically requested project memory be maintained on main. Keep feature-branch work labeled as pending until merged; do not merge or deploy without required staging verification.
