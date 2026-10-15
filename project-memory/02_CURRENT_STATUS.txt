@@ -97,3 +97,11 @@ CURRENT DEBUGGING TASK — 2026-10-15
 - User-reported issue: creating a tier in the TasteWP test site redirects to the generic “The record could not be saved. Check the supplied values and database configuration.” message. The browser then loads the admin page with HTTP 200; that response does not explain the failed insert.
 - Source change committed to main: shared repository code now logs failed insert/update/delete operations to the PHP error log, including the operation, table, database error from $wpdb->last_error, and column names. Submitted field values are intentionally excluded.
 - Status: logging code is committed, but the issue has not yet been reproduced with the updated plugin installed and the resulting log has not yet been inspected. Root cause remains unknown.
+
+BILLING OPTION UX AND PAYPAL PLAN PROVISIONING — 2026-10-15
+- Source changes committed to `main`: administrators can save billing options without manually supplying a PayPal subscription plan ID. Monthly/yearly PayPal checkout now creates a PayPal catalog product and active recurring plan through the configured PayPal API, then persists the returned plan ID.
+- If billing type, amount, or currency changes, the saved PayPal plan reference is cleared so checkout can provision a plan with matching terms. Existing subscriptions on the previous PayPal plan are not migrated by this change.
+- Admin billing form displays a read-only existing plan ID or explains that DropKey will create it automatically at first PayPal checkout.
+- Admin CSS now styles untyped text inputs and provides a consistent accent for checkbox/radio inputs. Plugin version bumped to 0.3.1 for asset cache invalidation.
+- PHP syntax CI status at time of update: pending. PayPal Sandbox/Live API behavior and WordPress visual/runtime testing remain unverified.
+- Important: the earlier reported generic database save failure has not been confirmed as caused by a missing PayPal plan ID. If billing-option saving still fails after installing this version, inspect the existing database-failure log; do not assume this change identifies that separate failure's root cause.
