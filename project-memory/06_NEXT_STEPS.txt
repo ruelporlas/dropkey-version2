@@ -143,3 +143,6 @@ IMMEDIATE NEXT ACTION — VERIFY PAYPAL WEBHOOK DIAGNOSTICS v0.3.8 — 2026-10-1
 CI CORRECTION — 2026-10-15
 - Do not install 0.3.8 until run https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061 completes successfully for commit `d0420a3d096603fd36a0855c558c95a13da6b186`.
 - If it fails, inspect the exact failed test and correct it before any installation. The version bump to 0.3.8 is already on main; the latest source correction is also on main.
+
+CI RESULT — 2026-10-15
+Corrective source commit d0420a3d096603fd36a0855c558c95a13da6b186 passed PHP syntax and contract checks in run 38664933061: https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061. Next action: back up the WordPress site/database, install version 0.3.8, trigger one fresh PayPal Sandbox webhook, then inspect the safe header-presence diagnostics and provider rejection entry. Never share header values or raw payload.
