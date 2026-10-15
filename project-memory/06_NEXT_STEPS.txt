@@ -163,3 +163,11 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - PASSED: checkout URL outcome logging commit `e6c3c3e5d857385e4cb66e12761321fdb77290c5`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665842694.
 - PASSED: plugin version 0.3.9 commit `5a92775c8b06614de5c926f728a8f3c87c724508`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665864865.
 - These are GitHub Actions PHP syntax/contract checks, not WordPress runtime or PayPal Sandbox verification. The live root cause is still unknown; install 0.3.9 on the test site, run a fresh Sandbox checkout, then inspect only the safe diagnostic fields.
+
+
+CURRENT DEBUGGING TASK UPDATE — 2026-10-15
+Immediate next action: Check GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38666594617 for PHP syntax and contract-test results on commit ff57c180e2caf1331ab3a7241b308ffb65ec728d.
+If CI passes: update the installed WordPress test site with the latest main-branch plugin, then trigger a PayPal Sandbox webhook and confirm required verification headers are detected and PayPal returns verification_status=SUCCESS. Confirm BILLING.SUBSCRIPTION.CREATED is acknowledged without being treated as a payment-success event.
+If CI fails: inspect the failing job output and fix only the failing PayPal header/test issue, then re-check CI.
+Acceptance criteria: PHP syntax and contract tests pass; missing headers fail closed; underscore/hyphen header key variants are handled; sandbox verification is confirmed by a fresh runtime log.
+Separate unresolved issue: checkout_urls_validated still reports return_url_fallback_used=true; investigate the referer URL construction/WordPress request context separately.
