@@ -7,7 +7,7 @@ namespace DropKey\V2;
 defined( 'ABSPATH' ) || exit;
 final class Database {
 	const VERSION_OPTION = 'dk2_db_version';
-	const SCHEMA_VERSION = '11';
+	const SCHEMA_VERSION = '12';
 	public static function table( $table ) {
 		global $wpdb;
 		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue', 'payments', 'logs' );
