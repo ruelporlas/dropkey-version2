@@ -193,3 +193,11 @@ IMMEDIATE NEXT STEPS — DEDICATED CHECKOUT v0.4.0 — 2026-10-15
 5. Submit invalid and valid forms; ensure validation errors keep the selected billing option. Verify name/address details are stored against the order and do not appear in logs or public URLs.
 6. Run free acquisition, Stripe test-mode checkout, PayPal Sandbox one-time checkout, and PayPal Sandbox subscription checkout. Confirm provider return goes to the dedicated confirmation state, orders become paid only after validated confirmation, and licenses/download emails are issued only after payment verification.
 7. Test cancelled payment and delayed/missing webhooks. Pending confirmation must remain clear and must not issue a license. Do not use live payment credentials until Sandbox end-to-end tests pass.
+
+
+CHECKOUT INSERT FAILURE — NEXT ACTIONS — 2026-10-15
+1. Inspect CI for commit 2fb28bf77891868a0d409b60a3ea93b9e676c7c3 (plugin v0.4.2); the GitHub combined-status endpoint returned no checks at the time of the latest update.
+2. Static-review the schema migration and order-insert diagnostics. Do not call the issue fixed merely because code is committed.
+3. The user's WordPress staging install must receive v0.4.2 before its schema v10 migration and diagnostic logging can run; source on GitHub does not update the installed plugin automatically.
+4. If order creation still fails after a successful schema migration, use the new order_insert_failed log's db_error and attempted_columns to fix the actual database failure. Redact customer data and secrets.
+5. Only report checkout as verified after a real WordPress order insert and sandbox provider redirect succeed. Do not ask for a blind retest before CI/source checks are complete.
