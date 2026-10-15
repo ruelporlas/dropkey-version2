@@ -294,7 +294,10 @@ final class Commerce_Service {
 		$gateway=sanitize_key($subscription->gateway); $payment_id=sanitize_text_field($event['gateway_payment_id']); $renewal_key=hash('sha256',$gateway.'|'.$payment_id);
 		$orders=Database::table('orders'); $payments=Database::table('payments');
 		$base=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$subscription->order_id));
-		if ($base && 'paid'===$base->status && (string)$base->gateway_payment_id===$payment_id) return $base;
+		if (!$base || empty($subscription->license_id) || 'paid'!==$base->status) return new \WP_Error('dk2_renewal_parent_order_invalid',__('The original paid order or its license could not be found for this renewal.','dropkey-v2'));
+		$amount_check=$this->validate_renewal_payment_amount($base,$event);
+		if (is_wp_error($amount_check)) return $amount_check;
+		if ((string)$base->gateway_payment_id===$payment_id) return $base;
 		$known_payment=$wpdb->get_row($wpdb->prepare("SELECT order_id FROM {$payments} WHERE gateway=%s AND gateway_payment_id=%s",$gateway,$payment_id));
 		if ($known_payment) {
 			$known_order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$known_payment->order_id));
@@ -304,9 +307,6 @@ final class Commerce_Service {
 		}
 		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE renewal_key=%s AND order_type='renewal'",$renewal_key));
 		if ($existing) return (int)$existing->subscription_id===(int)$subscription->id?$existing:new \WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey renewal.','dropkey-v2'));
-		if (!$base || empty($subscription->license_id) || 'paid'!==$base->status) return new \WP_Error('dk2_renewal_parent_order_invalid',__('The original paid order or its license could not be found for this renewal.','dropkey-v2'));
-		$amount_check=$this->validate_renewal_payment_amount($base,$event);
-		if (is_wp_error($amount_check)) return $amount_check;
 		$currency=strtoupper(sanitize_text_field($event['currency'])); $amount=(float)$event['amount'];
 		$now=current_time('mysql',true);
 		$data=array(
