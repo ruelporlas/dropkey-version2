@@ -15,7 +15,7 @@ final class Logger {
 		return self::$request_id;
 	}
 	private static function safe_context(array $context) {
-		$safe=array(); $sensitive='/^(?:authorization|access_token|refresh_token|client_secret|secret|password|api_key|webhook_secret|signature|cookie|set_cookie|email|customer_email|license_key|key_encrypted|request_body|response_body|payload|url|return_url|cancel_url)$/i';
+		$safe=array(); $sensitive='/(?:authorization|access_token|refresh_token|client_secret|secret|password|api_key|webhook_secret|signature|cookie|email|license_key|key_encrypted|request_body|response_body|payload|(?:^|_)url$)/i';
 		foreach($context as $key=>$value) {
 			if (count($safe)>=30) break;
 			$key=sanitize_key((string)$key); if (''===$key) continue;
