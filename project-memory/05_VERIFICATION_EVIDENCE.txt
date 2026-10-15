@@ -125,3 +125,9 @@ PAYPAL RETURN/CANCEL URL SANITIZATION — 2026-10-15
 - CI run 38661205529 is queued at the time of this record. PayPal Sandbox/WordPress runtime verification: NOT RUN. The exact malformed URL value has not been captured, so the source hardening is a targeted fix hypothesis, not yet a runtime-confirmed root cause.
 - CI correction record: run `38661205529` failed on PHP 7.4/8.0/8.3 because `includes/class-commerce-service.php` line 58 had a PHP parse error (`unexpected '\\'`). Corrected the namespaced `WP_Error` reference in commit `4bbc12465abb95396669987a61e06412ff966731`. Follow-up CI run `38661320119` was queued when checked. Runtime verification remains NOT RUN.
 - Final CI result for URL validation correction: PASS on PHP 7.4, 8.0, and 8.3 for commit `4bbc12465abb95396669987a61e06412ff966731`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119. This is static syntax/contract CI only; no WordPress site or PayPal Sandbox runtime transaction was executed.
+
+2026-10-15 — Checkout URL validation follow-up
+- User-reported runtime result after prior URL validation change: DropKey displayed “The checkout return URL is invalid. Please contact the site administrator.” This shows the added `wp_http_validate_url()` check rejected the current URLs before calling PayPal. Exact URL values remain unknown.
+- Changed validation to `wp_parse_url()` checks for absolute HTTP(S) URLs with a host and forbidden syntax/control characters, keeping sanitization in place. Commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc`.
+- Bumped plugin version to 0.3.5: commit `abe1b8dc94ea2669df03f44035f1efb190120557`.
+- CI runs `38662089337` and `38662107088` were in progress/queued at last check. Live checkout retest not yet performed after this change.
