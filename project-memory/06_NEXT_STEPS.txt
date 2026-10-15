@@ -263,3 +263,13 @@ IMMEDIATE NEXT ACTION — 2026-10-15
 
 UPDATED IMMEDIATE NEXT ACTION — 2026-10-15
 - CI is now green on PHP 7.4/8.0/8.3 (run 38700730891, commit ebd3f4245296125c250616d63b1cbb5067410fa5). Next: review the feature PR diff and run staging tests for account registration, existing-user sign-in, account-email enforcement, successful checkout, order/license ownership, and legacy pending guest-order compatibility. Keep PR draft and do not merge/deploy until staging verification and safety review are complete.
+
+
+
+
+IMMEDIATE NEXT ACTION — POST-REGISTRATION HARDENING CI GREEN — 2026-10-15
+1. Keep PR #1 draft/unmerged and do not deploy. Feature head `359568626c15ccfe9347270a9595facf90042673`; CI run 38701738674 passed PHP 7.4/8.0/8.3 lint and network-free contract tests.
+2. Continue security review of checkout/account flow, prioritizing the remaining pre-merge issue: legacy pending/paid guest orders without `customer_user_id` must not be linked to an existing WordPress account based on email alone; preserve webhook retries and already-paid orders.
+3. Review webhook/renewal idempotency and customer portal ownership paths against current feature source; add focused contract coverage for any new fixes.
+4. Stage-test registration throttling, account login/return URL preservation, free and paid checkout, account/order/license ownership, provider webhook retries, and legacy-order handling. No WordPress runtime or staging test has yet been performed for this branch.
+5. Update project memory on `main` after further meaningful changes. Do not merge or deploy before required staging acceptance.
