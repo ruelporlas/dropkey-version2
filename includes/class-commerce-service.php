@@ -19,6 +19,11 @@ final class Commerce_Service {
 		$billing_id=absint($billing_id); $email=sanitize_email($email); $gateway=sanitize_key($gateway);
 		Logger::info('checkout','checkout_started','Checkout attempt started',array('billing_option_id'=>$billing_id,'gateway'=>$gateway));
 		if (!is_email($email)) return new \WP_Error('dk2_checkout_email_invalid',__('Enter a valid email address.','dropkey-v2'),array('status'=>400));
+		if (!is_user_logged_in()) return new \WP_Error('dk2_checkout_account_required',__('Create a customer account or sign in before checkout.','dropkey-v2'),array('status'=>401));
+		$current_user=wp_get_current_user();
+		if (!$current_user||empty($current_user->ID)||!is_email($current_user->user_email)||strtolower((string)$current_user->user_email)!==strtolower($email)) return new \WP_Error('dk2_checkout_account_email_mismatch',__('Checkout email must match the signed-in customer account.','dropkey-v2'),array('status'=>403));
+		$email=sanitize_email($current_user->user_email);
+		$customer_user_id=(int)$current_user->ID;
 		$b=Database::table('billing_options'); $t=Database::table('tiers'); $p=Database::table('products');
 		$billing=$wpdb->get_row($wpdb->prepare("SELECT b.*,t.id AS tier_id,t.name AS tier_name,t.status AS tier_status,p.id AS product_id,p.name AS product_name,p.status AS product_status FROM {$b} b INNER JOIN {$t} t ON t.id=b.tier_id INNER JOIN {$p} p ON p.id=t.product_id WHERE b.id=%d",$billing_id));
 		if (!$billing||'published'!==$billing->status||'published'!==$billing->tier_status||'published'!==$billing->product_status) return new \WP_Error('dk2_checkout_option_unavailable',__('This product option is not available.','dropkey-v2'),array('status'=>404));
@@ -33,8 +38,7 @@ final class Commerce_Service {
 			if (empty($config['enabled'])||('stripe'===$gateway&&(empty($config['secret'])||empty($config['webhook_secret'])))||('paypal'===$gateway&&(empty($config['client_id'])||empty($config['secret'])||empty($config['webhook_id'])))) return new \WP_Error('dk2_checkout_gateway_disabled',__('That payment method is not currently available.','dropkey-v2'),array('status'=>503));
 		}
 		$rate_limit=$this->rate_limit_checkout($email); if (is_wp_error($rate_limit)) return $rate_limit;
-		$public_id=wp_generate_uuid4(); $now=current_time('mysql',true); $customer_user_id=null;
-		if (is_user_logged_in()) { $current_user=wp_get_current_user(); if ($current_user&&strtolower($current_user->user_email)===strtolower($email)) $customer_user_id=(int)$current_user->ID; }
+		$public_id=wp_generate_uuid4(); $now=current_time('mysql',true);
 		$ok=$wpdb->insert(Database::table('orders'),array(
 			'public_id'=>$public_id,'product_id'=>$billing->product_id,'tier_id'=>$billing->tier_id,'billing_option_id'=>$billing_id,
 			'customer_email'=>$email,'customer_user_id'=>$customer_user_id?:null,
