@@ -204,3 +204,11 @@ User-provided staging Order #19 screen shows the PayPal order and payment marked
 2026-10-15 — Corrected PayPal recurring-plan setup docs on PR branch
 - Updated the feature-branch README to explain that DropKey provisions the PayPal catalog product and recurring plan automatically on first recurring checkout, and clears the stored plan ID when billing terms change.
 - This resolves the PayPal-provisioning documentation mismatch in the PR branch only. Main remains unchanged; the customer account-linking behavior still requires a security fix and matching documentation before merge.
+
+
+2026-10-15 — Mandatory account creation before checkout
+- User superseded the previous MVP guest-checkout decision: all customers must create an account before checkout or sign in.
+- Added the storefront account gate and registration handler, requiring email, first/last name, matching password confirmation, and a 12-character minimum. New accounts are signed in and returned to the selected plan.
+- Commerce checkout now rejects unauthenticated callers and email mismatch; fulfillment requires a valid customer_user_id whose account email matches the order. Email-only account linking was removed.
+- Added network-free checkout contract tests and included them in the existing suite; updated README and requirements memory.
+- A CI run exposed an over-escaped namespace separator, which was corrected. A fresh CI result and staging verification remain outstanding; existing legacy guest orders without a customer_user_id need safe handling.
