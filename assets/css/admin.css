@@ -19,6 +19,16 @@ body[class*="dk2-"] .wrap form {
   border: 1px solid #e1e7ed; border-radius: 12px; box-shadow: 0 2px 7px rgba(20, 38, 54, .035);
 }
 body[class*="dk2-"] .wrap form p:last-child { margin-bottom: 0; }
+/* Compact row-level actions: these forms must not inherit the large editor-card treatment. */
+body[class*="dk2-"] .wrap .widefat td form {
+  display: inline-flex; align-items: center; flex-wrap: wrap; gap: 5px; margin: 0 6px 6px 0; padding: 0;
+  border: 0; border-radius: 0; background: transparent; box-shadow: none; vertical-align: middle;
+}
+body[class*="dk2-"] .wrap .widefat td form p { margin: 0; }
+body[class*="dk2-"] .wrap .widefat td form label { display: inline-flex; align-items: center; gap: 5px; }
+body[class*="dk2-"] .wrap .widefat td form select { min-height: 30px; padding: 3px 7px; }
+body[class*="dk2-"] .wrap .widefat td .button-small { min-height: 30px; line-height: 1.4; padding: 3px 8px; }
+body[class*="dk2-"] .wrap .dk2-revealed-key { display: inline-block; padding: 10px 12px; font-size: 14px; user-select: all; overflow-wrap: anywhere; }
 body[class*="dk2-"] .wrap .form-table { margin-top: 0; }
 body[class*="dk2-"] .wrap .form-table th { width: 210px; padding: 16px 18px 16px 0; color: #334155; font-weight: 600; }
 body[class*="dk2-"] .wrap .form-table td { padding: 12px 0; }
