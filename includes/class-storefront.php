@@ -105,6 +105,17 @@ final class Storefront {
 		echo '<h3>'.esc_html__('Create a customer account','dropkey-v2').'</h3><div class="dk2-field-grid"><label>'.esc_html__('First name','dropkey-v2').'<input required name="first_name" autocomplete="given-name" maxlength="100" value="'.esc_attr($user->first_name).'"></label><label>'.esc_html__('Last name','dropkey-v2').'<input required name="last_name" autocomplete="family-name" maxlength="100" value="'.esc_attr($user->last_name).'"></label><label class="dk2-field-full">'.esc_html__('Email address','dropkey-v2').'<input required type="email" name="customer_email" autocomplete="email" maxlength="191"></label><label class="dk2-field-full">'.esc_html__('Password (at least 12 characters)','dropkey-v2').'<input required type="password" name="customer_password" autocomplete="new-password" minlength="12"></label><label class="dk2-field-full">'.esc_html__('Confirm password','dropkey-v2').'<input required type="password" name="customer_password_confirm" autocomplete="new-password" minlength="12"></label></div><button class="dk2-store-order-button" type="submit">'.esc_html__('Create account and continue','dropkey-v2').'</button></form><p class="dk2-checkout-subtitle">'.esc_html__('Already have an account?','dropkey-v2').' <a href="'.esc_url($login_url).'">'.esc_html__('Sign in to continue','dropkey-v2').'</a></p></main><aside class="dk2-order-summary"><h3>'.esc_html__('Order summary','dropkey-v2').'</h3><p>'.esc_html($option->product_name).'</p><strong>'.esc_html($option->tier_name).'</strong><p>'.esc_html($price).' · '.esc_html($option->billing_type).'</p><hr><strong>'.esc_html__('Total due today:','dropkey-v2').' '.esc_html($price).'</strong></aside></div>';
 		return ob_get_clean();
 	}
+	/** Throttle public account creation attempts without storing raw IP addresses or emails. */
+	private function rate_limit_registration($email) {
+		$limits=array();
+		$ip=isset($_SERVER['REMOTE_ADDR'])?sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])):'';
+		if (''!==$ip) $limits['dk2_register_ip_v1_'.hash('sha256',$ip)]=array(10,15*MINUTE_IN_SECONDS);
+		$email=strtolower(sanitize_email($email));
+		if (''!==$email) $limits['dk2_register_email_v1_'.hash('sha256',$email)]=array(5,HOUR_IN_SECONDS);
+		foreach($limits as $key=>$limit) if ((int)get_transient($key)>=$limit[0]) return false;
+		foreach($limits as $key=>$limit) set_transient($key,(int)get_transient($key)+1,$limit[1]);
+		return true;
+	}
 	public function register_customer() {
 		if (is_user_logged_in()) {
 			$return=isset($_POST['return_url'])?wp_validate_redirect(esc_url_raw(wp_unslash($_POST['return_url'])),$this->checkout_url()):$this->checkout_url();
@@ -114,16 +125,20 @@ final class Storefront {
 		$return_input=isset($_POST['return_url'])?esc_url_raw(wp_unslash($_POST['return_url'])):'';
 		$return=wp_validate_redirect($return_input,$this->checkout_url());
 		$billing_id=absint($_POST['billing_option_id']??0);
-		$email=sanitize_email(wp_unslash($_POST['customer_email']??''));
+		$email=strtolower(sanitize_email(wp_unslash($_POST['customer_email']??'')));
 		$first=sanitize_text_field(wp_unslash($_POST['first_name']??''));
 		$last=sanitize_text_field(wp_unslash($_POST['last_name']??''));
 		$password=(string)wp_unslash($_POST['customer_password']??'');
 		$confirm=(string)wp_unslash($_POST['customer_password_confirm']??'');
+		if (!$this->rate_limit_registration($email)) {
+			wp_safe_redirect(add_query_arg(array('billing_option_id'=>$billing_id,'dk2_checkout_error'=>__('Too many account-creation attempts. Please wait before trying again.','dropkey-v2')),$return)); exit;
+		}
 		$error='';
 		if (!is_email($email)) $error=__('Enter a valid email address.','dropkey-v2');
 		elseif (email_exists($email)) $error=__('An account may already use that email address. Sign in or reset your password to continue.','dropkey-v2');
-		elseif (''===$first||''===$last) $error=__('Enter your first and last name.','dropkey-v2');
+		elseif (''===$first||''===$last||strlen($first)>100||strlen($last)>100) $error=__('Enter a first and last name of no more than 100 characters each.','dropkey-v2');
 		elseif (strlen($password)<12) $error=__('Choose a password with at least 12 characters.','dropkey-v2');
+		elseif (strlen($password)>1024) $error=__('Choose a password shorter than 1024 bytes.','dropkey-v2');
 		elseif ($password!==$confirm) $error=__('The passwords do not match.','dropkey-v2');
 		if (''!==$error) { wp_safe_redirect(add_query_arg(array('billing_option_id'=>$billing_id,'dk2_checkout_error'=>$error),$return)); exit; }
 		$base=sanitize_user(current(explode('@',$email)),true); if (''===$base) $base='customer';
