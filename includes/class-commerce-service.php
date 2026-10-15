@@ -272,6 +272,18 @@ final class Commerce_Service {
 		return $order;
 	}
 
+	/** Validate a renewal against the original subscription's captured price and currency. */
+	private function validate_renewal_payment_amount($base,$event) {
+		if (!isset($event['amount']) || !is_numeric($event['amount']) || !is_finite((float)$event['amount']) || (float)$event['amount']<=0) {
+			return new \\WP_Error('dk2_renewal_amount_invalid',__('The recurring payment amount must be a positive numeric value.','dropkey-v2'));
+		}
+		$currency=strtoupper(sanitize_text_field(isset($event['currency'])?$event['currency']:''));
+		if (!preg_match('/^[A-Z]{3}$/',$currency)) return new \\WP_Error('dk2_renewal_currency_invalid',__('The recurring payment currency is invalid.','dropkey-v2'));
+		if (strtoupper((string)$base->currency)!==$currency) return new \\WP_Error('dk2_renewal_currency_mismatch',__('The recurring payment currency does not match the original subscription currency.','dropkey-v2'));
+		if (abs((float)$event['amount']-(float)$base->amount)>0.009) return new \\WP_Error('dk2_renewal_amount_mismatch',__('The recurring payment amount does not match the original subscription amount.','dropkey-v2'));
+		return true;
+	}
+
 	/**
 	 * Create or recover one order for a verified recurring payment.
 	 * Renewals reuse the original license and subscription; they never issue another license.
@@ -293,9 +305,9 @@ final class Commerce_Service {
 		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE renewal_key=%s AND order_type='renewal'",$renewal_key));
 		if ($existing) return (int)$existing->subscription_id===(int)$subscription->id?$existing:new \WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey renewal.','dropkey-v2'));
 		if (!$base || empty($subscription->license_id) || 'paid'!==$base->status) return new \WP_Error('dk2_renewal_parent_order_invalid',__('The original paid order or its license could not be found for this renewal.','dropkey-v2'));
+		$amount_check=$this->validate_renewal_payment_amount($base,$event);
+		if (is_wp_error($amount_check)) return $amount_check;
 		$currency=strtoupper(sanitize_text_field($event['currency'])); $amount=(float)$event['amount'];
-		if (!preg_match('/^[A-Z]{3}$/',$currency)||$amount<0) return new \WP_Error('dk2_renewal_amount_invalid',__('The recurring payment amount or currency is invalid.','dropkey-v2'));
-		if (strtoupper((string)$base->currency)!==$currency) return new \WP_Error('dk2_renewal_currency_mismatch',__('The recurring payment currency does not match the original subscription currency.','dropkey-v2'));
 		$now=current_time('mysql',true);
 		$data=array(
 			'public_id'=>wp_generate_uuid4(),'product_id'=>(int)$base->product_id,'tier_id'=>(int)$base->tier_id,'billing_option_id'=>(int)$base->billing_option_id,
