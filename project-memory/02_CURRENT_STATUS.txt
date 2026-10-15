@@ -247,3 +247,6 @@ AUTHORITATIVE STATUS RECONCILIATION — 2026-10-15
 STAGING TEST PURCHASE UPDATE — 2026-10-15
 - User supplied the staging admin Order #19 detail view for order reference prefix `2579324d` (test product / Basic, USD 9.99, PayPal). The admin UI shows order status `paid`, payment record #4 status `paid`, subscription #4 `active` paid through 2026-11-14 10:00:00, and linked license #4.
 - This is user-provided admin-screen evidence, not direct database inspection. It materially narrows the email investigation: do not retry payment. Purchase email queue/delivery and license usability/expiry still need inspection; the return URL fallback warning also remains unexplained and needs a separate browser-return check.
+
+STAGING PURCHASE UPDATE — 2026-10-15
+User-provided staging Order #19 screen shows a paid USD 9.99 PayPal order/payment, active subscription #4 through 2026-11-14, and linked license #4. This narrows the open issue to email queue/delivery, license usability/expiry, and checkout return behavior. Do not repeat the payment. This is screenshot evidence only, not direct database or mail-server verification.
