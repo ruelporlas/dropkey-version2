@@ -315,3 +315,10 @@ CHECKOUT RETURN URL INVESTIGATION — 2026-10-15
 - The existing warning text says “Referer-derived checkout URLs failed parsing,” but the inspected storefront path passes the submitted hidden-field URL rather than reading the Referer header. This wording is not sufficient evidence that Referer caused the fallback.
 - Root cause remains UNCONFIRMED. Plausible categories include a deployed plugin/source version differing from repository `main`, a malformed/empty URL at runtime, or a WordPress canonical URL/configuration mismatch. No one cause is established.
 - No application source changes, CI run, live WordPress test, or new payment attempt was performed in this investigation. Keep PR #1 draft/unmerged.
+
+
+CHECKOUT RETURN URL HARDENING — 2026-10-15
+- User approved the proposed narrow implementation after source-only diagnosis.
+- Updated `includes/class-commerce-service.php` on `feature/complete-customer-checkout` to validate success/cancel URLs using WordPress redirect validation with an explicit invalid sentinel, record which URL was rejected, use a validated canonical-home fallback, and correct the misleading Referer-based warning. Logs include validation booleans only; full URLs/query strings are not logged.
+- Added network-free regression coverage in `tests/customer-checkout-contract.php` for same-site URLs, order-reference appending, external-host rejection/fallback, and malformed URL fallback.
+- Feature branch head: `a3ed4e920648f53b973675b118ba55d564655a59`. PR #1 remains draft/open/unmerged. No deployment, staging verification, or payment attempt was performed. Root cause on the live site remains unconfirmed.
