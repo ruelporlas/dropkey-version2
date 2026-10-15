@@ -170,3 +170,11 @@ CI FOLLOW-UP — 2026-10-15
 CI RESULT UPDATE — 2026-10-15
 - Corrective commit `d0420a3d096603fd36a0855c558c95a13da6b186` passed GitHub Actions PHP syntax and contract checks: https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061.
 - Version 0.3.8 source is CI-passed, but still requires installation and a real Sandbox webhook to collect diagnostic evidence.
+
+
+PAYPAL DIAGNOSTIC FOLLOW-UP — 2026-10-15
+- Added a second diagnostic layer in `includes/class-paypal-gateway.php`: boolean presence for the five PayPal transmission headers as seen in WordPress REST headers, PHP `HTTP_*` server variables, and `REDIRECT_HTTP_*` server variables; also records only normalized PayPal header names exposed by the REST request.
+- Added checkout URL outcome logging in `includes/class-commerce-service.php`: booleans for final return URL validity, cancel URL validity, and whether the canonical fallback was used. Full URLs and query strings are not logged.
+- Plugin version bumped from 0.3.8 to 0.3.9 in `dropkey-v2.php`.
+- Source commits: gateway diagnostics `4dd6c6cf54fe0859e72616af06c0dadd53122922`; checkout URL diagnostics `e6c3c3e5d857385e4cb66e12761321fdb77290c5`; version bump `5a92775c8b06614de5c926f728a8f3c87c724508`.
+- CI and live WordPress/Sandbox verification are pending at the time of this entry. This change is diagnostic only; webhook verification/payment fulfillment has not been fixed or confirmed.
