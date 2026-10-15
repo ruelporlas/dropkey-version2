@@ -29,7 +29,7 @@ final class Email_Service {
 			'encrypted_body'=>$encrypted,'status'=>'pending','attempts'=>0,'next_attempt_at'=>current_time('mysql',true),
 			'last_error'=>'','created_at'=>current_time('mysql',true)
 		));
-		if (!$ok) return new \WP_Error('dk2_email_queue_failed',__('The transactional email could not be queued.','dropkey-v2'));
+		if (!$ok) { Logger::error('email','queue_failed','Transactional email could not be queued',array('order_id'=>absint($order_id))); return new \WP_Error('dk2_email_queue_failed',__('The transactional email could not be queued.','dropkey-v2')); }
 		if (!wp_next_scheduled('dk2_process_email_queue')) wp_schedule_single_event(time()+10,'dk2_process_email_queue');
 		do_action('dk2_email_queued',(int)$wpdb->insert_id,absint($order_id));
 		return (int)$wpdb->insert_id;
