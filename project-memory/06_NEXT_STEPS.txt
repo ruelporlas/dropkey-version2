@@ -174,4 +174,4 @@ Separate unresolved issue: checkout_urls_validated still reports return_url_fall
 
 CI FOLLOW-UP — 2026-10-15
 - First regression run 38666594617 failed in the missing-header contract assertion because the test harness does not load Logger; PHP syntax checks passed. Source was guarded in commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542.
-- Immediate next action: inspect run 38666693429. If it fails, inspect job logs and correct the regression before asking the user to deploy. If it passes, deploy to the WordPress test site and verify a fresh PayPal Sandbox webhook.
+- CI run 38666693429 has PASSED on commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542 (PHP 7.4, 8.0, 8.3 lint plus network-free contract test). Immediate next action: deploy the latest plugin to the WordPress test site and verify a fresh PayPal Sandbox webhook, including signature verification and correct handling of BILLING.SUBSCRIPTION.CREATED.
