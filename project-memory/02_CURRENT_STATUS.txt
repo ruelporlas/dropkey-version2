@@ -292,3 +292,12 @@ FEATURE BRANCH HARDENING UPDATE — 2026-10-15
 - Registration now normalizes email to lowercase and enforces first/last name limits (100 characters each) and a maximum password size (1024 bytes), in addition to the existing 12-character minimum and confirmation check.
 - Added network-free contract cases for per-email and per-IP registration throttling. Fresh GitHub Actions run 38701738674 passed PHP lint plus webhook/client/checkout contract tests on PHP 7.4, 8.0, and 8.3: https://github.com/ruelporlas/dropkey-version2/actions/runs/38701738674.
 - This verifies source syntax and mocked contract behavior only. WordPress runtime, transient behavior under concurrent traffic, account-registration UX, and staging checkout remain unverified. PR remains draft/unmerged; no deployment or purchase was made.
+
+
+PRELIMINARY SECURITY REVIEW — 2026-10-15
+- Reviewed feature-branch storefront, REST API, customer account, commerce, license, download, payment gateway, admin, private-storage, and database code.
+- Potential information-disclosure risk: storefront order confirmation selects by dk2_order public ID without an obvious authenticated-owner check, displays billing/contact details, and reveals the decrypted license key for paid orders. Not exploit-tested. Recommended: remove full key from public confirmation and require authenticated ownership or a separate high-entropy, limited-purpose receipt token.
+- Registration creates and signs in accounts without a visible email-ownership verification step. Recommend verification before checkout.
+- Public license activation/deactivation/validation/update routes have no explicit rate limiting visible in route/controller code. Recommend throttling and abuse monitoring with SDK regression tests.
+- Download tokens are hashed, expire after 48 hours, and use a conditional counter update; concurrency behavior still needs runtime/load testing.
+- These are static-review potential risks, not confirmed exploit reproductions. No security patches, staging actions, merges, or deployments were made in this review.
