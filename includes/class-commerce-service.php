@@ -279,7 +279,7 @@ final class Commerce_Service {
 	private function create_renewal_order($subscription,$event) {
 		global $wpdb;
 		if (empty($event['gateway_payment_id'])||!isset($event['amount'])||null===$event['amount']||empty($event['currency'])) return new \\WP_Error('dk2_renewal_payment_reference_missing',__('The recurring payment is verified but lacks a payment ID, amount, or currency required to record a renewal safely.','dropkey-v2'));
-		$gateway=sanitize_key($subscription->gateway); $payment_id=sanitize_text_field($event['gateway_payment_id']);
+		$gateway=sanitize_key($subscription->gateway); $payment_id=sanitize_text_field($event['gateway_payment_id']); $renewal_key=hash('sha256',$gateway.'|'.$payment_id);
 		$orders=Database::table('orders'); $payments=Database::table('payments');
 		$known_payment=$wpdb->get_row($wpdb->prepare("SELECT order_id FROM {$payments} WHERE gateway=%s AND gateway_payment_id=%s",$gateway,$payment_id));
 		if ($known_payment) {
@@ -287,7 +287,7 @@ final class Commerce_Service {
 			if ($known_order && 'renewal'===$known_order->order_type && (int)$known_order->subscription_id===(int)$subscription->id) return $known_order;
 			return new \\WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey order.','dropkey-v2'));
 		}
-		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE gateway=%s AND gateway_payment_id=%s AND order_type='renewal'",$gateway,$payment_id));
+		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE renewal_key=%s AND order_type='renewal'",$renewal_key));
 		if ($existing) return (int)$existing->subscription_id===(int)$subscription->id?$existing:new \\WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey renewal.','dropkey-v2'));
 		$base=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$subscription->order_id));
 		if (!$base || empty($subscription->license_id) || 'paid'!==$base->status) return new \\WP_Error('dk2_renewal_parent_order_invalid',__('The original paid order or its license could not be found for this renewal.','dropkey-v2'));
@@ -296,7 +296,7 @@ final class Commerce_Service {
 		$now=current_time('mysql',true);
 		$data=array(
 			'public_id'=>wp_generate_uuid4(),'product_id'=>(int)$base->product_id,'tier_id'=>(int)$base->tier_id,'billing_option_id'=>(int)$base->billing_option_id,
-			'license_id'=>(int)$subscription->license_id,'parent_order_id'=>(int)$base->id,'subscription_id'=>(int)$subscription->id,'order_type'=>'renewal',
+			'license_id'=>(int)$subscription->license_id,'parent_order_id'=>(int)$base->id,'subscription_id'=>(int)$subscription->id,'order_type'=>'renewal','renewal_key'=>$renewal_key,
 			'customer_email'=>$base->customer_email,'customer_user_id'=>$base->customer_user_id,'customer_first_name'=>$base->customer_first_name,'customer_last_name'=>$base->customer_last_name,
 			'customer_phone'=>$base->customer_phone,'billing_address_1'=>$base->billing_address_1,'billing_address_2'=>$base->billing_address_2,'billing_city'=>$base->billing_city,
 			'billing_state'=>$base->billing_state,'billing_postcode'=>$base->billing_postcode,'billing_country'=>$base->billing_country,'gateway'=>$gateway,
@@ -305,7 +305,7 @@ final class Commerce_Service {
 			'gateway_payment_id'=>$payment_id,'status'=>'paid','amount'=>$amount,'currency'=>$currency,'created_at'=>$now,'updated_at'=>$now
 		);
 		if (!$wpdb->insert($orders,$data)) {
-			$retry=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE gateway=%s AND gateway_payment_id=%s AND order_type='renewal'",$gateway,$payment_id));
+			$retry=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE renewal_key=%s AND order_type='renewal'",$renewal_key));
 			if ($retry && (int)$retry->subscription_id===(int)$subscription->id) return $retry;
 			Logger::error('commerce','renewal_order_insert_failed','Could not create a renewal order for a verified provider payment',array('subscription_id'=>(int)$subscription->id,'gateway'=>$gateway,'db_error'=>substr((string)$wpdb->last_error,0,250)));
 			return new \\WP_Error('dk2_renewal_order_failed',__('The recurring payment could not be recorded as a renewal order.','dropkey-v2'));
