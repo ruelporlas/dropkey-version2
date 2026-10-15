@@ -102,3 +102,10 @@ AUTHORITATIVE RECONCILIATION — 2026-10-15
 - PR #1 remains draft/unmerged: https://github.com/ruelporlas/dropkey-version2/pull/1, base main, head feature/complete-customer-checkout, observed head SHA c128dcd1efb408388ec75b0eccd1828dc5f671b3. PR-only customer profile/dashboard and renewal-order changes are not part of main unless merged later.
 - Combined commit-status lookup for the observed PR head returned no status entries. A previously recorded workflow run https://github.com/ruelporlas/dropkey-version2/actions/runs/38690007102 was reported to pass PHP lint on 7.4/8.0/8.3; latest workflow status must be checked before merge.
 - README.md says automated PayPal catalog/plan creation is not implemented, while current source/history records automatic product/plan provisioning. This is a documentation inconsistency; no README change was made in this memory-only task.
+
+
+SOURCE MAP UPDATE — MANDATORY CUSTOMER ACCOUNTS — 2026-10-15
+- `includes/class-storefront.php` on `feature/complete-customer-checkout` now contains the account-registration gate, existing-customer sign-in link, and registration handler used before any checkout order is created. Checkout preserves the selected product/billing option and submits the signed-in account email.
+- `includes/class-commerce-service.php` on the feature branch enforces authentication and account-email matching for checkout, and fulfillment requires a matching order `customer_user_id` rather than account creation/linking by email alone.
+- `tests/customer-checkout-contract.php` adds network-free assertions that unauthenticated checkout and mismatched account email are rejected; `tests/payment-webhook-contract.php` includes this contract test. `README.md` on the feature branch documents that guest checkout is disabled.
+- These changes are pending PR review and have not been verified on WordPress staging. The final feature-branch CI result has not yet been observed after the last syntax corrections.
