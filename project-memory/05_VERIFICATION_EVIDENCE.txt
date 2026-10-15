@@ -218,3 +218,8 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - PASSED: network-free tests for Stripe signature validation, PayPal provider-verification handling, and the reusable PHP client; added renewal amount contract cases all passed (matching amount, underpayment rejected, zero amount rejected, currency mismatch rejected).
 - Source change: `includes/class-commerce-service.php` validates recurring renewal amount/currency against the original order before duplicate/idempotency recovery; `tests/payment-webhook-contract.php` covers the validation helper.
 - Review-only finding still OPEN: guest checkout may link to an existing WordPress account using email alone, without proving the checkout is authenticated as that account. No WordPress runtime/integration or staging tests were run.
+
+
+2026-10-15 — Account-required checkout verification status
+- Feature branch adds account registration/sign-in before checkout, authenticated-user/email checks in the commerce service, and strict account ID/email checks during fulfillment. New network-free contract cases reject guest checkout and mismatched account email; the existing contract suite includes the new test file.
+- A CI run failed before the final namespace-syntax correction. No post-correction CI run has been observed, so the final head's lint and contract suite remain unverified. No WordPress runtime or staging test was run.
