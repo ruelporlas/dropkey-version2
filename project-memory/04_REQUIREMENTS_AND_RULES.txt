@@ -173,3 +173,7 @@ CUSTOMER ACCOUNT PORTAL IMPLEMENTATION UPDATE — 2026-10-15
 - Guest-purchase linking and identity verification remain unimplemented and require a verified claim flow. Existing keys issued before encrypted storage cannot be recovered from hashes.
 - Schema version 7 adds `customer_user_id` and `key_encrypted` to licenses. New key copies use AES-256-GCM while SHA-256 remains the validation source.
 - Status: source implemented; PHP CI passed; WordPress runtime, ownership/action testing, and visual review NOT RUN.
+
+IMPLEMENTATION STATUS UPDATE — PAYPAL PLAN PROVISIONING — 2026-10-15
+- DK-003 / DK-008: Monthly/yearly billing options no longer require an administrator-entered PayPal plan ID to save. The PayPal gateway provisions a provider product and fixed-price recurring plan on first PayPal checkout and stores the plan ID. Provider Sandbox/Live runtime behavior remains unverified.
+- Admin styling: the DropKey admin stylesheet now covers inputs without an explicit type attribute, plus checkbox/radio accents. This is a UI consistency fix, not a change to payment or product requirements.
