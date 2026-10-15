@@ -281,15 +281,17 @@ final class Commerce_Service {
 		if (empty($event['gateway_payment_id'])||!isset($event['amount'])||null===$event['amount']||empty($event['currency'])) return new \WP_Error('dk2_renewal_payment_reference_missing',__('The recurring payment is verified but lacks a payment ID, amount, or currency required to record a renewal safely.','dropkey-v2'));
 		$gateway=sanitize_key($subscription->gateway); $payment_id=sanitize_text_field($event['gateway_payment_id']); $renewal_key=hash('sha256',$gateway.'|'.$payment_id);
 		$orders=Database::table('orders'); $payments=Database::table('payments');
+		$base=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$subscription->order_id));
+		if ($base && 'paid'===$base->status && (string)$base->gateway_payment_id===$payment_id) return $base;
 		$known_payment=$wpdb->get_row($wpdb->prepare("SELECT order_id FROM {$payments} WHERE gateway=%s AND gateway_payment_id=%s",$gateway,$payment_id));
 		if ($known_payment) {
 			$known_order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$known_payment->order_id));
+			if ($known_order && (int)$known_order->id===(int)$subscription->order_id) return $known_order;
 			if ($known_order && 'renewal'===$known_order->order_type && (int)$known_order->subscription_id===(int)$subscription->id) return $known_order;
 			return new \WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey order.','dropkey-v2'));
 		}
 		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE renewal_key=%s AND order_type='renewal'",$renewal_key));
 		if ($existing) return (int)$existing->subscription_id===(int)$subscription->id?$existing:new \WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey renewal.','dropkey-v2'));
-		$base=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$subscription->order_id));
 		if (!$base || empty($subscription->license_id) || 'paid'!==$base->status) return new \WP_Error('dk2_renewal_parent_order_invalid',__('The original paid order or its license could not be found for this renewal.','dropkey-v2'));
 		$currency=strtoupper(sanitize_text_field($event['currency'])); $amount=(float)$event['amount'];
 		if (!preg_match('/^[A-Z]{3}$/',$currency)||$amount<0) return new \WP_Error('dk2_renewal_amount_invalid',__('The recurring payment amount or currency is invalid.','dropkey-v2'));
@@ -342,7 +344,7 @@ final class Commerce_Service {
 		$result=true; $order=$this->find_order($gateway,$event); $is_renewal=false;
 		if ('payment_succeeded'===$event['type']&&!empty($event['subscription_id'])) {
 			$subscription=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".Database::table('subscriptions')." WHERE gateway=%s AND gateway_subscription_id=%s",$gateway,$event['subscription_id']));
-			if ($subscription) { $renewal=$this->create_renewal_order($subscription,$event); if (is_wp_error($renewal)) $result=$renewal; else { $order=$renewal; $is_renewal=true; } }
+			if ($subscription) { $renewal=$this->create_renewal_order($subscription,$event); if (is_wp_error($renewal)) $result=$renewal; else { $order=$renewal; $is_renewal=('renewal'===$renewal->order_type); } }
 		}
 		if (!is_wp_error($result)&&'payment_succeeded'===$event['type']&&!$is_renewal&&$order&&isset($event['amount'])&&null!==$event['amount']&&abs((float)$event['amount']-(float)$order->amount)>0.009) $result=new \WP_Error('dk2_payment_amount_mismatch',__('The payment amount does not match the checkout order.','dropkey-v2'));
 		if (!is_wp_error($result)&&'payment_succeeded'===$event['type']&&!$is_renewal&&$order&&!empty($event['currency'])&&strtoupper($event['currency'])!==strtoupper($order->currency)) $result=new \WP_Error('dk2_payment_currency_mismatch',__('The payment currency does not match the checkout order.','dropkey-v2'));
