@@ -48,9 +48,27 @@ final class License_Service {
 		return $row && hash_equals($row->license_hash,$hash) ? $row : null;
 	}
 	public function status_error($license) {
+		global $wpdb;
 		if (!$license) return new \WP_Error('dk2_license_not_found',__('The license key was not recognized.','dropkey-v2'),array('status'=>404));
 		if ('active'!==$license->status) return new \WP_Error('dk2_license_inactive',__('This license is not active.','dropkey-v2'),array('status'=>403));
-		if ($license->expires_at && strtotime($license->expires_at.' UTC')<time()) return new \WP_Error('dk2_license_expired',__('This license has expired.','dropkey-v2'),array('status'=>403));
+
+		// A subscription's provider-backed billing period is authoritative. Never
+		// treat a missing expiry as lifetime access for a recurring license.
+		$subscriptions=Database::table('subscriptions');
+		$subscription=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$subscriptions} WHERE license_id=%d ORDER BY id DESC LIMIT 1",(int)$license->id));
+		if ($subscription) {
+			$now=time();
+			$period_end=!empty($subscription->current_period_end)?strtotime($subscription->current_period_end.' UTC'):false;
+			$grace_until=!empty($subscription->grace_until)?strtotime($subscription->grace_until.' UTC'):false;
+			if ('past_due'===$subscription->status && $grace_until && $grace_until>$now) return true;
+			if (in_array($subscription->status,array('active','past_due','cancelled','cancel_pending'),true) && $period_end && $period_end>$now) return true;
+			if ('past_due'===$subscription->status) return new \WP_Error('dk2_subscription_payment_overdue',__('The subscription payment grace period has ended. Update the payment method to restore access.','dropkey-v2'),array('status'=>403));
+			if (in_array($subscription->status,array('cancelled','cancel_pending'),true)) return new \WP_Error('dk2_subscription_ended',__('The subscription has ended.','dropkey-v2'),array('status'=>403));
+			if ('active'===$subscription->status && (!$period_end || $period_end<=$now)) return new \WP_Error('dk2_subscription_period_missing',__('The subscription billing period has ended or could not be confirmed. Access is paused until the subscription is refreshed.','dropkey-v2'),array('status'=>403));
+			return new \WP_Error('dk2_subscription_inactive',__('The subscription is not active.','dropkey-v2'),array('status'=>403));
+		}
+
+		if ($license->expires_at && strtotime($license->expires_at.' UTC')<=time()) return new \WP_Error('dk2_license_expired',__('This license has expired.','dropkey-v2'),array('status'=>403));
 		return true;
 	}
 	public function normalize_site_url($url) {
