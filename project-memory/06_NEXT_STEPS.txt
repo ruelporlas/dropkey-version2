@@ -156,3 +156,10 @@ IMMEDIATE NEXT ACTION — VERIFY DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 5. Inspect `checkout / checkout_urls_validated` for `return_url_valid`, `cancel_url_valid`, and `return_url_fallback_used`. These flags are safe to share; do not share full URLs, query strings, credentials, signatures, tokens, webhook ID values, or raw event payloads.
 6. Interpret the result before changing behavior: if PHP server variables have headers but REST headers do not, inspect WordPress request/header normalization; if both are absent, inspect hosting/proxy/WAF forwarding; if all header layers show presence, investigate the verification API request and exact provider response.
 7. Keep this as diagnostic-only until evidence identifies a specific cause. Do not claim checkout, webhook processing, or license fulfillment works until the end-to-end Sandbox flow is confirmed.
+
+
+CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
+- PASSED: PayPal header-layer diagnostics commit `4dd6c6cf54fe0859e72616af06c0dadd53122922`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665818464.
+- PASSED: checkout URL outcome logging commit `e6c3c3e5d857385e4cb66e12761321fdb77290c5`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665842694.
+- PASSED: plugin version 0.3.9 commit `5a92775c8b06614de5c926f728a8f3c87c724508`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665864865.
+- These are GitHub Actions PHP syntax/contract checks, not WordPress runtime or PayPal Sandbox verification. The live root cause is still unknown; install 0.3.9 on the test site, run a fresh Sandbox checkout, then inspect only the safe diagnostic fields.
