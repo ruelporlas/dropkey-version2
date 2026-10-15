@@ -156,3 +156,7 @@ PAYPAL RETURN/CANCEL URL SANITIZATION — 2026-10-15
 - Failed: run 38664772939 for `b10df25e173b6e1f8bdb30d1815113674871d255`; PHP syntax passed, but `tests/payment-webhook-contract.php` fatally errored because `DropKey\V2\Logger` was not loaded by the test harness.
 - Failed: run 38664791490 for version bump commit `0f8185e48f44e88853d18fa2d1b1e8769cac10c3`, inherited the same failure.
 - Corrective source commit `d0420a3d096603fd36a0855c558c95a13da6b186` now guards the diagnostic call when Logger is not loaded. CI run 38664933061 was queued when recorded; result pending.
+
+2026-10-15 — Corrective CI result
+- PASSED: GitHub Actions run 38664933061 for source commit `d0420a3d096603fd36a0855c558c95a13da6b186`; PHP lint and `tests/payment-webhook-contract.php` completed successfully. Link: https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061.
+- This verifies static syntax and the network-free contract suite only. WordPress runtime and actual PayPal Sandbox webhook verification remain NOT RUN.
