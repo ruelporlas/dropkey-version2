@@ -131,3 +131,4 @@ PAYPAL RETURN/CANCEL URL SANITIZATION — 2026-10-15
 - Changed validation to `wp_parse_url()` checks for absolute HTTP(S) URLs with a host and forbidden syntax/control characters, keeping sanitization in place. Commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc`.
 - Bumped plugin version to 0.3.5: commit `abe1b8dc94ea2669df03f44035f1efb190120557`.
 - CI runs `38662089337` and `38662107088` were in progress/queued at last check. Live checkout retest not yet performed after this change.
+- CI result update: PHP syntax/contract checks PASSED for URL validation commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc` (https://github.com/ruelporlas/dropkey-version2/actions/runs/38662089337) and version 0.3.5 commit `abe1b8dc94ea2669df03f44035f1efb190120557` (https://github.com/ruelporlas/dropkey-version2/actions/runs/38662107088). No live WordPress/PayPal Sandbox retest after this patch.
