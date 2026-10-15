@@ -104,6 +104,7 @@ abstract class Abstract_Repository {
 		);
 
 		error_log( '[DropKey V2] Database operation failed: ' . wp_json_encode( $details ) );
+		Logger::error('database','repository_write_failed','A repository database operation failed',array('operation'=>$details['operation'],'table'=>basename(str_replace($GLOBALS['wpdb']->prefix,'',$this->table)),'columns'=>$details['columns']));
 	}
 
 	abstract protected function normalize( array $data, $creating );
