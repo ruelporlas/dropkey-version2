@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
 final class Storefront {
 	public function register() {
 		add_shortcode('dropkey_store',array($this,'render'));
+		add_shortcode('dropkey_checkout',array($this,'render_checkout'));
 		add_action('admin_post_dk2_public_checkout',array($this,'submit_checkout'));
 		add_action('admin_post_nopriv_dk2_public_checkout',array($this,'submit_checkout'));
 		add_action('wp_enqueue_scripts',array($this,'enqueue_assets'));
@@ -16,7 +17,15 @@ final class Storefront {
 	public function enqueue_assets() {
 		if (!is_singular()) return;
 		$post=get_post();
-		if ($post&&has_shortcode($post->post_content,'dropkey_store')) wp_enqueue_style('dropkey-v2-storefront',DK2_URL.'assets/css/storefront.css',array(),DK2_VERSION);
+		if ($post&&(has_shortcode($post->post_content,'dropkey_store')||has_shortcode($post->post_content,'dropkey_checkout'))) wp_enqueue_style('dropkey-v2-storefront',DK2_URL.'assets/css/storefront.css',array(),DK2_VERSION);
+	}
+	private function checkout_url() {
+		$id=absint(get_option('dk2_checkout_page_id',0));
+		if ($id&&'publish'===get_post_status($id)) return get_permalink($id);
+		$id=wp_insert_post(array('post_title'=>__('Checkout','dropkey-v2'),'post_name'=>'dropkey-checkout','post_status'=>'publish','post_type'=>'page','post_content'=>'[dropkey_checkout]'),true);
+		if (is_wp_error($id)) return home_url('/');
+		update_option('dk2_checkout_page_id',(int)$id,false);
+		return get_permalink($id);
 	}
 	private function payment_settings() {
 		$settings=get_option('dk2_payment_settings',array());
@@ -55,21 +64,27 @@ final class Storefront {
 			$cadence='monthly'===$row->billing_type?__('per month','dropkey-v2'):('yearly'===$row->billing_type?__('per year','dropkey-v2'):('one_time'===$row->billing_type?__('one-time','dropkey-v2'):'')); 
 			echo '<article class="dk2-store-card"><div class="dk2-store-card-top"><div><p class="dk2-store-eyebrow">'.esc_html($row->product_name).'</p><h3>'.esc_html($row->tier_name).'</h3><p>'.esc_html(wp_strip_all_tags($row->tier_description?$row->tier_description:$row->product_description)).'</p></div><div class="dk2-store-price"><strong>'.esc_html($price).'</strong><span>'.esc_html($cadence).'</span></div></div>';
 			echo '<p class="dk2-store-limit">'.sprintf(esc_html__('%d active website%s included','dropkey-v2'),(int)$row->activation_limit,(1===(int)$row->activation_limit?'':'s')).'</p>';
-			$return_url=get_permalink(); if (!$return_url) $return_url=home_url('/');
-			echo '<form class="dk2-store-checkout" method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="dk2_public_checkout"><input type="hidden" name="billing_option_id" value="'.(int)$row->billing_option_id.'"><input type="hidden" name="return_url" value="'.esc_attr(esc_url_raw($return_url)).'">';
-			wp_nonce_field('dk2_public_checkout','dk2_checkout_nonce');
-			echo '<label>'.esc_html__('Email address','dropkey-v2').'<input required type="email" name="customer_email" autocomplete="email" value="'.esc_attr(is_user_logged_in()?wp_get_current_user()->user_email:'').'" placeholder="you@example.com"></label>';
-			if ('free'===$row->billing_type) echo '<input type="hidden" name="gateway" value="free">';
-			else {
-				echo '<label>'.esc_html__('Payment method','dropkey-v2').'<select required name="gateway"><option value="">'.esc_html__('Choose a payment method','dropkey-v2').'</option>';
-				if ($settings['stripe']) echo '<option value="stripe">Stripe Checkout</option>';
-				if ($settings['paypal']) echo '<option value="paypal">PayPal</option>';
-				echo '</select></label>';
-				if (!$settings['stripe']&&!$settings['paypal']) echo '<p class="dk2-store-unavailable">'.esc_html__('Checkout is temporarily unavailable.','dropkey-v2').'</p>';
-			}
-			echo '<button type="submit" '.(('free'!==$row->billing_type&&!$settings['stripe']&&!$settings['paypal'])?'disabled':'').'>'.esc_html('free'===$row->billing_type?__('Get this product','dropkey-v2'):__('Continue to checkout','dropkey-v2')).'</button></form></article>';
+			echo '<a class="dk2-store-order-button" href="'.esc_url(add_query_arg('billing_option_id',(int)$row->billing_option_id,$this->checkout_url())).'">'.esc_html__('Order now','dropkey-v2').' <span aria-hidden="true">→</span></a></article>';
 		}
 		echo '</div>';
+		return ob_get_clean();
+	}
+	public function render_checkout() {
+		if (!empty($_GET['dk2_order'])) return $this->current_order_notice();
+		$id=absint($_GET['billing_option_id']??0); global $wpdb;
+		$b=Database::table('billing_options'); $t=Database::table('tiers'); $p=Database::table('products');
+		$o=$wpdb->get_row($wpdb->prepare("SELECT b.*,t.name AS tier_name,t.description AS tier_description,p.name AS product_name,p.description AS product_description FROM {$b} b INNER JOIN {$t} t ON t.id=b.tier_id INNER JOIN {$p} p ON p.id=t.product_id WHERE b.id=%d AND b.status='published' AND t.status='published' AND p.status='published'",$id));
+		if (!$o) return '<div class="dk2-store-notice dk2-store-error">'.esc_html__('Choose a product from the store before checking out.','dropkey-v2').'</div>';
+		$s=$this->payment_settings(); $price='free'===$o->billing_type?__('Free','dropkey-v2'):strtoupper($o->currency).' '.number_format((float)$o->price,2);
+		$user=is_user_logged_in()?wp_get_current_user():null;
+		ob_start(); echo '<div class="dk2-checkout"><main class="dk2-checkout-main"><p class="dk2-store-eyebrow">'.esc_html__('Secure checkout','dropkey-v2').'</p><h2>'.esc_html__('Checkout','dropkey-v2').'</h2>';
+		if (!empty($_GET['dk2_checkout_error'])) echo '<div class="dk2-store-notice dk2-store-error">'.esc_html(sanitize_text_field(wp_unslash($_GET['dk2_checkout_error']))).'</div>';
+		echo '<form class="dk2-checkout-form" method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="dk2_public_checkout"><input type="hidden" name="billing_option_id" value="'.(int)$id.'"><input type="hidden" name="return_url" value="'.esc_attr(esc_url_raw($this->checkout_url())).'">'; wp_nonce_field('dk2_public_checkout','dk2_checkout_nonce');
+		echo '<h3>'.esc_html__('Contact information','dropkey-v2').'</h3><div class="dk2-field-grid"><label>'.esc_html__('First name','dropkey-v2').'<input required name="first_name" autocomplete="given-name" maxlength="100"></label><label>'.esc_html__('Last name','dropkey-v2').'<input required name="last_name" autocomplete="family-name" maxlength="100"></label><label class="dk2-field-full">'.esc_html__('Email address','dropkey-v2').'<input required type="email" name="customer_email" autocomplete="email" maxlength="191" value="'.esc_attr($user?$user->user_email:'').'"></label><label class="dk2-field-full">'.esc_html__('Phone (optional)','dropkey-v2').'<input name="phone" autocomplete="tel" maxlength="40"></label></div>';
+		echo '<h3>'.esc_html__('Billing address','dropkey-v2').'</h3><div class="dk2-field-grid"><label class="dk2-field-full">'.esc_html__('Street address','dropkey-v2').'<input required name="address_1" autocomplete="address-line1" maxlength="191"></label><label class="dk2-field-full">'.esc_html__('Apartment, suite, etc. (optional)','dropkey-v2').'<input name="address_2" autocomplete="address-line2" maxlength="191"></label><label>'.esc_html__('City','dropkey-v2').'<input required name="city" autocomplete="address-level2" maxlength="100"></label><label>'.esc_html__('State / Province','dropkey-v2').'<input required name="state" autocomplete="address-level1" maxlength="100"></label><label>'.esc_html__('Postal code','dropkey-v2').'<input required name="postcode" autocomplete="postal-code" maxlength="30"></label><label>'.esc_html__('Country code (2 letters)','dropkey-v2').'<input required name="country" autocomplete="country" minlength="2" maxlength="2" pattern="[A-Za-z]{2}" placeholder="US"></label></div><h3>'.esc_html__('Payment method','dropkey-v2').'</h3><div class="dk2-payment-options">';
+		if ('free'===$o->billing_type) echo '<input type="hidden" name="gateway" value="free"><p>'.esc_html__('No payment is required for this plan.','dropkey-v2').'</p>';
+		else { if ($s['paypal']) echo '<label class="dk2-payment-option"><input required type="radio" name="gateway" value="paypal"><span><strong>PayPal</strong><small>'.esc_html__('Pay securely on PayPal, then return here for confirmation.','dropkey-v2').'</small></span></label>'; if ($s['stripe']) echo '<label class="dk2-payment-option"><input required type="radio" name="gateway" value="stripe"><span><strong>'.esc_html__('Credit or debit card','dropkey-v2').'</strong><small>'.esc_html__('Continue to secure Stripe Checkout.','dropkey-v2').'</small></span></label>'; if (!$s['paypal']&&!$s['stripe']) echo '<p class="dk2-store-unavailable">'.esc_html__('Checkout is temporarily unavailable.','dropkey-v2').'</p>'; }
+		echo '</div><p class="dk2-checkout-secure">'.esc_html__('Payment details are handled by the payment provider. DropKey never asks for your PayPal password or full card number.','dropkey-v2').'</p><button class="dk2-store-order-button" type="submit" '.(('free'!==$o->billing_type&&!$s['paypal']&&!$s['stripe'])?'disabled':'').'>'.esc_html('free'===$o->billing_type?__('Complete free order','dropkey-v2'):__('Proceed to payment','dropkey-v2')).'</button></form></main><aside class="dk2-order-summary"><h3>'.esc_html__('Order summary','dropkey-v2').'</h3><p>'.esc_html($o->product_name).'</p><strong>'.esc_html($o->tier_name).'</strong><p>'.esc_html($price).'</p><hr><strong>'.esc_html__('Total due today:','dropkey-v2').' '.esc_html($price).'</strong><p>'.esc_html__('Your license will be delivered by email after payment confirmation.','dropkey-v2').'</p></aside></div>';
 		return ob_get_clean();
 	}
 	public function submit_checkout() {
@@ -78,7 +93,7 @@ final class Storefront {
 		$return=wp_validate_redirect($submitted_return,home_url('/'));
 		if (!$return) $return=home_url('/');
 		$billing_id=absint($_POST['billing_option_id']??0); $email=sanitize_email(wp_unslash($_POST['customer_email']??'')); $gateway=sanitize_key($_POST['gateway']??'');
-		$result=(new Commerce_Service())->start_checkout($billing_id,$email,$gateway,$return,$return);
+		$details=array(); foreach(array('first_name','last_name','phone','address_1','address_2','city','state','postcode') as $field) $details[$field]=sanitize_text_field(wp_unslash($_POST[$field]??'')); $details['country']=strtoupper(sanitize_text_field(wp_unslash($_POST['country']??'')));\n\t\tif (''===$details['first_name']||''===$details['last_name']||''===$details['address_1']||''===$details['city']||''===$details['state']||''===$details['postcode']||!preg_match('/^[A-Z]{2}$/',$details['country'])) { wp_safe_redirect(add_query_arg(array('billing_option_id'=>$billing_id,'dk2_checkout_error'=>__('Please complete all required billing fields.','dropkey-v2')),$return)); exit; }\n\t\t$result=(new Commerce_Service())->start_checkout($billing_id,$email,$gateway,$return,$return,$details);
 		if (is_wp_error($result)) {
 			$url=add_query_arg('dk2_checkout_error',$result->get_error_message(),$return);
 			wp_safe_redirect($url); exit;
