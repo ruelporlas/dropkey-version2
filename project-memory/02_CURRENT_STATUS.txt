@@ -91,3 +91,9 @@ Customer-facing account portal source was added in commit https://github.com/rue
 - Guest-purchase linking remains unimplemented; guest purchases are not auto-claimed by email. Existing keys issued before encrypted storage cannot be recovered from hashes. Encryption depends on stable WordPress auth salts.
 - Subscription cancellation remains administrator-managed. Payment-method portal actions are not implemented.
 - Next step: install on backed-up WordPress staging and test schema migration, account ownership, deactivation, download link generation, key display, profile/password behavior, and mobile layout.
+
+
+CURRENT DEBUGGING TASK — 2026-10-15
+- User-reported issue: creating a tier in the TasteWP test site redirects to the generic “The record could not be saved. Check the supplied values and database configuration.” message. The browser then loads the admin page with HTTP 200; that response does not explain the failed insert.
+- Source change committed to main: shared repository code now logs failed insert/update/delete operations to the PHP error log, including the operation, table, database error from $wpdb->last_error, and column names. Submitted field values are intentionally excluded.
+- Status: logging code is committed, but the issue has not yet been reproduced with the updated plugin installed and the resulting log has not yet been inspected. Root cause remains unknown.
