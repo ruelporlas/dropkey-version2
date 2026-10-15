@@ -44,7 +44,13 @@ final class Commerce_Service {
 			'status'=>'pending','amount'=>(float)$billing->price,'currency'=>strtoupper($billing->currency?$billing->currency:'USD'),
 			'created_at'=>$now,'updated_at'=>$now
 		));
-		if (!$ok) return new \WP_Error('dk2_checkout_order_failed',__('The checkout order could not be created.','dropkey-v2'),array('status'=>500));
+		if (!$ok) {
+			$db_error=substr((string)$wpdb->last_error,0,500);
+			$attempted_columns='public_id,product_id,tier_id,billing_option_id,customer_email,customer_user_id,customer_first_name,customer_last_name,customer_phone,billing_address_1,billing_address_2,billing_city,billing_state,billing_postcode,billing_country,gateway,gateway_order_id,gateway_session_id,status,amount,currency,created_at,updated_at';
+			Logger::error('checkout','order_insert_failed','Checkout order insert failed',array('billing_option_id'=>$billing_id,'gateway'=>$gateway,'db_error'=>$db_error,'attempted_columns'=>$attempted_columns));
+			error_log('[DropKey V2] Checkout order insert failed: '.wp_json_encode(array('billing_option_id'=>$billing_id,'gateway'=>$gateway,'db_error'=>$db_error,'attempted_columns'=>$attempted_columns)));
+			return new \WP_Error('dk2_checkout_order_failed',__('The checkout order could not be created. The database schema may need an upgrade. Please contact the site administrator.','dropkey-v2'),array('status'=>500));
+		}
 		$order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE id=%d',$wpdb->insert_id));
 		$latest_release=$wpdb->get_var($wpdb->prepare("SELECT id FROM ".Database::table('releases')." WHERE product_id=%d AND status='published' ORDER BY created_at DESC,id DESC LIMIT 1",$billing->product_id));
 		if (!$latest_release) {
