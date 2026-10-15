@@ -175,7 +175,7 @@ final class PayPal_Gateway extends Payment_Gateway {
 		foreach(array('auth_algo','cert_url','transmission_id','transmission_sig','transmission_time') as $required_header) {
 			if (''===trim((string)$verification[$required_header])) {
 				Logger::warning('paypal','webhook_headers_missing','Required PayPal webhook verification headers are missing',array('missing_header'=>sanitize_key($required_header)));
-				return new \\WP_Error('dk2_paypal_headers_missing',__('Required PayPal webhook verification headers are missing.','dropkey-v2'),array('status'=>400));
+				return new \WP_Error('dk2_paypal_headers_missing',__('Required PayPal webhook verification headers are missing.','dropkey-v2'),array('status'=>400));
 			}
 		}
 		// Record only presence flags and non-sensitive metadata; never log signature/header values or the event payload.
