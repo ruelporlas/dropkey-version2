@@ -7,7 +7,7 @@ namespace DropKey\V2;
 defined( 'ABSPATH' ) || exit;
 final class Database {
 	const VERSION_OPTION = 'dk2_db_version';
-	const SCHEMA_VERSION = '8';
+	const SCHEMA_VERSION = '9';
 	public static function table( $table ) {
 		global $wpdb;
 		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue', 'payments', 'logs' );
@@ -51,6 +51,9 @@ final class Database {
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT, product_id bigint(20) unsigned NOT NULL,
 			tier_id bigint(20) unsigned NOT NULL, billing_option_id bigint(20) unsigned DEFAULT NULL,
 			customer_email varchar(191) NOT NULL, customer_user_id bigint(20) unsigned DEFAULT NULL,
+			customer_first_name varchar(100) NOT NULL DEFAULT '', customer_last_name varchar(100) NOT NULL DEFAULT '', customer_phone varchar(40) NOT NULL DEFAULT '',
+			billing_address_1 varchar(191) NOT NULL DEFAULT '', billing_address_2 varchar(191) NOT NULL DEFAULT '', billing_city varchar(100) NOT NULL DEFAULT '',
+			billing_state varchar(100) NOT NULL DEFAULT '', billing_postcode varchar(30) NOT NULL DEFAULT '', billing_country char(2) NOT NULL DEFAULT '',
 			license_hash char(64) NOT NULL, key_prefix varchar(24) NOT NULL, key_encrypted longtext DEFAULT NULL,
 			status varchar(20) NOT NULL DEFAULT 'active', expires_at datetime DEFAULT NULL,
 			created_at datetime NOT NULL, updated_at datetime NOT NULL,
