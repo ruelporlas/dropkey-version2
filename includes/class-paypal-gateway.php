@@ -155,7 +155,18 @@ final class PayPal_Gateway extends Payment_Gateway {
 		$token=$this->access_token(); if (is_wp_error($token)) return $token;
 		$raw=$request->get_body(); if (strlen($raw)>1000000) return new \WP_Error('dk2_paypal_webhook_too_large',__('The webhook payload is too large.','dropkey-v2'),array('status'=>413)); $event=json_decode($raw,true);
 		if (!is_array($event)||empty($event['id'])||empty($event['event_type'])) return new \WP_Error('dk2_paypal_event_invalid',__('PayPal webhook payload is invalid.','dropkey-v2'),array('status'=>400));
-		$headers=$request->get_headers(); $get=function($name) use ($headers) { $key=strtolower($name); return isset($headers[$key])?(is_array($headers[$key])?reset($headers[$key]):$headers[$key]):''; };
+		$headers=$request->get_headers(); $get=function($name) use ($headers) {
+			$wanted=strtolower(str_replace('_','-',(string)$name));
+			foreach($headers as $header_name=>$header_value) {
+				if (strtolower(str_replace('_','-',(string)$header_name))===$wanted) return is_array($header_value)?(string)reset($header_value):(is_scalar($header_value)?(string)$header_value:'');
+			}
+			// Some WordPress/server configurations expose proxy-forwarded headers in $_SERVER
+			// but omit them from WP_REST_Request::get_headers(). Read only the exact
+			// corresponding server key as a compatibility fallback.
+			$server_key='HTTP_'.strtoupper(str_replace('-','_',$wanted));
+			if (isset($_SERVER[$server_key])&&is_scalar($_SERVER[$server_key])) return (string)$_SERVER[$server_key];
+			return '';
+		};
 		$verification=array(
 			'auth_algo'=>$get('paypal-auth-algo'),'cert_url'=>$get('paypal-cert-url'),
 			'transmission_id'=>$get('paypal-transmission-id'),'transmission_sig'=>$get('paypal-transmission-sig'),
