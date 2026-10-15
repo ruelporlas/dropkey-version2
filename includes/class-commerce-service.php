@@ -124,7 +124,7 @@ final class Commerce_Service {
 	private function ensure_customer_account($order) {
 		global $wpdb;
 		$email=sanitize_email($order->customer_email);
-		if (!is_email($email)) return new \\WP_Error('dk2_customer_email_invalid',__('A valid customer email is required to create the account.','dropkey-v2'));
+		if (!is_email($email)) return new \WP_Error('dk2_customer_email_invalid',__('A valid customer email is required to create the account.','dropkey-v2'));
 		$user=get_user_by('email',$email);
 		$created=false;
 		if (!$user) {
