@@ -92,6 +92,6 @@ Repository database-failure logging — 2026-10-15
 PAYPAL PLAN PROVISIONING AND ADMIN INPUT STYLING — 2026-10-15
 - Source changes: automatic PayPal product/plan creation in `includes/class-paypal-gateway.php`; no manual plan ID field in `includes/class-admin.php`; stale plan reference invalidation in `includes/class-billing-option-repository.php`; broader input selectors in `assets/css/admin.css`; plugin version bumped to 0.3.1.
 - PayPal official API documentation reviewed for catalog product creation and fixed-price recurring plan creation: https://developer.paypal.com/api/catalog-products/v1/products-create/ and https://developer.paypal.com/api/subscriptions/v1/.
-- GitHub Actions PHP syntax check for commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d`: PENDING at the time this entry was written.
+- GitHub Actions PHP syntax check for commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d`: PASS on PHP 7.4, 8.0, and 8.3. Run: https://github.com/ruelporlas/dropkey-version2/actions/runs/38658721423.
 - WordPress admin visual review, billing option save in TasteWP, PayPal Sandbox plan creation, subscription approval, and persistence/retry behavior: NOT RUN.
 - The prior generic tier database-save failure remains unresolved; this task does not establish its cause.
