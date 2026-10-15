@@ -305,3 +305,13 @@ PRELIMINARY SECURITY REVIEW — 2026-10-15
 
 SECURITY REVIEW — 2026-10-15
 Feature branch now requires account ownership for order confirmation and PayPal capture, hides sensitive fields from confirmation, and rejects webhook event IDs whose verified payload hash changes. CI run 38704141899 passed PHP 7.4, 8.0 and 8.3. Runtime/staging and external security testing remain outstanding; PR #1 remains draft and unmerged.
+
+
+
+CHECKOUT RETURN URL INVESTIGATION — 2026-10-15
+- User-confirmed task: trace and diagnose the checkout return URL warning first; inspect/report findings only, and do not change application code until the user approves a fix.
+- Inspected current source on `main`: `includes/class-storefront.php` (blob 92a9d7e496db5a8686f6de71cab2a4154351fe14), `includes/class-commerce-service.php` (blob 34677335219f4f325464a56ddedcfad3aba1c02c), and `includes/class-rest-api.php` (blob 7213116f310ada87a0410d68290b69d85ece31a4). Compared relevant storefront/commerce source on `feature/complete-customer-checkout` (storefront blob 53d4d7c7bcb474d80f3cd640e21278c9855dce9c; commerce blob fca9edc9041458080bff5522e0efdaa250fe64b4).
+- Current storefront source renders a hidden `return_url` from the DropKey checkout page URL. `submit_checkout()` sanitizes and calls `wp_validate_redirect()` on that posted value, then passes the resulting URL as both success and cancellation URL to `Commerce_Service::start_checkout()`. The commerce service validates/sanitizes both URLs and falls back to `home_url('/')` only if final URL parsing/scheme/host validation fails.
+- The existing warning text says “Referer-derived checkout URLs failed parsing,” but the inspected storefront path passes the submitted hidden-field URL rather than reading the Referer header. This wording is not sufficient evidence that Referer caused the fallback.
+- Root cause remains UNCONFIRMED. Plausible categories include a deployed plugin/source version differing from repository `main`, a malformed/empty URL at runtime, or a WordPress canonical URL/configuration mismatch. No one cause is established.
+- No application source changes, CI run, live WordPress test, or new payment attempt was performed in this investigation. Keep PR #1 draft/unmerged.
