@@ -275,12 +275,12 @@ final class Commerce_Service {
 	/** Validate a renewal against the original subscription's captured price and currency. */
 	private function validate_renewal_payment_amount($base,$event) {
 		if (!isset($event['amount']) || !is_numeric($event['amount']) || !is_finite((float)$event['amount']) || (float)$event['amount']<=0) {
-			return new \\WP_Error('dk2_renewal_amount_invalid',__('The recurring payment amount must be a positive numeric value.','dropkey-v2'));
+			return new \WP_Error('dk2_renewal_amount_invalid',__('The recurring payment amount must be a positive numeric value.','dropkey-v2'));
 		}
 		$currency=strtoupper(sanitize_text_field(isset($event['currency'])?$event['currency']:''));
-		if (!preg_match('/^[A-Z]{3}$/',$currency)) return new \\WP_Error('dk2_renewal_currency_invalid',__('The recurring payment currency is invalid.','dropkey-v2'));
-		if (strtoupper((string)$base->currency)!==$currency) return new \\WP_Error('dk2_renewal_currency_mismatch',__('The recurring payment currency does not match the original subscription currency.','dropkey-v2'));
-		if (abs((float)$event['amount']-(float)$base->amount)>0.009) return new \\WP_Error('dk2_renewal_amount_mismatch',__('The recurring payment amount does not match the original subscription amount.','dropkey-v2'));
+		if (!preg_match('/^[A-Z]{3}$/',$currency)) return new \WP_Error('dk2_renewal_currency_invalid',__('The recurring payment currency is invalid.','dropkey-v2'));
+		if (strtoupper((string)$base->currency)!==$currency) return new \WP_Error('dk2_renewal_currency_mismatch',__('The recurring payment currency does not match the original subscription currency.','dropkey-v2'));
+		if (abs((float)$event['amount']-(float)$base->amount)>0.009) return new \WP_Error('dk2_renewal_amount_mismatch',__('The recurring payment amount does not match the original subscription amount.','dropkey-v2'));
 		return true;
 	}
 
