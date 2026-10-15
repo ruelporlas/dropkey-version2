@@ -97,7 +97,7 @@ final class Storefront {
 		if (''===$details['first_name']||''===$details['last_name']||''===$details['address_1']||''===$details['city']||''===$details['state']||''===$details['postcode']||!preg_match('/^[A-Z]{2}$/',$details['country'])) { wp_safe_redirect(add_query_arg(array('billing_option_id'=>$billing_id,'dk2_checkout_error'=>__('Please complete all required billing fields.','dropkey-v2')),$return)); exit; }
 		$result=(new Commerce_Service())->start_checkout($billing_id,$email,$gateway,$return,$return,$details);
 		if (is_wp_error($result)) {
-			$url=add_query_arg('dk2_checkout_error',$result->get_error_message(),$return);
+			$url=add_query_arg(array('billing_option_id'=>$billing_id,'dk2_checkout_error'=>$result->get_error_message()),$return);
 			wp_safe_redirect($url); exit;
 		}
 		$target=esc_url_raw($result['checkout_url']); $parts=wp_parse_url($target); $host=isset($parts['host'])?strtolower($parts['host']):'';
