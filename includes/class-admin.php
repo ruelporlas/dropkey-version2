@@ -15,9 +15,10 @@ final class Admin {
 		add_submenu_page('dk2-products',__('Licenses','dropkey-v2'),__('Licenses','dropkey-v2'),'manage_options','dk2-licenses',array($this,'licenses'));
 		add_submenu_page('dk2-products',__('Orders','dropkey-v2'),__('Orders','dropkey-v2'),'manage_options','dk2-orders',array($this,'orders'));
 		add_submenu_page('dk2-products',__('Payment Settings','dropkey-v2'),__('Payment Settings','dropkey-v2'),'manage_options','dk2-settings',array($this,'settings'));
+		add_submenu_page('dk2-products',__('Debug Logs','dropkey-v2'),__('Debug Logs','dropkey-v2'),'manage_options','dk2-logs',array($this,'logs'));
 	}
 	public function register_handlers() {
-		foreach(array('product','tier','billing','release','license','license_status','download_link','activation_status','gateway_settings','email_resend','subscription_cancel') as $action) add_action('admin_post_dk2_'.$action,array($this,'handle'));
+		foreach(array('product','tier','billing','release','license','license_status','download_link','activation_status','gateway_settings','email_resend','subscription_cancel','logs_clear','logs_settings') as $action) add_action('admin_post_dk2_'.$action,array($this,'handle'));
 	}
 	private function guard() {
 		if (!current_user_can('manage_options')) wp_die(esc_html__('You are not allowed to manage DropKey.','dropkey-v2'));
@@ -184,6 +185,48 @@ final class Admin {
 		}
 		if (!$subscription_rows) echo '<tr><td colspan="6">'.esc_html__('No subscriptions yet.','dropkey-v2').'</td></tr>';
 		echo '</tbody></table>';
+		$this->footer();
+	}
+
+	public function logs() {
+		if (!current_user_can('manage_options')) return;
+		global $wpdb;
+		$table=Database::table('logs');
+		$level=isset($_GET['level'])?sanitize_key(wp_unslash($_GET['level'])):'';
+		$levels=array('debug','info','warning','error','critical');
+		if (!in_array($level,$levels,true)) $level='';
+		$page=max(1,isset($_GET['log_page'])?absint($_GET['log_page']):1);
+		$per_page=100; $offset=($page-1)*$per_page;
+		$where=''; $params=array();
+		if (''!==$level) { $where=' WHERE level=%s'; $params[]=$level; }
+		$count_sql="SELECT COUNT(*) FROM {$table}{$where}";
+		$total=(int)(''!==$where?$wpdb->get_var($wpdb->prepare($count_sql,$params)):$wpdb->get_var($count_sql));
+		$list_sql="SELECT * FROM {$table}{$where} ORDER BY id DESC LIMIT %d OFFSET %d";
+		$params[]=$per_page; $params[]=$offset;
+		$rows=$wpdb->get_results($wpdb->prepare($list_sql,$params));
+		$this->header(__('Debug Logs','dropkey-v2'),__('Review DropKey activity, warnings, errors, and payment diagnostics. Sensitive values and request payloads are intentionally excluded from structured logs.','dropkey-v2'));
+		echo '<div class="notice notice-info inline"><p>'.esc_html__('Logs are stored in the WordPress database for up to 30 days. This screen shows the newest 100 entries per page. PHP-level diagnostics may also appear in your hosting PHP error log.','dropkey-v2').'</p></div>';
+		echo '<form method="get" action="'.esc_url(admin_url('admin.php')).'" style="margin:16px 0"><input type="hidden" name="page" value="dk2-logs"><label for="dk2-log-level">'.esc_html__('Level','dropkey-v2').' </label><select id="dk2-log-level" name="level"><option value="">'.esc_html__('All levels','dropkey-v2').'</option>';
+		foreach($levels as $item) echo '<option value="'.esc_attr($item).'" '.selected($level,$item,false).'>'.esc_html(ucfirst($item)).'</option>';
+		echo '</select> <button class="button">'.esc_html__('Filter','dropkey-v2').'</button></form>';
+		$this->form_start('logs_settings');
+		echo '<p><label><input type="checkbox" name="logging_enabled" value="1" '.checked(get_option('dk2_logging_enabled','1'),'1',false).'> '.esc_html__('Enable structured DropKey logging','dropkey-v2').'</label> <button class="button button-primary">'.esc_html__('Save logging setting','dropkey-v2').'</button></p></form>';
+		$this->form_start('logs_clear');
+		echo '<p><button class="button button-secondary" onclick="return confirm(\''.esc_js(__('Delete all DropKey debug log entries? This cannot be undone.','dropkey-v2')).'\')">'.esc_html__('Clear all logs','dropkey-v2').'</button></p></form>';
+		echo '<p>'.sprintf(esc_html__('%1$s log entries · page %2$d of %3$d','dropkey-v2'),number_format_i18n($total),$page,max(1,(int)ceil($total/$per_page))).'</p>';
+		echo '<table class="widefat striped"><thead><tr><th>'.esc_html__('Time (UTC)','dropkey-v2').'</th><th>'.esc_html__('Level','dropkey-v2').'</th><th>'.esc_html__('Source / event','dropkey-v2').'</th><th>'.esc_html__('Message / context','dropkey-v2').'</th><th>'.esc_html__('Request ID','dropkey-v2').'</th><th>'.esc_html__('User ID','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($rows as $row) {
+			$context=json_decode($row->context,true); $context_text=is_array($context)?wp_json_encode($context,JSON_PRETTY_PRINT):'{}';
+			echo '<tr><td>'.esc_html($row->created_at).'</td><td><strong>'.esc_html(strtoupper($row->level)).'</strong></td><td><code>'.esc_html($row->source).'</code><br><code>'.esc_html($row->event).'</code></td><td>'.esc_html($row->message);
+			if ($context_text&&'{}'!==$context_text) echo '<details><summary>'.esc_html__('Details','dropkey-v2').'</summary><pre style="white-space:pre-wrap;max-width:640px">'.esc_html($context_text).'</pre></details>';
+			echo '</td><td><code>'.esc_html($row->request_id).'</code></td><td>'.(null===$row->user_id?'—':(int)$row->user_id).'</td></tr>';
+		}
+		if (!$rows) echo '<tr><td colspan="6">'.esc_html__('No log entries match this filter.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		if ($total>$per_page) {
+			$base=add_query_arg(array('page'=>'dk2-logs','level'=>$level,'log_page'=>'%#%'),admin_url('admin.php'));
+			echo '<div class="tablenav"><div class="tablenav-pages">'.wp_kses_post(paginate_links(array('base'=>str_replace('%25%23%25', '%#%', esc_url($base)),'format'=>'','current'=>$page,'total'=>(int)ceil($total/$per_page),'prev_text'=>__('‹ Previous','dropkey-v2'),'next_text'=>__('Next ›','dropkey-v2')))).'</div></div>';
+		}
 		$this->footer();
 	}
 
