@@ -62,3 +62,12 @@ CUSTOMER PORTAL — IMMEDIATE VERIFICATION TASK — 2026-10-15
 5. Test activation deactivation, fresh download-token creation, key display/copy for newly issued licenses, profile edits, correct/wrong current-password handling, and mobile layout.
 6. Confirm signed-in checkout links an order only when the submitted email matches the logged-in account. Guest purchases remain unlinked until a verified claim flow is implemented.
 7. Keep WordPress auth salts stable while encrypted license-key copies are stored. Do not call the portal production-ready until WordPress runtime/security checks pass.
+
+
+IMMEDIATE DEBUGGING NEXT STEP — 2026-10-15
+1. Update the TasteWP test site's installed DropKey V2 plugin to the latest `main` source containing the repository database-failure logger. A GitHub commit does not update the installed plugin automatically.
+2. Reproduce the tier creation failure once.
+3. Inspect the PHP error log (or WordPress `wp-content/debug.log` if `WP_DEBUG_LOG` is enabled) for a line beginning `[DropKey V2] Database operation failed:`.
+4. Share the logged operation, table, database_error, and columns fields. Redact anything sensitive before sharing.
+5. Use the actual database error to choose the fix; do not alter the database schema or guess at a duplicate slug before seeing the evidence.
+6. Run the repository's PHP syntax/contract CI and record the actual result. Then update verification evidence and status with the reproduced cause and outcome.
