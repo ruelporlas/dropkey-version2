@@ -259,3 +259,7 @@ IMMEDIATE NEXT ACTION — 2026-10-15
 1. Poll GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38700730891 until PHP 7.4 finishes; inspect its logs and record the final matrix result.
 2. If PHP 7.4 fails, fix the specific issue and obtain a new green run on the latest feature head.
 3. Then review the PR diff and test mandatory account creation/sign-in plus checkout and customer-account ownership on staging, including the known legacy pending guest-order compatibility edge case. Do not merge or deploy before verification.
+
+
+UPDATED IMMEDIATE NEXT ACTION — 2026-10-15
+- CI is now green on PHP 7.4/8.0/8.3 (run 38700730891, commit ebd3f4245296125c250616d63b1cbb5067410fa5). Next: review the feature PR diff and run staging tests for account registration, existing-user sign-in, account-email enforcement, successful checkout, order/license ownership, and legacy pending guest-order compatibility. Keep PR draft and do not merge/deploy until staging verification and safety review are complete.
