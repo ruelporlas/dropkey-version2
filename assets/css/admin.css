@@ -35,6 +35,8 @@ body[class*="dk2-"] .wrap textarea:focus {
   border-color: #477d73; box-shadow: 0 0 0 3px rgba(71, 125, 115, .13); outline: 0;
 }
 body[class*="dk2-"] .wrap .description { color: #64748b; font-size: 12px; line-height: 1.5; }
+body[class*="dk2-"] .wrap input[type="checkbox"],
+body[class*="dk2-"] .wrap input[type="radio"] { accent-color: #315e56; }
 body[class*="dk2-"] .wrap .button { min-height: 35px; padding: 4px 13px; border-radius: 7px; font-weight: 600; }
 body[class*="dk2-"] .wrap .button-primary { background: #315e56; border-color: #315e56; color: #fff; box-shadow: none; }
 body[class*="dk2-"] .wrap .button-primary:hover,
