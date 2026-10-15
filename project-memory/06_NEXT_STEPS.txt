@@ -37,7 +37,7 @@ IMPLEMENTED SCOPE BOUNDARIES
 - Customer-facing account pages, guest-purchase account linking, and full WordPress Plugins-screen updater integration remain unimplemented.
 - Taxes, coupons, invoices, and trials remain deferred.
 - Manual license issuance remains an administrator grant, not evidence of payment.
-- PayPal recurring billing requires a pre-created provider plan ID.
+- PayPal recurring billing provisions a provider product and plan automatically on first checkout when credentials are configured; administrators do not manually enter the plan ID.
 - Private storage must be confirmed outside the public web root before real product ZIPs are stored.
 
 ADMIN UX REQUIREMENT
