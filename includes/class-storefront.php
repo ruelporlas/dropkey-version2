@@ -40,11 +40,18 @@ final class Storefront {
 		$public_id=sanitize_text_field(wp_unslash($_GET['dk2_order']));
 		$order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE public_id=%s',$public_id));
 		if (!$order) return '<div class="dk2-store-notice dk2-store-error">'.esc_html__('We could not find that checkout. Please contact the site administrator if you were charged.','dropkey-v2').'</div>';
-		if ('paypal'===$order->gateway&&!empty($_GET['token'])&&'pending'===$order->status) {
-			$captured=(new Commerce_Service())->capture_paypal($public_id,sanitize_text_field(wp_unslash($_GET['token'])));
-			if (is_wp_error($captured)) {
-				Logger::error('paypal','capture_return_failed','PayPal return could not complete order fulfillment',array('order_id'=>(int)$order->id,'error_code'=>$captured->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250)));
-				do_action('dk2_paypal_capture_return_error',(int)$order->id,$captured->get_error_code());
+		if ('paypal'===$order->gateway&&'pending'===$order->status) {
+			$billing_type=$wpdb->get_var($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',(int)$order->billing_option_id));
+			if (in_array($billing_type,array('monthly','yearly'),true)) {
+				// PayPal subscription approval is not a one-time order capture. Wait for a verified
+				// subscription payment webhook before granting the license.
+				Logger::info('paypal','subscription_return_waiting_for_webhook','PayPal subscription return received; waiting for verified payment webhook',array('order_id'=>(int)$order->id,'billing_type'=>$billing_type));
+			} elseif (!empty($_GET['token'])) {
+				$captured=(new Commerce_Service())->capture_paypal($public_id,sanitize_text_field(wp_unslash($_GET['token'])));
+				if (is_wp_error($captured)) {
+					Logger::error('paypal','capture_return_failed','PayPal return could not complete order fulfillment',array('order_id'=>(int)$order->id,'error_code'=>$captured->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250)));
+					do_action('dk2_paypal_capture_return_error',(int)$order->id,$captured->get_error_code());
+				}
 			}
 			$order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE id=%d',$order->id));
 		}
