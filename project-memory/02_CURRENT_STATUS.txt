@@ -197,3 +197,9 @@ PAYPAL WEBHOOK DEBUGGING UPDATE — 2026-10-15
 CI FOLLOW-UP — 2026-10-15
 - The first run for the new header tests (38666594617) failed after PHP lint passed: the contract test's missing-header case called Logger although the standalone test harness had not loaded that class. The warning call is now guarded in commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542.
 - Follow-up GitHub Actions run 38666693429 PASSED on commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542: PHP lint passed on PHP 7.4, 8.0, and 8.3 and the network-free contract test step succeeded. Live WordPress/PayPal Sandbox verification remains NOT RUN.
+
+
+CHECKOUT RETURN URL FIX — 2026-10-15
+- Committed `includes/class-storefront.php` change `3e4d1213da58b172ca9c3a9611ae5dcc2f1818da`: storefront forms now submit the page permalink as an explicit return URL; server-side handling validates it with `wp_validate_redirect()` and falls back to the canonical home URL. This removes reliance on the Referer header for normal checkout return/cancel navigation.
+- Awaiting CI for this commit and runtime verification on the WordPress Sandbox site. The user’s earlier log showed a fallback warning; that log predates this change and does not prove the fix is deployed or working.
+- Important: successful subscription CREATED/ACTIVATED webhook logs only show signed events were acknowledged; they do not prove a payment was captured, an order was marked paid, or a license was issued.
