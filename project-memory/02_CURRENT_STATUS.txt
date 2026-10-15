@@ -162,3 +162,7 @@ PAYPAL WEBHOOK VERIFICATION DIAGNOSTICS — 2026-10-15
 - Does not log header values, signature, webhook ID value, access token, or full payload.
 - Plugin version bumped to 0.3.8 in `dropkey-v2.php`.
 - Runtime result remains unverified until 0.3.8 is installed on the WordPress site and a fresh PayPal Sandbox webhook is observed.
+
+CI FOLLOW-UP — 2026-10-15
+- The first 0.3.8 diagnostic commits failed the existing contract-test workflow because the test harness does not load `Logger` and the new instrumentation called it unconditionally.
+- Corrective commit `d0420a3d096603fd36a0855c558c95a13da6b186` guards the diagnostic call with `class_exists`; latest CI run is queued at the time of this note. Do not install until CI passes.
