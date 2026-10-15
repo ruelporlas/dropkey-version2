@@ -16,8 +16,9 @@ final class PayPal_Gateway extends Payment_Gateway {
 		$data=json_decode(wp_remote_retrieve_body($response),true);
 		return !empty($data['access_token'])?$data['access_token']:new \WP_Error('dk2_paypal_auth_failed',__('PayPal did not return an access token.','dropkey-v2'),array('status'=>502));
 	}
-	private function paypal_request($method,$path,$token,$body=null) {
+	private function paypal_request($method,$path,$token,$body=null,$request_id='') {
 		$args=array('timeout'=>20,'redirection'=>0,'sslverify'=>true,'headers'=>array('Authorization'=>'Bearer '.$token,'Accept'=>'application/json','Content-Type'=>'application/json'));
+		if (''!==$request_id) $args['headers']['PayPal-Request-Id']=$request_id;
 		if (null!==$body) $args['body']=wp_json_encode($body);
 		$response=wp_remote_request($this->api_base().$path,array_merge($args,array('method'=>$method)));
 		if (is_wp_error($response)) return new \WP_Error('dk2_paypal_transport',__('PayPal could not be reached. Please try again.','dropkey-v2'),array('status'=>502));
