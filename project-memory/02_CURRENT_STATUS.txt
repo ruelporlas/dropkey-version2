@@ -203,3 +203,11 @@ CHECKOUT RETURN URL FIX — 2026-10-15
 - Committed `includes/class-storefront.php` change `3e4d1213da58b172ca9c3a9611ae5dcc2f1818da`: storefront forms now submit the page permalink as an explicit return URL; server-side handling validates it with `wp_validate_redirect()` and falls back to the canonical home URL. This removes reliance on the Referer header for normal checkout return/cancel navigation.
 - Awaiting CI for this commit and runtime verification on the WordPress Sandbox site. The user’s earlier log showed a fallback warning; that log predates this change and does not prove the fix is deployed or working.
 - Important: successful subscription CREATED/ACTIVATED webhook logs only show signed events were acknowledged; they do not prove a payment was captured, an order was marked paid, or a license was issued.
+
+
+CHECKOUT UX UPDATE — 2026-10-15
+- Implemented source for a dedicated customer checkout page via [dropkey_checkout], automatically created when the storefront needs it; storefront product cards now link with “Order now”.
+- Checkout collects first/last name, email, optional phone, billing street/address line 2, city, state/province, postal code, and two-letter country code; customer details are stored on the order record after schema upgrade to version 9.
+- Added payment-method selection for configured PayPal and Stripe, an order summary, responsive styles, and an order-confirmation state on the same dedicated checkout page after provider return.
+- Plugin version bumped to 0.4.0. Main source changes are in commits adc2732, 623f49a, 0093680, 7493ec2, bd87d84, 0ead2d6, and 448d695.
+- Important: CI status and WordPress runtime are not yet verified. Before deployment, inspect PHP syntax and contract CI, install on a backed-up staging site, verify schema v9 migration, test free checkout, Stripe test mode, PayPal Sandbox one-time and subscription flows, and confirm payment/confirmation/fulfillment end to end. Existing installed sites do not update automatically.
