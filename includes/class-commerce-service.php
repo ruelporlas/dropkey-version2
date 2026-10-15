@@ -103,13 +103,22 @@ final class Commerce_Service {
 	private function queue_fulfillment_email($order,$license_id,$license_key) {
 		global $wpdb;
 		$release=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".Database::table('releases')." WHERE product_id=%d AND status='published' ORDER BY created_at DESC,id DESC LIMIT 1",$order->product_id));
-		if (!$release) return new \WP_Error('dk2_fulfillment_release_missing',__('No published download release is available for this order.','dropkey-v2'));
-		$link=(new Download_Service())->create_token($license_id,$release->id);
-		if (is_wp_error($link)) return $link;
 		$product_name=$wpdb->get_var($wpdb->prepare('SELECT name FROM '.Database::table('products').' WHERE id=%d',$order->product_id));
-		$body="Thank you for your purchase.\n\nProduct: ".$product_name."\nLicense key: ".$license_key."\nDownload: ".$link['url']."\nThis download link expires in 48 hours and allows up to 5 downloads.\n";
-		$queued=(new Email_Service())->enqueue($order->id,$order->customer_email,'Your DropKey purchase',$body);
+		$tier_name=$wpdb->get_var($wpdb->prepare('SELECT name FROM '.Database::table('tiers').' WHERE id=%d',$order->tier_id));
+		$billing=$wpdb->get_row($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',$order->billing_option_id));
+		$download_line='';
+		if ($release) {
+			$link=(new Download_Service())->create_token($license_id,$release->id);
+			if (!is_wp_error($link)) $download_line="\nDownload: ".$link['url']."\nThis download link expires in 48 hours and allows up to 5 downloads.\n";
+			else Logger::warning('email','download_link_unavailable','Purchase email will be sent without a download link',array('order_id'=>(int)$order->id,'error_code'=>$link->get_error_code()));
+		}
+		$billing_label=$billing?('monthly'===$billing->billing_type?'Monthly':('yearly'===$billing->billing_type?'Yearly':('free'===$billing->billing_type?'Free':'One-time'))):'—';
+		$amount=$billing&&'free'===$billing->billing_type?'Free':strtoupper((string)$order->currency).' '.number_format((float)$order->amount,2);
+		$body="Thank you for your purchase.\n\nOrder: ".substr((string)$order->public_id,0,8)."\nStatus: Paid\nProduct: ".$product_name."\nPlan: ".$tier_name."\nBilling: ".$billing_label."\nTotal: ".$amount."\nLicense key: ".$license_key."\n".$download_line."\nManage your account: ".wp_login_url()."\nIf you have not set a password yet, use the password reset link on the sign-in page to set one.\n";
+		$queued=(new Email_Service())->enqueue($order->id,$order->customer_email,'Your DropKey order confirmation',$body);
 		if (is_wp_error($queued)) { do_action('dk2_fulfillment_email_queue_error',(int)$order->id,$queued->get_error_code()); return $queued; }
+		// Attempt delivery immediately; scheduled retries remain available if wp_mail fails.
+		(new Email_Service())->process_queue();
 		return $queued;
 	}
 	private function ensure_customer_account($order) {
