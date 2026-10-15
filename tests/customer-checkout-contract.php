@@ -12,7 +12,7 @@ namespace {
 	if (!function_exists('is_user_logged_in')) { function is_user_logged_in() { return !empty($GLOBALS['dk2_test_logged_in']); } }
 	if (!function_exists('wp_get_current_user')) { function wp_get_current_user() { return isset($GLOBALS['dk2_test_user'])?$GLOBALS['dk2_test_user']:(object)array('ID'=>0,'user_email'=>''); } }
 	if (!function_exists('absint')) { function absint($value) { return abs((int)$value); } }
-	if (!function_exists('is_wp_error')) { function is_wp_error($value) { return $value instanceof \WP_Error; } }
+	if (!function_exists('is_wp_error')) { function is_wp_error($value) { return $value instanceof \\WP_Error; } }
 	if (!class_exists('WP_Error')) { class WP_Error {
 		private $code;
 		private $message;
@@ -24,7 +24,7 @@ namespace {
 	}
 	}
 }
-namespace DropKey\V2 {
+namespace DropKey\\V2 {
 	final class Logger {
 		public static function info($category,$event,$message,$context=array()) {}
 	}
@@ -35,14 +35,19 @@ namespace {
 		if (!$condition) { fwrite(STDERR,"FAIL: ".$message."\\n"); exit(1); }
 		echo "PASS: ".$message."\\n";
 	}
-	$service=new \DropKey\V2\Commerce_Service();
+	$service=new \\DropKey\\V2\\Commerce_Service();
 	$GLOBALS['dk2_test_logged_in']=false;
 	$GLOBALS['dk2_test_user']=(object)array('ID'=>0,'user_email'=>'');
 	$guest=$service->start_checkout(1,'buyer@example.test','stripe','https://example.test/success','https://example.test/cancel');
-	check_checkout_case($guest instanceof \WP_Error&&'dk2_checkout_account_required'===$guest->get_error_code(),'rejects checkout without an authenticated customer account');
+	check_checkout_case($guest instanceof \\WP_Error&&'dk2_checkout_account_required'===$guest->get_error_code(),'rejects checkout without an authenticated customer account');
+	$invalid_email=$service->start_checkout(1,'not-an-email','stripe','https://example.test/success','https://example.test/cancel');
+	check_checkout_case($invalid_email instanceof \\WP_Error&&'dk2_checkout_email_invalid'===$invalid_email->get_error_code(),'rejects malformed checkout email addresses');
 	$GLOBALS['dk2_test_logged_in']=true;
 	$GLOBALS['dk2_test_user']=(object)array('ID'=>42,'user_email'=>'owner@example.test');
 	$mismatch=$service->start_checkout(1,'buyer@example.test','stripe','https://example.test/success','https://example.test/cancel');
-	check_checkout_case($mismatch instanceof \WP_Error&&'dk2_checkout_account_email_mismatch'===$mismatch->get_error_code(),'rejects checkout using an email different from the signed-in account');
+	check_checkout_case($mismatch instanceof \\WP_Error&&'dk2_checkout_account_email_mismatch'===$mismatch->get_error_code(),'rejects checkout using an email different from the signed-in account');
+	$GLOBALS['dk2_test_user']=(object)array('ID'=>0,'user_email'=>'owner@example.test');
+	$missing_id=$service->start_checkout(1,'owner@example.test','stripe','https://example.test/success','https://example.test/cancel');
+	check_checkout_case($missing_id instanceof \\WP_Error&&'dk2_checkout_account_email_mismatch'===$missing_id->get_error_code(),'rejects an authenticated session without a valid customer user ID');
 	echo "All customer checkout contract tests passed.\\n";
 }
