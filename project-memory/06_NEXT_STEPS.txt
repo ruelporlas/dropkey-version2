@@ -79,3 +79,10 @@ IMMEDIATE NEXT STEPS — PAYPAL PLAN AND ADMIN FORM FIX — 2026-10-15
 4. Configure PayPal Sandbox credentials and perform a test checkout. Confirm DropKey creates a PayPal product and plan, stores the plan ID, and creates a subscription approval URL.
 5. Change that billing option's price/currency/interval and verify the local plan ID is cleared; on the next PayPal checkout, a matching plan should be provisioned. Existing subscriptions are not migrated.
 6. Separately continue the pending tier database-save diagnosis by reproducing it with the logging-enabled plugin and reading the PHP error log; do not conflate that issue with the billing-option UX fix.
+
+IMMEDIATE NEXT STEPS — STOREFRONT PAYPAL VISIBILITY — 2026-10-15
+1. Wait for PHP syntax CI for commit `4ae978906cc9bd2d7f81340a899bea2241806a4d`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659803790.
+2. Update the installed TasteWP plugin with the latest `main` source; repository changes do not update the site automatically.
+3. Reload the storefront and check a published monthly/yearly paid option. PayPal should appear when PayPal is enabled and Client ID, Secret, and Webhook ID are saved.
+4. Test the Sandbox checkout. Verify that the first recurring checkout creates a PayPal product/plan and stores the plan ID.
+5. If PayPal remains missing after installing the latest source, confirm the PayPal settings have Enabled checked and Client ID, Secret, and Webhook ID populated; report which of those fields is blank without sharing secrets.
