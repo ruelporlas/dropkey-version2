@@ -138,3 +138,10 @@ PAYPAL RETURN/CANCEL URL SANITIZATION — 2026-10-15
 - Source change commit: f931a0a20080b193c46de43c9c1915da5f7791bb. URL syntax check now requires parsed absolute HTTP(S) scheme and host only; when referer URL fails, code falls back to sanitized home_url('/'). Safe logs omit full URLs and query values.
 - Version 0.3.6 commit: 1cf3130d3544e82d345f77cbdb8b85c847de3313.
 - CI PASSED: source commit f931a0a20080b193c46de43c9c1915da5f7791bb, run https://github.com/ruelporlas/dropkey-version2/actions/runs/38662620511; version commit 1cf3130d3544e82d345f77cbdb8b85c847de3313, run https://github.com/ruelporlas/dropkey-version2/actions/runs/38662636601. PHP syntax checks passed. WordPress runtime and PayPal Sandbox tests are NOT RUN after this change.
+
+2026-10-15 — Structured debug logging feature, plugin 0.3.7
+- Added `includes/class-logger.php`, schema version 8 / `dk2_logs` table, Debug Logs admin screen, logging setting, clear action, retention cleanup, and instrumentation for admin, checkout, provider, REST/webhook, email, and repository errors.
+- Latest source commit: `a2e5dd36eb058366c53cb5b656feadb273065a4d`.
+- Automated workflow PASSED: https://github.com/ruelporlas/dropkey-version2/actions/runs/38663539112. Earlier incremental commits also passed their runs; latest commit includes the accumulated changes.
+- Static source readback confirmed the logger class, schema version 8, allowlisted logs table, version 0.3.7 bootstrap include, admin log screen and controls, and integration calls.
+- NOT RUN: WordPress activation/schema upgrade on the user's site; database writes; admin rendering/filter/pagination; enable/disable; clear logs; 30-day cleanup; live checkout and webhook diagnostics. Do not claim runtime verification until tested after installing 0.3.7.
