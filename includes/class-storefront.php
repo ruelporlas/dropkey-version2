@@ -10,6 +10,7 @@ final class Storefront {
 	public function register() {
 		add_shortcode('dropkey_store',array($this,'render'));
 		add_shortcode('dropkey_checkout',array($this,'render_checkout'));
+		add_shortcode('dropkey_account',array($this,'render_account'));
 		add_action('admin_post_dk2_public_checkout',array($this,'submit_checkout'));
 		add_action('admin_post_nopriv_dk2_public_checkout',array($this,'submit_checkout'));
 		add_action('wp_enqueue_scripts',array($this,'enqueue_assets'));
@@ -86,6 +87,30 @@ final class Storefront {
 		}
 		echo '</div>';
 		return ob_get_clean();
+	}
+	public function render_account() {
+		if (!is_user_logged_in()) return '<div class="dk2-account"><h2>'.esc_html__('Your DropKey account','dropkey-v2').'</h2><p>'.esc_html__('Sign in to manage your orders, subscriptions, and licenses.','dropkey-v2').'</p><a class="dk2-store-order-button" href="'.esc_url(wp_login_url(get_permalink())).'">'.esc_html__('Sign in','dropkey-v2').'</a></div>';
+		global $wpdb; $user=wp_get_current_user(); $uid=(int)$user->ID;
+		$orders=Database::table('orders'); $products=Database::table('products'); $tiers=Database::table('tiers'); $licenses=Database::table('licenses'); $subs=Database::table('subscriptions'); $billing=Database::table('billing_options');
+		$rows=$wpdb->get_results($wpdb->prepare("SELECT o.public_id,o.status AS order_status,o.amount,o.currency,o.gateway,o.created_at,p.name AS product_name,t.name AS tier_name,b.billing_type,o.license_id FROM {$orders} o LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id LEFT JOIN {$billing} b ON b.id=o.billing_option_id WHERE o.customer_user_id=%d ORDER BY o.created_at DESC,o.id DESC LIMIT 100",$uid));
+		$license_rows=$wpdb->get_results($wpdb->prepare("SELECT l.*,p.name AS product_name,t.name AS tier_name,t.activation_limit FROM {$licenses} l LEFT JOIN {$products} p ON p.id=l.product_id LEFT JOIN {$tiers} t ON t.id=l.tier_id WHERE l.customer_user_id=%d ORDER BY l.created_at DESC,l.id DESC LIMIT 100",$uid));
+		$html='<section class="dk2-account"><p class="dk2-store-eyebrow">'.esc_html__('Customer portal','dropkey-v2').'</p><h2>'.esc_html__('Your DropKey account','dropkey-v2').'</h2><p>'.esc_html($user->display_name).' · '.esc_html($user->user_email).'</p><p><a href="'.esc_url(wp_lostpassword_url()).'">'.esc_html__('Change or reset password','dropkey-v2').'</a></p><h3>'.esc_html__('Your licenses','dropkey-v2').'</h3>';
+		if (!$license_rows) $html.='<p>'.esc_html__('No licenses are linked to this account yet.','dropkey-v2').'</p>';
+		foreach($license_rows as $license) {
+			$key=(new License_Service())->reveal_key($license); $active=(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM ".Database::table('activations')." WHERE license_id=%d AND status='active'",$license->id));
+			$sub=$wpdb->get_row($wpdb->prepare("SELECT status,current_period_end,cancel_at_period_end FROM {$subs} WHERE license_id=%d ORDER BY id DESC LIMIT 1",$license->id));
+			$html.='<article class="dk2-account-card"><h4>'.esc_html($license->product_name?:__('Plugin','dropkey-v2')).' — '.esc_html($license->tier_name?:__('Plan','dropkey-v2')).'</h4><p><strong>'.esc_html__('License key:','dropkey-v2').'</strong> <code>'.esc_html($key?:$license->key_prefix.'…').'</code></p><p>'.esc_html__('License status:','dropkey-v2').' '.esc_html(ucfirst($license->status)).' · '.esc_html__('Active websites:','dropkey-v2').' '.(int)$active.' / '.(int)$license->activation_limit.'</p>';
+			if ($license->expires_at) $html.='<p>'.esc_html__('Expires:','dropkey-v2').' '.esc_html($license->expires_at).'</p>';
+			if ($sub) $html.='<p>'.esc_html__('Subscription:','dropkey-v2').' '.esc_html(ucfirst(str_replace('_',' ',$sub->status))).($sub->current_period_end?' · '.esc_html__('Current period ends:','dropkey-v2').' '.esc_html($sub->current_period_end):'').(!empty($sub->cancel_at_period_end)?' · '.esc_html__('Cancellation scheduled','dropkey-v2'):'').'</p>';
+			$html.='</article>';
+		}
+		$html.='<h3>'.esc_html__('Order history','dropkey-v2').'</h3>';
+		if (!$rows) $html.='<p>'.esc_html__('No orders have been placed from this account yet.','dropkey-v2').'</p>';
+		else { $html.='<div class="dk2-account-table"><table><thead><tr><th>'.esc_html__('Order','dropkey-v2').'</th><th>'.esc_html__('Product / plan','dropkey-v2').'</th><th>'.esc_html__('Total','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Date','dropkey-v2').'</th></tr></thead><tbody>';
+			foreach($rows as $order) { $status=isset($order->order_status)?ucfirst(str_replace('_',' ',$order->order_status)):'Unknown'; $amount=('free'===$order->billing_type)?__('Free','dropkey-v2'):strtoupper($order->currency).' '.number_format((float)$order->amount,2); $html.='<tr><td>'.esc_html(substr((string)$order->public_id,0,8)).'</td><td>'.esc_html(($order->product_name?:__('Plugin','dropkey-v2')).' / '.($order->tier_name?:__('Plan','dropkey-v2'))).'</td><td>'.esc_html($amount).'</td><td>'.esc_html($status).'</td><td>'.esc_html(get_date_from_gmt($order->created_at,get_option('date_format'))).'</td></tr>'; }
+			$html.='</tbody></table></div>';
+		}
+		return $html.'</section>';
 	}
 	public function render_checkout() {
 		if (!empty($_GET['dk2_order'])) return $this->current_order_notice();
