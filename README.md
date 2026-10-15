@@ -73,7 +73,7 @@ Subscribe to the applicable events:
 
 DropKey asks PayPal to verify webhook signatures through PayPal's verification API. One-time checkout is captured server-side after the customer returns from PayPal, with the order reference, amount, and currency checked before fulfillment.
 
-**PayPal recurring plans:** create the product/plan in PayPal first, then paste the PayPal subscription Plan ID into the corresponding billing option. DropKey does not currently create PayPal catalog products or billing plans for you.
+**PayPal recurring plans:** DropKey automatically creates the PayPal catalog product and monthly/yearly billing plan the first time a recurring billing option is used, then saves the resulting Plan ID on that billing option. If the billing type, price, or currency changes, DropKey clears the stored Plan ID so the next checkout can provision a plan matching the updated terms. Test this provisioning in PayPal Sandbox before enabling live payments.
 
 ## Checkout and order lifecycle
 
