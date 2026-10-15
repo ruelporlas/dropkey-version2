@@ -130,7 +130,7 @@ check_case($paypal_bad instanceof WP_Error&&'dk2_paypal_signature_invalid'===$pa
 
 require_once dirname(__DIR__).'/includes/class-commerce-service.php';
 $commerce=new \DropKey\V2\Commerce_Service();
-$renewal_amount_check=new ReflectionMethod('DropKey\\\\V2\\\\Commerce_Service','validate_renewal_payment_amount');
+$renewal_amount_check=new ReflectionMethod('DropKey'.chr(92).'V2'.chr(92).'Commerce_Service','validate_renewal_payment_amount');
 $renewal_amount_check->setAccessible(true);
 $renewal_base=(object)array('amount'=>12.50,'currency'=>'USD');
 $renewal_valid=$renewal_amount_check->invoke($commerce,$renewal_base,array('amount'=>12.50,'currency'=>'USD'));
