@@ -89,3 +89,8 @@ STRUCTURED DEBUG LOGGING — 2026-10-15
 - `includes/class-admin.php` — adds the DropKey > Debug Logs screen with level filtering, 100-entry pagination, expandable context, enable/disable control, and clear-log action.
 - Logging integrations include admin action handlers, checkout flow/URL diagnostics, PayPal and shared Stripe/provider API failures, REST errors/webhook processing, email delivery failures, and repository database write failures.
 - Plugin version is 0.3.7. GitHub Actions syntax/contract workflow passed for latest source commit `a2e5dd36eb058366c53cb5b656feadb273065a4d`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38663539112. WordPress runtime/UI/database migration tests have not yet been run.
+
+PAYPAL WEBHOOK DEBUGGING NOTE — 2026-10-15
+- includes/class-paypal-gateway.php: PayPal webhook signature verification reads required transmission headers from the REST request header collection with normalized header-name matching and a matching $_SERVER fallback; missing required headers fail closed before provider verification.
+- tests/payment-webhook-contract.php: network-free PayPal provider-verification contract coverage includes underscore-form header names and missing-header rejection.
+- Latest relevant source commit: ff57c180e2caf1331ab3a7241b308ffb65ec728d. GitHub Actions run 38666594617 was queued at last inspection; see verification evidence before assuming it passed.
