@@ -17,6 +17,7 @@ final class Commerce_Service {
 	public function start_checkout($billing_id,$email,$gateway,$success_url,$cancel_url) {
 		global $wpdb;
 		$billing_id=absint($billing_id); $email=sanitize_email($email); $gateway=sanitize_key($gateway);
+		Logger::info('checkout','checkout_started','Checkout attempt started',array('billing_option_id'=>$billing_id,'gateway'=>$gateway));
 		if (!is_email($email)) return new \WP_Error('dk2_checkout_email_invalid',__('Enter a valid email address.','dropkey-v2'),array('status'=>400));
 		$rate_limit=$this->rate_limit_checkout($email); if (is_wp_error($rate_limit)) return $rate_limit;
 		$b=Database::table('billing_options'); $t=Database::table('tiers'); $p=Database::table('products');
@@ -44,6 +45,7 @@ final class Commerce_Service {
 		$order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE id=%d',$wpdb->insert_id));
 		$latest_release=$wpdb->get_var($wpdb->prepare("SELECT id FROM ".Database::table('releases')." WHERE product_id=%d AND status='published' ORDER BY created_at DESC,id DESC LIMIT 1",$billing->product_id));
 		if (!$latest_release) {
+			Logger::warning('checkout','published_release_missing','Checkout blocked because the product has no published release',array('order_id'=>(int)$order->id,'product_id'=>(int)$billing->product_id));
 			$wpdb->delete(Database::table('orders'),array('id'=>$order->id),array('%d'));
 			return new \WP_Error('dk2_checkout_release_missing',__('This product has no published download release yet.','dropkey-v2'),array('status'=>409));
 		}
@@ -68,15 +70,18 @@ final class Commerce_Service {
 				$success_url=$fallback_success;
 				$cancel_url=$fallback_cancel;
 				error_log('[DropKey V2] Checkout return URL fallback used; the referer URL failed URL parsing.');
+				Logger::warning('checkout','return_url_fallback_used','Referer-derived checkout URLs failed parsing; canonical home URL used');
 			} else {
 				$parts=wp_parse_url($fallback_url);
 				error_log('[DropKey V2] Checkout canonical URL invalid: '.wp_json_encode(array('scheme'=>is_array($parts)&&isset($parts['scheme'])?strtolower($parts['scheme']):'missing','host_present'=>is_array($parts)&&!empty($parts['host']),'url_length'=>strlen($fallback_url))));
+				Logger::error('checkout','canonical_url_invalid','The canonical site URL failed checkout URL validation',array('scheme'=>is_array($parts)&&isset($parts['scheme'])?strtolower($parts['scheme']):'missing','host_present'=>is_array($parts)&&!empty($parts['host']),'url_length'=>strlen($fallback_url)));
 				return new \WP_Error('dk2_checkout_return_url_invalid',__('The checkout return URL is invalid. Please contact the site administrator.','dropkey-v2'),array('status'=>500));
 			}
 		}
 		$session=$instance->create_checkout($order,$billing,$product,$tier,$success_url,$cancel_url);
-		if (is_wp_error($session)) { $wpdb->update(Database::table('orders'),array('status'=>'failed','updated_at'=>current_time('mysql',true)),array('id'=>$order->id)); return $session; }
+		if (is_wp_error($session)) { Logger::error('checkout','gateway_checkout_failed','Payment gateway could not create a checkout session',array('order_id'=>(int)$order->id,'gateway'=>$gateway,'error_code'=>$session->get_error_code())); $wpdb->update(Database::table('orders'),array('status'=>'failed','updated_at'=>current_time('mysql',true)),array('id'=>$order->id)); return $session; }
 		$wpdb->update(Database::table('orders'),array('gateway_order_id'=>$session['order_id'],'gateway_session_id'=>$session['session_id'],'updated_at'=>current_time('mysql',true)),array('id'=>$order->id));
+		Logger::info('checkout','checkout_session_created','Hosted checkout session created',array('order_id'=>(int)$order->id,'gateway'=>$gateway,'billing_type'=>$billing->billing_type));
 		return array('order_id'=>$public_id,'status'=>'pending','checkout_url'=>$session['checkout_url']);
 	}
 	private function queue_fulfillment_email($order,$license_id,$license_key) {
@@ -113,6 +118,7 @@ final class Commerce_Service {
 		$queued=$this->queue_fulfillment_email($locked,$license['id'],$license['license_key']);
 		if (is_wp_error($queued)) { $wpdb->query('ROLLBACK'); return $queued; }
 		$wpdb->query('COMMIT');
+		Logger::info('commerce','order_fulfilled','Order payment confirmed and license issued',array('order_id'=>(int)$locked->id,'license_id'=>(int)$license['id'],'gateway'=>$locked->gateway));
 		do_action('dk2_order_paid',(int)$locked->id,(int)$license['id'],$locked->gateway);
 		return $locked;
 	}
