@@ -256,3 +256,12 @@ FINAL RESULT — 2026-10-15
 
 2026-10-15 — Order access contract verification
 CI run 38704141899 passed on PHP 7.4, 8.0 and 8.3: https://github.com/ruelporlas/dropkey-version2/actions/runs/38704141899. Tests deny access without sign-in, deny a different account, allow the matching owner, and deny an order without an owner. The webhook payload-hash guard has no dedicated behavior test yet. No staging verification was performed.
+
+
+
+2026-10-15 — Checkout return URL source inspection (read-only)
+- READ: `project-memory/AI_PROJECT_PROTOCOL.txt` and all eight official memory files on `main` before task work.
+- INSPECTED: `includes/class-storefront.php` on `main` (blob 92a9d7e496db5a8686f6de71cab2a4154351fe14) and feature branch (blob 53d4d7c7bcb474d80f3cd640e21278c9855dce9c); `includes/class-commerce-service.php` on `main` (blob 34677335219f4f325464a56ddedcfad3aba1c02c) and feature branch (blob fca9edc9041458080bff5522e0efdaa250fe64b4); `includes/class-rest-api.php` on main (blob 7213116f310ada87a0410d68290b69d85ece31a4); `.github/workflows/php-lint.yml` on the feature branch (blob 435d863448e00954806aa19771c7c8b3b5c1d680).
+- SOURCE FINDING: the current storefront form sends a hidden `return_url`; the storefront handler sanitizes/validates it and passes it as both success and cancel URL. The commerce service applies a second validation and has a canonical-home fallback. The REST checkout endpoint separately accepts `success_url` and `cancel_url`, defaulting absent values to `home_url('/')`.
+- DISCREPANCY: the warning message describes “Referer-derived” URLs, while the inspected storefront handler uses a posted hidden field. The exact live runtime input and deployed plugin version are not available from repository source alone.
+- RESULT: source review completed; runtime root cause INCONCLUSIVE. No test command or CI workflow was run in this session. No WordPress staging/browser test was performed, and no payment was attempted. Existing CI records elsewhere in this file are historical evidence, not a fresh run for this investigation.
