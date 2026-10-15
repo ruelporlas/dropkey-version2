@@ -250,6 +250,8 @@ final class Commerce_Service {
 	public function capture_paypal($public_id,$paypal_order_id) {
 		global $wpdb; $order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE public_id=%s AND gateway=%s',$public_id,'paypal'));
 		if (!$order) return new \WP_Error('dk2_order_not_found',__('The checkout order was not found.','dropkey-v2'),array('status'=>404));
+		$billing_type=$wpdb->get_var($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',(int)$order->billing_option_id));
+		if (in_array($billing_type,array('monthly','yearly'),true)) return new \WP_Error('dk2_paypal_subscription_capture_not_supported',__('Recurring PayPal subscriptions are fulfilled only after a verified subscription payment webhook.','dropkey-v2'),array('status'=>409));
 		$gateway=Payment_Gateway::make('paypal'); if (is_wp_error($gateway)) return $gateway;
 		$result=$gateway->capture_order($order,$paypal_order_id); if (is_wp_error($result)) return $result;
 		$event=array('gateway_order_id'=>$paypal_order_id,'gateway_payment_id'=>$result['provider_capture_id'],'type'=>'payment_succeeded');
