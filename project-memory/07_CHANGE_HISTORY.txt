@@ -218,3 +218,8 @@ User-provided staging Order #19 screen shows the PayPal order and payment marked
 - What changed: expanded tests/customer-checkout-contract.php to cover invalid email and missing customer user ID in addition to guest rejection and signed-in email mismatch. Commits: ef6642290615d0de13a0f9b3a46b2da356f0dcba (first test expansion, failed parse) and ebd3f4245296125c250616d63b1cbb5067410fa5 (namespace escaping correction).
 - Verification: fresh Actions run 38700730891 passed PHP 8.0 and 8.3 including the lint and contract-test step. PHP 7.4 was still queued at last inspection. The preceding run 38700642721 exposed the test parse error, which was corrected; don't claim a complete green matrix until 7.4 is finished.
 - PR #1 remains draft/unmerged and no deployment was performed.
+
+
+2026-10-15 — Fresh account-checkout CI matrix passed
+- Run 38700730891 completed SUCCESS for PHP 7.4, 8.0, and 8.3 on feature commit ebd3f4245296125c250616d63b1cbb5067410fa5. Webhook/client contracts and four customer-checkout contract cases passed on all three matrix jobs.
+- Remaining gap: this does not establish WordPress runtime or staging checkout correctness. Next work is PR diff review and staging account/checkout/ownership tests. No merge or deployment.
