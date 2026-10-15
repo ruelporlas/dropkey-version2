@@ -31,7 +31,7 @@ final class Admin {
 	private function notice() {
 		if (empty($_GET['dk2_notice'])) return;
 		$key=sanitize_key(wp_unslash($_GET['dk2_notice']));
-		$messages=array('saved'=>__('Changes saved.','dropkey-v2'),'created'=>__('Record created. Copy any license key now; it is only shown once.','dropkey-v2'),'status'=>__('Status updated.','dropkey-v2'),'link'=>__('A protected download link was created.','dropkey-v2'));
+		$messages=array('saved'=>__('Changes saved.','dropkey-v2'),'created'=>__('Record created. Copy any license key now; it is only shown once.','dropkey-v2'),'status'=>__('Status updated.','dropkey-v2'),'link'=>__('A protected download link was created.','dropkey-v2'),'logs_cleared'=>__('DropKey log history cleared.','dropkey-v2'));
 		if (isset($messages[$key])) echo '<div class="notice notice-success"><p>'.esc_html($messages[$key]).'</p>';
 		if ('link'===$key && !empty($_GET['url'])) echo '<p><input class="large-text" readonly value="'.esc_attr(esc_url_raw(wp_unslash($_GET['url']))).'" onclick="this.select()"></p><p>'.esc_html__('This link expires after 48 hours and allows up to 5 downloads. Copy it now.','dropkey-v2').'</p>';
 		if (isset($messages[$key])) echo '</div>';
