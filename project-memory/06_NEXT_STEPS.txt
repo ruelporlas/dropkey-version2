@@ -71,3 +71,11 @@ IMMEDIATE DEBUGGING NEXT STEP — 2026-10-15
 4. Share the logged operation, table, database_error, and columns fields. Redact anything sensitive before sharing.
 5. Use the actual database error to choose the fix; do not alter the database schema or guess at a duplicate slug before seeing the evidence.
 6. Run the repository's PHP syntax/contract CI and record the actual result. Then update verification evidence and status with the reproduced cause and outcome.
+
+IMMEDIATE NEXT STEPS — PAYPAL PLAN AND ADMIN FORM FIX — 2026-10-15
+1. Check GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38658721423 and record the final result; fix any syntax failure before installing.
+2. Update the TasteWP site's installed plugin from `main` (plugin version 0.3.1); GitHub source changes do not update the installed copy automatically.
+3. Create and save a monthly or yearly billing option without entering any PayPal plan ID. Confirm the admin inputs now have consistent styling.
+4. Configure PayPal Sandbox credentials and perform a test checkout. Confirm DropKey creates a PayPal product and plan, stores the plan ID, and creates a subscription approval URL.
+5. Change that billing option's price/currency/interval and verify the local plan ID is cleared; on the next PayPal checkout, a matching plan should be provisioned. Existing subscriptions are not migrated.
+6. Separately continue the pending tier database-save diagnosis by reproducing it with the logging-enabled plugin and reading the PHP error log; do not conflate that issue with the billing-option UX fix.
