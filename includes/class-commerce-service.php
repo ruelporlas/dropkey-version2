@@ -86,10 +86,11 @@ final class Commerce_Service {
 			$parts=wp_parse_url($url);
 			return is_array($parts)&&!empty($parts['host'])&&isset($parts['scheme'])&&in_array(strtolower($parts['scheme']),array('http','https'),true);
 		};
-		$validated_success=wp_validate_redirect($success_url,'');
-		$validated_cancel=wp_validate_redirect($cancel_url,'');
-		$success_rejected=''===(string)$validated_success||!$valid_url($validated_success);
-		$cancel_rejected=''===(string)$validated_cancel||!$valid_url($validated_cancel);
+		$invalid_fallback='dk2-invalid-return-url';
+		$validated_success=wp_validate_redirect($success_url,$invalid_fallback);
+		$validated_cancel=wp_validate_redirect($cancel_url,$invalid_fallback);
+		$success_rejected=$invalid_fallback===$validated_success||!$valid_url($validated_success);
+		$cancel_rejected=$invalid_fallback===$validated_cancel||!$valid_url($validated_cancel);
 		$success_url=esc_url_raw(wp_sanitize_redirect(add_query_arg('dk2_order',$public_id,$validated_success)),array('http','https'));
 		$cancel_url=esc_url_raw(wp_sanitize_redirect($validated_cancel),array('http','https'));
 		$return_url_fallback_used=false;
