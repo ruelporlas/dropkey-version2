@@ -90,10 +90,12 @@ final class Storefront {
 	public function submit_checkout() {
 		if (empty($_POST['dk2_checkout_nonce'])||!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['dk2_checkout_nonce'])),'dk2_public_checkout')) wp_die(esc_html__('Your checkout form expired. Refresh the page and try again.','dropkey-v2'),'',array('response'=>403));
 		$submitted_return=isset($_POST['return_url'])?esc_url_raw(wp_unslash($_POST['return_url'])):'';
-		$return=wp_validate_redirect($submitted_return,home_url('/'));
-		if (!$return) $return=home_url('/');
+		$return=wp_validate_redirect($submitted_return,$this->checkout_url());
+		if (!$return) $return=$this->checkout_url();
 		$billing_id=absint($_POST['billing_option_id']??0); $email=sanitize_email(wp_unslash($_POST['customer_email']??'')); $gateway=sanitize_key($_POST['gateway']??'');
-		$details=array(); foreach(array('first_name','last_name','phone','address_1','address_2','city','state','postcode') as $field) $details[$field]=sanitize_text_field(wp_unslash($_POST[$field]??'')); $details['country']=strtoupper(sanitize_text_field(wp_unslash($_POST['country']??'')));\n\t\tif (''===$details['first_name']||''===$details['last_name']||''===$details['address_1']||''===$details['city']||''===$details['state']||''===$details['postcode']||!preg_match('/^[A-Z]{2}$/',$details['country'])) { wp_safe_redirect(add_query_arg(array('billing_option_id'=>$billing_id,'dk2_checkout_error'=>__('Please complete all required billing fields.','dropkey-v2')),$return)); exit; }\n\t\t$result=(new Commerce_Service())->start_checkout($billing_id,$email,$gateway,$return,$return,$details);
+		$details=array(); foreach(array('first_name','last_name','phone','address_1','address_2','city','state','postcode') as $field) $details[$field]=sanitize_text_field(wp_unslash($_POST[$field]??'')); $details['country']=strtoupper(sanitize_text_field(wp_unslash($_POST['country']??'')));
+		if (''===$details['first_name']||''===$details['last_name']||''===$details['address_1']||''===$details['city']||''===$details['state']||''===$details['postcode']||!preg_match('/^[A-Z]{2}$/',$details['country'])) { wp_safe_redirect(add_query_arg(array('billing_option_id'=>$billing_id,'dk2_checkout_error'=>__('Please complete all required billing fields.','dropkey-v2')),$return)); exit; }
+		$result=(new Commerce_Service())->start_checkout($billing_id,$email,$gateway,$return,$return,$details);
 		if (is_wp_error($result)) {
 			$url=add_query_arg('dk2_checkout_error',$result->get_error_message(),$return);
 			wp_safe_redirect($url); exit;
