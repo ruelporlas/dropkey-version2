@@ -14,7 +14,7 @@ Update the plugin installed on the user's WordPress test site with the latest so
 
 TEST ORDER AFTER INSTALLING THE UPDATED SOURCE
 1. Back up the WordPress database and current plugin folder; prefer staging.
-2. Replace the installed plugin files with the latest repository source (plugin version 0.3.0). Keep a rollback copy.
+2. Replace the installed plugin files with the latest repository source (plugin version 0.3.1). Keep a rollback copy.
 3. Activate/reload WordPress and confirm no fatal error. Confirm the DropKey admin menu, dashboard counts/shortcuts, payment settings, orders, and subscriptions screens render.
 4. Confirm schema version 6 and all 12 prefixed tables exist: products, tiers, billing_options, releases, licenses, activations, download_tokens, orders, subscriptions, payment_events, email_queue, payments.
 5. Check the admin layout at desktop and mobile widths; inspect product/tier/billing/release/license/order/subscription tables and all form validation/notice states.
