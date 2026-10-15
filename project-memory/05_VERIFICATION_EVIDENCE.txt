@@ -265,3 +265,10 @@ CI run 38704141899 passed on PHP 7.4, 8.0 and 8.3: https://github.com/ruelporlas
 - SOURCE FINDING: the current storefront form sends a hidden `return_url`; the storefront handler sanitizes/validates it and passes it as both success and cancel URL. The commerce service applies a second validation and has a canonical-home fallback. The REST checkout endpoint separately accepts `success_url` and `cancel_url`, defaulting absent values to `home_url('/')`.
 - DISCREPANCY: the warning message describes “Referer-derived” URLs, while the inspected storefront handler uses a posted hidden field. The exact live runtime input and deployed plugin version are not available from repository source alone.
 - RESULT: source review completed; runtime root cause INCONCLUSIVE. No test command or CI workflow was run in this session. No WordPress staging/browser test was performed, and no payment was attempted. Existing CI records elsewhere in this file are historical evidence, not a fresh run for this investigation.
+
+
+2026-10-15 — Checkout return URL hardening verification
+- CHANGED on feature branch: `includes/class-commerce-service.php`; `tests/customer-checkout-contract.php`.
+- Added network-free assertions for valid same-site success/cancel URLs, success order reference, rejection of external host, safe canonical fallback, and malformed input fallback.
+- GitHub Actions run `38722562015` (https://github.com/ruelporlas/dropkey-version2/actions/runs/38722562015), head `a3ed4e920648f53b973675b118ba55d564655a59`: PASSED all matrix jobs PHP 7.4, PHP 8.0, PHP 8.3. The workflow lints PHP files and runs `php tests/payment-webhook-contract.php`, which includes `tests/customer-checkout-contract.php`.
+- No WordPress integration/staging/browser test, provider-hosted checkout, deployment, merge, or new payment was performed. Live runtime root cause remains UNCONFIRMED.
