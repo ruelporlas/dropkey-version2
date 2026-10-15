@@ -8,10 +8,10 @@ defined('ABSPATH') || exit;
 final class Commerce_Service {
 	private function rate_limit_checkout($email) {
 		$keys=array(); $ip=isset($_SERVER['REMOTE_ADDR'])?sanitize_text_field($_SERVER['REMOTE_ADDR']):'';
-		if (''!==$ip) $keys[]='dk2_checkout_ip_'.hash('sha256',$ip);
-		$keys[]='dk2_checkout_email_'.hash('sha256',strtolower($email));
+		if (''!==$ip) $keys[]='dk2_checkout_ip_v2_'.hash('sha256',$ip);
+		$keys[]='dk2_checkout_email_v2_'.hash('sha256',strtolower($email));
 		foreach($keys as $key) if ((int)get_transient($key)>=12) return new \WP_Error('dk2_checkout_rate_limited',__('Too many checkout attempts. Please wait before trying again.','dropkey-v2'),array('status'=>429));
-		foreach($keys as $key) set_transient($key,(int)get_transient($key)+1,HOUR_IN_SECONDS);
+		foreach($keys as $key) set_transient($key,(int)get_transient($key)+1,15*MINUTE_IN_SECONDS);
 		return true;
 	}
 	public function start_checkout($billing_id,$email,$gateway,$success_url,$cancel_url,$customer_details=array()) {
@@ -19,7 +19,6 @@ final class Commerce_Service {
 		$billing_id=absint($billing_id); $email=sanitize_email($email); $gateway=sanitize_key($gateway);
 		Logger::info('checkout','checkout_started','Checkout attempt started',array('billing_option_id'=>$billing_id,'gateway'=>$gateway));
 		if (!is_email($email)) return new \WP_Error('dk2_checkout_email_invalid',__('Enter a valid email address.','dropkey-v2'),array('status'=>400));
-		$rate_limit=$this->rate_limit_checkout($email); if (is_wp_error($rate_limit)) return $rate_limit;
 		$b=Database::table('billing_options'); $t=Database::table('tiers'); $p=Database::table('products');
 		$billing=$wpdb->get_row($wpdb->prepare("SELECT b.*,t.id AS tier_id,t.name AS tier_name,t.status AS tier_status,p.id AS product_id,p.name AS product_name,p.status AS product_status FROM {$b} b INNER JOIN {$t} t ON t.id=b.tier_id INNER JOIN {$p} p ON p.id=t.product_id WHERE b.id=%d",$billing_id));
 		if (!$billing||'published'!==$billing->status||'published'!==$billing->tier_status||'published'!==$billing->product_status) return new \WP_Error('dk2_checkout_option_unavailable',__('This product option is not available.','dropkey-v2'),array('status'=>404));
@@ -33,6 +32,7 @@ final class Commerce_Service {
 			$settings=get_option('dk2_payment_settings',array()); $config=isset($settings[$gateway])?$settings[$gateway]:array();
 			if (empty($config['enabled'])||('stripe'===$gateway&&(empty($config['secret'])||empty($config['webhook_secret'])))||('paypal'===$gateway&&(empty($config['client_id'])||empty($config['secret'])||empty($config['webhook_id'])))) return new \WP_Error('dk2_checkout_gateway_disabled',__('That payment method is not currently available.','dropkey-v2'),array('status'=>503));
 		}
+		$rate_limit=$this->rate_limit_checkout($email); if (is_wp_error($rate_limit)) return $rate_limit;
 		$public_id=wp_generate_uuid4(); $now=current_time('mysql',true); $customer_user_id=null;
 		if (is_user_logged_in()) { $current_user=wp_get_current_user(); if ($current_user&&strtolower($current_user->user_email)===strtolower($email)) $customer_user_id=(int)$current_user->ID; }
 		$ok=$wpdb->insert(Database::table('orders'),array(
