@@ -152,3 +152,10 @@ Newest entries first.
 
 2026-10-15 — CI passed after diagnostic guard
 The follow-up commit d0420a3d096603fd36a0855c558c95a13da6b186 passed PHP syntax and contract checks in GitHub Actions run 38664933061. Static checks are green; the WordPress Sandbox webhook test remains outstanding.
+
+
+2026-10-15 — Added second-layer PayPal header and checkout URL diagnostics
+- What changed: expanded the webhook verification attempt log to compare boolean header presence across WordPress REST headers, PHP `HTTP_*` server variables, and `REDIRECT_HTTP_*` variables, plus the normalized names of PayPal headers exposed to WordPress. Added checkout URL validation flags for final return/cancel URLs and fallback usage without logging the URLs themselves. Bumped plugin version to 0.3.9.
+- Why: the live test showed all five signature headers absent in the REST request and a separate return-URL fallback warning; additional safe telemetry is needed to identify the failing layer before changing behavior.
+- Commits: `4dd6c6cf54fe0859e72616af06c0dadd53122922`, `e6c3c3e5d857385e4cb66e12761321fdb77290c5`, `5a92775c8b06614de5c926f728a8f3c87c724508`.
+- Verification at entry: CI pending; no live WordPress/Sandbox retest yet. This is instrumentation, not a confirmed fix.
