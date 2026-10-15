@@ -232,7 +232,7 @@ final class PayPal_Gateway extends Payment_Gateway {
 		$custom=isset($r['custom_id'])?$r['custom_id']:(isset($r['purchase_units'][0]['custom_id'])?$r['purchase_units'][0]['custom_id']:'');
 		$sub=isset($r['billing_agreement_id'])?$r['billing_agreement_id']:(isset($r['id'])&&false!==strpos($event_type,'SUBSCRIPTION')?$r['id']:'');
 		$period=isset($r['billing_info']['next_billing_time'])?strtotime($r['billing_info']['next_billing_time']):0;
-		$payment_id=isset($r['supplementary_data']['related_ids']['capture_id'])?$r['supplementary_data']['related_ids']['capture_id']:(isset($r['disputed_transactions'][0]['seller_transaction_id'])?$r['disputed_transactions'][0]['seller_transaction_id']:(in_array($event_type,array('PAYMENT.CAPTURE.COMPLETED','PAYMENT.CAPTURE.REFUNDED'),true)&&isset($r['id'])?$r['id']:''));
+		$payment_id=isset($r['supplementary_data']['related_ids']['capture_id'])?$r['supplementary_data']['related_ids']['capture_id']:(isset($r['disputed_transactions'][0]['seller_transaction_id'])?$r['disputed_transactions'][0]['seller_transaction_id']:(in_array($event_type,array('PAYMENT.CAPTURE.COMPLETED','PAYMENT.CAPTURE.REFUNDED','BILLING.SUBSCRIPTION.PAYMENT.COMPLETED'),true)&&isset($r['id'])?$r['id']:''));
 		return array('event_id'=>sanitize_text_field($event['id']),'event_type'=>sanitize_text_field($event_type),'type'=>$type,
 			'order_public_id'=>sanitize_text_field($custom),'gateway_order_id'=>sanitize_text_field($related),
 			'gateway_session_id'=>'','gateway_payment_id'=>sanitize_text_field($payment_id),'subscription_id'=>sanitize_text_field($sub),'period_end'=>$period?gmdate('Y-m-d H:i:s',$period):'',
