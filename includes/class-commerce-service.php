@@ -136,6 +136,7 @@ final class Commerce_Service {
 		} else $user_id=(int)$user->ID;
 		$orders=Database::table('orders');
 		$wpdb->update($orders,array('customer_user_id'=>(int)$user_id,'updated_at'=>current_time('mysql',true)),array('id'=>(int)$order->id));
+		if (!empty($order->license_id)) $wpdb->update(Database::table('licenses'),array('customer_user_id'=>(int)$user_id,'updated_at'=>current_time('mysql',true)),array('id'=>(int)$order->license_id));
 		$order->customer_user_id=(int)$user_id;
 		if ($created) {
 			if (function_exists('wp_new_user_notification')) wp_new_user_notification((int)$user_id,null,'user');
