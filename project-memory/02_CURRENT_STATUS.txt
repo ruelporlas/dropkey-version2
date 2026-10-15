@@ -105,3 +105,8 @@ BILLING OPTION UX AND PAYPAL PLAN PROVISIONING — 2026-10-15
 - Admin CSS now styles untyped text inputs and provides a consistent accent for checkbox/radio inputs. Plugin version bumped to 0.3.1 for asset cache invalidation.
 - PHP syntax CI passed for code commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d` on PHP 7.4, 8.0, and 8.3: https://github.com/ruelporlas/dropkey-version2/actions/runs/38658721423. PayPal Sandbox/Live API behavior and WordPress visual/runtime testing remain unverified.
 - Important: the earlier reported generic database save failure has not been confirmed as caused by a missing PayPal plan ID. If billing-option saving still fails after installing this version, inspect the existing database-failure log; do not assume this change identifies that separate failure's root cause.
+
+STOREFRONT PAYPAL METHOD VISIBILITY — 2026-10-15
+- Confirmed source bug: storefront only displayed PayPal for monthly/yearly billing options if a PayPal plan ID was already saved. That contradicted the new automatic plan creation at first PayPal checkout.
+- Fixed in `includes/class-storefront.php`, commit `4ae978906cc9bd2d7f81340a899bea2241806a4d`: when PayPal is enabled and its required settings are populated, the PayPal method is now listed even if a recurring option has no stored plan ID.
+- PHP syntax CI was queued when recorded. TasteWP runtime verification remains pending; GitHub changes do not update the installed plugin automatically.
