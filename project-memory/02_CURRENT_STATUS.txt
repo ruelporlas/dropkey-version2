@@ -133,3 +133,9 @@ PAYPAL RETURN/CANCEL URL SYNTAX FIX — 2026-10-15
 - PHP syntax CI is queued at https://github.com/ruelporlas/dropkey-version2/actions/runs/38661205529. Runtime PayPal Sandbox verification has not been performed. Do not treat this as confirmed fixed until the updated plugin is installed and checkout is retested.
 - Follow-up correction: the initial CI run for the URL change failed because the new WP_Error namespace token had an extra backslash. Corrected in commit `4bbc12465abb95396669987a61e06412ff966731`; latest CI run `38661320119` is queued. Do not treat URL fix as verified until this run completes and the plugin is retested on the site.
 - Verification update (2026-10-15): follow-up PHP syntax CI passed for commit `4bbc12465abb95396669987a61e06412ff966731` on PHP 7.4, 8.0, and 8.3: https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119. WordPress/PayPal Sandbox runtime verification is still pending.
+
+CHECKOUT URL VALIDATION FOLLOW-UP — 2026-10-15
+- User installed/tested the prior change and received the plugin-generated message: “The checkout return URL is invalid. Please contact the site administrator.” This proves the newly added `wp_http_validate_url()` gate rejects the generated return/cancel URL in the live WordPress context; it does not yet reveal the exact URL shape.
+- Replaced the `wp_http_validate_url()` checks with local URL parsing/validation for absolute HTTP(S) URLs with a host and no forbidden control/URL syntax characters. Commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc`.
+- Bumped plugin version to 0.3.5 in commit `abe1b8dc94ea2669df03f44035f1efb190120557`.
+- CI runs `38662089337` and `38662107088` were in progress/queued when recorded. Must confirm CI and retest live Sandbox checkout; original PayPal invalid-parameter root cause is not yet runtime-confirmed.
