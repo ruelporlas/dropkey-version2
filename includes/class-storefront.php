@@ -62,7 +62,7 @@ final class Storefront {
 			else {
 				echo '<label>'.esc_html__('Payment method','dropkey-v2').'<select required name="gateway"><option value="">'.esc_html__('Choose a payment method','dropkey-v2').'</option>';
 				if ($settings['stripe']) echo '<option value="stripe">Stripe Checkout</option>';
-				if ($settings['paypal']&&(!in_array($row->billing_type,array('monthly','yearly'),true)||!empty($row->paypal_plan_id))) echo '<option value="paypal">PayPal</option>';
+				if ($settings['paypal']) echo '<option value="paypal">PayPal</option>';
 				echo '</select></label>';
 				if (!$settings['stripe']&&!$settings['paypal']) echo '<p class="dk2-store-unavailable">'.esc_html__('Checkout is temporarily unavailable.','dropkey-v2').'</p>';
 			}
