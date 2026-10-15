@@ -117,22 +117,22 @@ final class Commerce_Service {
 		$orders=Database::table('orders');
 		$wpdb->query('START TRANSACTION');
 		$locked=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d FOR UPDATE",$order->id));
-		if (!$locked) { $wpdb->query('ROLLBACK'); return new \WP_Error('dk2_order_not_found',__('The checkout order was not found.','dropkey-v2'),array('status'=>404)); }
+		if (!$locked) { $wpdb->query('ROLLBACK'); Logger::error('commerce','fulfillment_order_missing','The order disappeared before fulfillment',array('order_id'=>(int)$order->id)); return new \WP_Error('dk2_order_not_found',__('The checkout order was not found.','dropkey-v2'),array('status'=>404)); }
 		if ('paid'===$locked->status && $locked->license_id) { $wpdb->query('COMMIT'); return $locked; }
 		$wpdb->update($orders,array('status'=>'processing','updated_at'=>current_time('mysql',true)),array('id'=>$locked->id));
 		$license=(new License_Service())->issue($locked->product_id,$locked->tier_id,$locked->customer_email,$locked->billing_option_id,'',(int)$locked->customer_user_id);
-		if (is_wp_error($license)) { $wpdb->query('ROLLBACK'); return $license; }
+		if (is_wp_error($license)) { $wpdb->query('ROLLBACK'); Logger::error('commerce','license_issuance_failed','Payment fulfillment could not issue a license',array('order_id'=>(int)$locked->id,'error_code'=>$license->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250))); return $license; }
 		$now=current_time('mysql',true);
 		$updated=$wpdb->update($orders,array('status'=>'paid','license_id'=>$license['id'],'updated_at'=>$now),array('id'=>$locked->id));
-		if (false===$updated) { $wpdb->query('ROLLBACK'); return new \WP_Error('dk2_order_fulfillment_failed',__('The order could not be marked as paid.','dropkey-v2'),array('status'=>500)); }
+		if (false===$updated) { $db_error=substr((string)$wpdb->last_error,0,250); $wpdb->query('ROLLBACK'); Logger::error('commerce','order_paid_update_failed','License was issued but the order paid-state update failed',array('order_id'=>(int)$locked->id,'db_error'=>$db_error)); return new \WP_Error('dk2_order_fulfillment_failed',__('The order could not be marked as paid.','dropkey-v2'),array('status'=>500)); }
 		$locked->license_id=$license['id']; $locked->status='paid';
 		if (!empty($event['gateway_order_id'])) $wpdb->update($orders,array('gateway_order_id'=>$event['gateway_order_id']),array('id'=>$locked->id));
 		if (!empty($event['gateway_session_id'])) $wpdb->update($orders,array('gateway_session_id'=>$event['gateway_session_id']),array('id'=>$locked->id));
 		if (!empty($event['gateway_payment_id'])) $wpdb->update($orders,array('gateway_payment_id'=>$event['gateway_payment_id']),array('id'=>$locked->id));
-		if (!empty($event['gateway_payment_id'])) { $payment_record=$this->record_payment_reference($locked,$event); if (is_wp_error($payment_record)) { $wpdb->query('ROLLBACK'); return $payment_record; } }
+		if (!empty($event['gateway_payment_id'])) { $payment_record=$this->record_payment_reference($locked,$event); if (is_wp_error($payment_record)) { $wpdb->query('ROLLBACK'); Logger::error('commerce','payment_record_failed','Payment was verified but its local payment record could not be saved',array('order_id'=>(int)$locked->id,'error_code'=>$payment_record->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250))); return $payment_record; } }
 		if (!empty($event['subscription_id'])) $this->save_subscription($locked,$license['id'],$event);
 		$queued=$this->queue_fulfillment_email($locked,$license['id'],$license['license_key']);
-		if (is_wp_error($queued)) { $wpdb->query('ROLLBACK'); return $queued; }
+		if (is_wp_error($queued)) { $wpdb->query('ROLLBACK'); Logger::error('commerce','fulfillment_email_queue_failed','Order fulfillment rolled back because delivery email could not be queued',array('order_id'=>(int)$locked->id,'error_code'=>$queued->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250))); return $queued; }
 		$wpdb->query('COMMIT');
 		Logger::info('commerce','order_fulfilled','Order payment confirmed and license issued',array('order_id'=>(int)$locked->id,'license_id'=>(int)$license['id'],'gateway'=>$locked->gateway));
 		do_action('dk2_order_paid',(int)$locked->id,(int)$license['id'],$locked->gateway);
@@ -231,6 +231,7 @@ final class Commerce_Service {
 		}
 		if (is_wp_error($result)) {
 			$wpdb->update($events,array('status'=>'failed','error_message'=>$result->get_error_code()),array('id'=>$event_row_id));
+			Logger::error('webhook','event_processing_failed','A verified payment event could not be applied to its order',array('gateway'=>$gateway,'event_type'=>isset($event['event_type'])?$event['event_type']:'unknown','event_id'=>$event_id,'error_code'=>$result->get_error_code(),'order_matched'=>(bool)$order,'order_id'=>$order?(int)$order->id:0));
 			return $result;
 		}
 		if ('payment_succeeded'===$event['type']&&$order&&!empty($event['gateway_payment_id'])) {
