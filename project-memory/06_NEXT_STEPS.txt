@@ -208,3 +208,11 @@ IMMEDIATE NEXT ACTION — RECONCILE TEST PURCHASE AND FEATURE PR — 2026-10-15
 4. If checkout or email issue needs a code fix, implement it on the appropriate feature branch, add/update regression coverage, and run CI. Keep secrets, raw webhook payloads, signatures, tokens, and customer personal data out of logs and project memory.
 5. Before merge/deploy, staging-test: initial one-time checkout; initial recurring checkout and first-invoice deduplication; unique renewal creates one renewal order; duplicate webhook does not duplicate payment/order/license; paid-through and license expiry extend correctly; failed payment/grace and recovery; cancel-at-period-end; confirmation/return URL; email queue and actual SMTP delivery.
 6. Update the project-memory files on `main` after meaningful work, but record feature-branch work as pending until it is merged. Do not merge the draft PR or deploy the feature branch without staging verification.
+
+
+CURRENT NEXT ACTION — 2026-10-15
+1. Trace main's return URL flow in includes/class-storefront.php and includes/class-commerce-service.php. A hidden posted return_url exists, but the service still contains the fallback warning text; establish the exact path before changing code.
+2. Reconcile the reported staging purchase: order/payment state, subscription if recurring, license and expiry, email queue/retry state, and actual SMTP delivery. Do not ask for another blind payment attempt.
+3. Resolve the README PayPal provisioning inconsistency in a scoped documentation task after confirming current gateway behavior.
+4. Re-fetch PR #1 and latest workflow status before merge. It remains draft/unmerged; end-to-end staging checks are required.
+5. Continue maintaining memory on main. Mandatory end-of-session updates: 02_CURRENT_STATUS.txt, 05_VERIFICATION_EVIDENCE.txt, 06_NEXT_STEPS.txt, 07_CHANGE_HISTORY.txt. Update source map, architecture, requirements, and preferences when their protocol conditions apply.
