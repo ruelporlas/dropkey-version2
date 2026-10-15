@@ -146,3 +146,12 @@ CHECKOUT URL FALLBACK FOLLOW-UP — 2026-10-15
 - Changed includes/class-commerce-service.php to validate only parsed HTTP(S) scheme and host after sanitization. If the referer-derived URLs fail, it now falls back to the sanitized canonical home URL (success URL includes dk2_order). It logs a safe diagnostic when fallback is used, and logs only canonical URL scheme, host-presence, and length if even the fallback is invalid. It does not log the full URL or query values.
 - Source commit: f931a0a20080b193c46de43c9c1915da5f7791bb. Plugin version bumped to 0.3.6 in commit 1cf3130d3544e82d345f77cbdb8b85c847de3313.
 - Status: source committed; PHP syntax CI passed for both the source and version commits (runs 38662620511 and 38662636601). WordPress/PayPal Sandbox runtime verification remains pending.
+
+STRUCTURED DEBUG LOGGING — 2026-10-15
+- User requested plugin-level logging to monitor actions, activity, and errors for troubleshooting.
+- Implemented source on `main`: new `includes/class-logger.php`, `dk2_logs` database table, schema version 8, and DropKey > Debug Logs admin screen. Plugin version is 0.3.7.
+- The log screen supports level filtering, paginated recent entries, expandable structured context, enable/disable, and clear-all. Entries include UTC timestamp, level, source/event, request ID, and user ID. Structured logs are retained for up to 30 days when logging activity triggers cleanup.
+- Instrumented administrator actions, checkout and URL fallback/validation, PayPal/shared payment-provider errors, REST errors and webhook activity, email failures/successes, and repository write failures.
+- Sensitive fields are redacted from structured context; raw payment payloads, credentials, license keys, full checkout URLs, and customer email addresses are not intentionally recorded. Existing PHP error_log diagnostics remain available separately.
+- CI passed for latest source commit `a2e5dd36eb058366c53cb5b656feadb273065a4d`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38663539112. This verifies the configured automated checks, not WordPress runtime behavior.
+- NOT YET VERIFIED: database migration on the user's WordPress site, log insertion/display, log toggle, retention cleanup, and clear action. Install/update to 0.3.7 and test these before treating the feature as runtime-verified.
