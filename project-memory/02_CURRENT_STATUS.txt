@@ -250,3 +250,11 @@ STAGING TEST PURCHASE UPDATE — 2026-10-15
 
 STAGING PURCHASE UPDATE — 2026-10-15
 User-provided staging Order #19 screen shows a paid USD 9.99 PayPal order/payment, active subscription #4 through 2026-11-14, and linked license #4. This narrows the open issue to email queue/delivery, license usability/expiry, and checkout return behavior. Do not repeat the payment. This is screenshot evidence only, not direct database or mail-server verification.
+
+
+PR REVIEW / HARDENING UPDATE — 2026-10-15
+- PR #1 remains draft and unmerged. Its feature branch was 19 commits behind main and the initial diff showed all nine project-memory files deleted; the nine files have now been restored on the feature branch from main.
+- Hardened recurring renewal validation on the feature branch: require a positive numeric amount, valid/matching currency, and an amount matching the original captured subscription price. Validation now occurs before idempotent renewal recovery so duplicate-reference paths cannot bypass it.
+- Added contract coverage for matching amount, underpayment, zero amount, and currency mismatch. GitHub Actions run 38693385142 passed PHP lint and the network-free contract suite on PHP 7.4, 8.0, and 8.3.
+- REVIEW BLOCKER: guest checkout can currently auto-link an order/license to an existing WordPress account based only on the submitted email in ensure_customer_account(), even when checkout was not authenticated as that user. Fix account-ownership verification before merge. README also contradicts current automatic PayPal plan provisioning and account-linking behavior.
+- No staging deployment, merge, or new payment attempt was performed.
