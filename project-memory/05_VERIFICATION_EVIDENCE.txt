@@ -151,3 +151,8 @@ PAYPAL RETURN/CANCEL URL SANITIZATION — 2026-10-15
 - Implemented: plugin version 0.3.8.
 - Automated syntax/contract CI for these latest commits: NOT YET CHECKED in this work session.
 - WordPress runtime / actual Sandbox webhook test: NOT RUN. Do not interpret code commit as a verified fix.
+
+2026-10-15 — CI regression and correction
+- Failed: run 38664772939 for `b10df25e173b6e1f8bdb30d1815113674871d255`; PHP syntax passed, but `tests/payment-webhook-contract.php` fatally errored because `DropKey\V2\Logger` was not loaded by the test harness.
+- Failed: run 38664791490 for version bump commit `0f8185e48f44e88853d18fa2d1b1e8769cac10c3`, inherited the same failure.
+- Corrective source commit `d0420a3d096603fd36a0855c558c95a13da6b186` now guards the diagnostic call when Logger is not loaded. CI run 38664933061 was queued when recorded; result pending.
