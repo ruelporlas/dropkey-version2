@@ -301,3 +301,7 @@ PRELIMINARY SECURITY REVIEW — 2026-10-15
 - Public license activation/deactivation/validation/update routes have no explicit rate limiting visible in route/controller code. Recommend throttling and abuse monitoring with SDK regression tests.
 - Download tokens are hashed, expire after 48 hours, and use a conditional counter update; concurrency behavior still needs runtime/load testing.
 - These are static-review potential risks, not confirmed exploit reproductions. No security patches, staging actions, merges, or deployments were made in this review.
+
+
+SECURITY REVIEW — 2026-10-15
+Feature branch now requires account ownership for order confirmation and PayPal capture, hides sensitive fields from confirmation, and rejects webhook event IDs whose verified payload hash changes. CI run 38704141899 passed PHP 7.4, 8.0 and 8.3. Runtime/staging and external security testing remain outstanding; PR #1 remains draft and unmerged.
