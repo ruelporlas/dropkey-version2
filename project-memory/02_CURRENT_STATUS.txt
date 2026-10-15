@@ -139,3 +139,4 @@ CHECKOUT URL VALIDATION FOLLOW-UP — 2026-10-15
 - Replaced the `wp_http_validate_url()` checks with local URL parsing/validation for absolute HTTP(S) URLs with a host and no forbidden control/URL syntax characters. Commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc`.
 - Bumped plugin version to 0.3.5 in commit `abe1b8dc94ea2669df03f44035f1efb190120557`.
 - CI runs `38662089337` and `38662107088` were in progress/queued when recorded. Must confirm CI and retest live Sandbox checkout; original PayPal invalid-parameter root cause is not yet runtime-confirmed.
+- CI follow-up completed successfully for URL validation commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc` and version 0.3.5 commit `abe1b8dc94ea2669df03f44035f1efb190120557`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38662089337 and https://github.com/ruelporlas/dropkey-version2/actions/runs/38662107088. Live Sandbox retest still pending.
