@@ -160,3 +160,11 @@ PAYPAL RETURN/CANCEL URL SANITIZATION — 2026-10-15
 2026-10-15 — Corrective CI result
 - PASSED: GitHub Actions run 38664933061 for source commit `d0420a3d096603fd36a0855c558c95a13da6b186`; PHP lint and `tests/payment-webhook-contract.php` completed successfully. Link: https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061.
 - This verifies static syntax and the network-free contract suite only. WordPress runtime and actual PayPal Sandbox webhook verification remain NOT RUN.
+
+
+2026-10-15 — Added second-layer PayPal and checkout URL diagnostics
+- Implemented: compares presence only for the five PayPal signature headers across WordPress REST headers, PHP `HTTP_*` server variables, and `REDIRECT_HTTP_*` variables; logs the safe normalized names of PayPal headers exposed to WordPress.
+- Implemented: logs only final return/cancel URL validation booleans and whether the fallback was used. No raw URLs or query strings are recorded.
+- Plugin version: 0.3.9.
+- Commits: `4dd6c6cf54fe0859e72616af06c0dadd53122922`, `e6c3c3e5d857385e4cb66e12761321fdb77290c5`, `5a92775c8b06614de5c926f728a8f3c87c724508`.
+- CI status: not yet checked when this entry was written. WordPress runtime and PayPal Sandbox verification remain NOT RUN.
