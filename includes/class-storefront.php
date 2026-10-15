@@ -12,6 +12,8 @@ final class Storefront {
 		add_shortcode('dropkey_checkout',array($this,'render_checkout'));
 		add_action('admin_post_dk2_public_checkout',array($this,'submit_checkout'));
 		add_action('admin_post_nopriv_dk2_public_checkout',array($this,'submit_checkout'));
+		add_action('admin_post_dk2_customer_register',array($this,'register_customer'));
+		add_action('admin_post_nopriv_dk2_customer_register',array($this,'register_customer'));
 		add_action('wp_enqueue_scripts',array($this,'enqueue_assets'));
 	}
 	public function enqueue_assets() {
@@ -92,6 +94,51 @@ final class Storefront {
 		return ob_get_clean();
 	}
 
+	private function render_account_gate($product_id,$billing_option_id,$option,$price) {
+		$return_url=add_query_arg(array('product_id'=>absint($product_id),'billing_option_id'=>absint($billing_option_id)),$this->checkout_url());
+		$login_url=wp_login_url($return_url);
+		ob_start();
+		echo '<div class="dk2-checkout"><main class="dk2-checkout-main"><p class="dk2-store-eyebrow">'.esc_html__('Customer account required','dropkey-v2').'</p><h2>'.esc_html__('Create your account to continue','dropkey-v2').'</h2><p class="dk2-checkout-subtitle">'.esc_html__('Every DropKey purchase is linked to a customer account. Create an account below, or sign in if you already have one.','dropkey-v2').'</p>';
+		if (!empty($_GET['dk2_checkout_error'])) echo '<div class="dk2-store-notice dk2-store-error" role="alert">'.esc_html(sanitize_text_field(wp_unslash($_GET['dk2_checkout_error']))).'</div>';
+		echo '<form class="dk2-checkout-form" method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="dk2_customer_register"><input type="hidden" name="billing_option_id" value="'.absint($billing_option_id).'"><input type="hidden" name="return_url" value="'.esc_attr(esc_url_raw($return_url)).'">';
+		wp_nonce_field('dk2_customer_register','dk2_register_nonce');
+		echo '<h3>'.esc_html__('Create a customer account','dropkey-v2').'</h3><div class="dk2-field-grid"><label>'.esc_html__('First name','dropkey-v2').'<input required name="first_name" autocomplete="given-name" maxlength="100"></label><label>'.esc_html__('Last name','dropkey-v2').'<input required name="last_name" autocomplete="family-name" maxlength="100"></label><label class="dk2-field-full">'.esc_html__('Email address','dropkey-v2').'<input required type="email" name="customer_email" autocomplete="email" maxlength="191"></label><label class="dk2-field-full">'.esc_html__('Password (at least 12 characters)','dropkey-v2').'<input required type="password" name="customer_password" autocomplete="new-password" minlength="12"></label><label class="dk2-field-full">'.esc_html__('Confirm password','dropkey-v2').'<input required type="password" name="customer_password_confirm" autocomplete="new-password" minlength="12"></label></div><button class="dk2-store-order-button" type="submit">'.esc_html__('Create account and continue','dropkey-v2').'</button></form><p class="dk2-checkout-subtitle">'.esc_html__('Already have an account?','dropkey-v2').' <a href="'.esc_url($login_url).'">'.esc_html__('Sign in to continue','dropkey-v2').'</a></p></main><aside class="dk2-order-summary"><h3>'.esc_html__('Order summary','dropkey-v2').'</h3><p>'.esc_html($option->product_name).'</p><strong>'.esc_html($option->tier_name).'</strong><p>'.esc_html($price).' · '.esc_html($option->billing_type).'</p><hr><strong>'.esc_html__('Total due today:','dropkey-v2').' '.esc_html($price).'</strong></aside></div>';
+		return ob_get_clean();
+	}
+	public function register_customer() {
+		if (is_user_logged_in()) {
+			$return=isset($_POST['return_url'])?wp_validate_redirect(esc_url_raw(wp_unslash($_POST['return_url'])),$this->checkout_url()):$this->checkout_url();
+			wp_safe_redirect($return); exit;
+		}
+		if (empty($_POST['dk2_register_nonce'])||!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['dk2_register_nonce'])),'dk2_customer_register')) wp_die(esc_html__('Your account form expired. Refresh the page and try again.','dropkey-v2'),'',array('response'=>403));
+		$return_input=isset($_POST['return_url'])?esc_url_raw(wp_unslash($_POST['return_url'])):'';
+		$return=wp_validate_redirect($return_input,$this->checkout_url());
+		$billing_id=absint($_POST['billing_option_id']??0);
+		$email=sanitize_email(wp_unslash($_POST['customer_email']??''));
+		$first=sanitize_text_field(wp_unslash($_POST['first_name']??''));
+		$last=sanitize_text_field(wp_unslash($_POST['last_name']??''));
+		$password=(string)wp_unslash($_POST['customer_password']??'');
+		$confirm=(string)wp_unslash($_POST['customer_password_confirm']??'');
+		$error='';
+		if (!is_email($email)) $error=__('Enter a valid email address.','dropkey-v2');
+		elseif (email_exists($email)) $error=__('An account may already use that email address. Sign in or reset your password to continue.','dropkey-v2');
+		elseif (''===$first||''===$last) $error=__('Enter your first and last name.','dropkey-v2');
+		elseif (strlen($password)<12) $error=__('Choose a password with at least 12 characters.','dropkey-v2');
+		elseif ($password!==$confirm) $error=__('The passwords do not match.','dropkey-v2');
+		if (''!==$error) { wp_safe_redirect(add_query_arg(array('billing_option_id'=>$billing_id,'dk2_checkout_error'=>$error),$return)); exit; }
+		$base=sanitize_user(current(explode('@',$email)),true); if (''===$base) $base='customer';
+		$username=$base; $suffix=1; while (username_exists($username)) { $username=$base.$suffix; $suffix++; }
+		$user_id=wp_insert_user(array('user_login'=>$username,'user_pass'=>$password,'user_email'=>$email,'first_name'=>$first,'last_name'=>$last,'display_name'=>trim($first.' '.$last),'role'=>'subscriber'));
+		if (is_wp_error($user_id)) {
+			wp_safe_redirect(add_query_arg(array('billing_option_id'=>$billing_id,'dk2_checkout_error'=>__('We could not create your account. Please review your details or sign in if you already have an account.','dropkey-v2')),$return)); exit;
+		}
+		$user=get_user_by('id',$user_id);
+		wp_set_current_user((int)$user_id);
+		wp_set_auth_cookie((int)$user_id,true,is_ssl());
+		do_action('wp_login',$user?$user->user_login:$username,$user);
+		Logger::info('customer','account_created_before_checkout','Customer account created before checkout',array('user_id'=>(int)$user_id));
+		wp_safe_redirect($return); exit;
+	}
 	public function render_checkout() {
 		if (!empty($_GET['dk2_order'])) return $this->current_order_notice();
 		$id=absint($_GET['billing_option_id']??0); $product_id=absint($_GET['product_id']??0); global $wpdb;
@@ -103,12 +150,14 @@ final class Storefront {
 		$selected=null; foreach($options as $option) if ((int)$option->id===$id) $selected=$option; if (!$selected) $selected=$options[0]; $o=$selected;
 		$s=$this->payment_settings(); $price='free'===$o->billing_type?__('Free','dropkey-v2'):strtoupper($o->currency).' '.number_format((float)$o->price,2);
 		$user=is_user_logged_in()?wp_get_current_user():null;
-		ob_start(); echo '<div class="dk2-checkout"><main class="dk2-checkout-main"><p class="dk2-store-eyebrow">'.esc_html__('Secure checkout','dropkey-v2').'</p><h2>'.esc_html__('Checkout','dropkey-v2').'</h2>';
+		if (!$user) return $this->render_account_gate($product_id,(int)$o->id,$o,$price);
+		$checkout_return=add_query_arg(array('product_id'=>$product_id,'billing_option_id'=>(int)$o->id),$this->checkout_url());
+		ob_start(); echo '<div class="dk2-checkout"><main class="dk2-checkout-main"><p class="dk2-store-eyebrow">'.esc_html__('Secure checkout','dropkey-v2').'</p><h2>'.esc_html__('Checkout','dropkey-v2').'</h2><p class="dk2-checkout-subtitle">'.sprintf(esc_html__('Signed in as %s','dropkey-v2'),esc_html($user->user_email)).'</p>';
 		if (!empty($_GET['dk2_checkout_error'])) echo '<div class="dk2-store-notice dk2-store-error">'.esc_html(sanitize_text_field(wp_unslash($_GET['dk2_checkout_error']))).'</div>';
-		echo '<form class="dk2-checkout-form" method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="dk2_public_checkout"><input type="hidden" name="return_url" value="'.esc_attr(esc_url_raw($this->checkout_url())).'">'; wp_nonce_field('dk2_public_checkout','dk2_checkout_nonce');
+		echo '<form class="dk2-checkout-form" method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="dk2_public_checkout"><input type="hidden" name="return_url" value="'.esc_attr(esc_url_raw($checkout_return)).'">'; wp_nonce_field('dk2_public_checkout','dk2_checkout_nonce');
 		echo '<h3>'.esc_html__('Choose your plan','dropkey-v2').'</h3><label>'.esc_html__('Plan and billing cycle','dropkey-v2').'<select required name="billing_option_id" id="dk2-billing-option">';
 		foreach($options as $option) { $cadence='monthly'===$option->billing_type?__('Monthly','dropkey-v2'):('yearly'===$option->billing_type?__('Yearly','dropkey-v2'):('free'===$option->billing_type?__('Free','dropkey-v2'):__('One-time','dropkey-v2'))); $option_price='free'===$option->billing_type?__('Free','dropkey-v2'):strtoupper($option->currency).' '.number_format((float)$option->price,2); echo '<option value="'.(int)$option->id.'" data-tier="'.esc_attr($option->tier_name).'" data-price="'.esc_attr($option_price).'" data-cadence="'.esc_attr($cadence).'" data-type="'.esc_attr($option->billing_type).'" '.selected((int)$option->id,(int)$o->id,false).'>'.esc_html($option->tier_name.' — '.$cadence.' — '.$option_price).'</option>'; }
-		echo '</select></label><h3>'.esc_html__('Contact information','dropkey-v2').'</h3><div class="dk2-field-grid"><label>'.esc_html__('First name','dropkey-v2').'<input required name="first_name" autocomplete="given-name" maxlength="100"></label><label>'.esc_html__('Last name','dropkey-v2').'<input required name="last_name" autocomplete="family-name" maxlength="100"></label><label class="dk2-field-full">'.esc_html__('Email address','dropkey-v2').'<input required type="email" name="customer_email" autocomplete="email" maxlength="191" value="'.esc_attr($user?$user->user_email:'').'"></label><label class="dk2-field-full">'.esc_html__('Phone (optional)','dropkey-v2').'<input name="phone" autocomplete="tel" maxlength="40"></label></div>';
+		echo '</select></label><h3>'.esc_html__('Contact information','dropkey-v2').'</h3><div class="dk2-field-grid"><label>'.esc_html__('First name','dropkey-v2').'<input required name="first_name" autocomplete="given-name" maxlength="100"></label><label>'.esc_html__('Last name','dropkey-v2').'<input required name="last_name" autocomplete="family-name" maxlength="100"></label><label class="dk2-field-full">'.esc_html__('Account email','dropkey-v2').'<input required readonly type="email" name="customer_email" autocomplete="email" maxlength="191" value="'.esc_attr($user->user_email).'"></label><label class="dk2-field-full">'.esc_html__('Phone (optional)','dropkey-v2').'<input name="phone" autocomplete="tel" maxlength="40"></label></div>';
 		echo '<h3>'.esc_html__('Billing address','dropkey-v2').'</h3><div class="dk2-field-grid"><label class="dk2-field-full">'.esc_html__('Street address','dropkey-v2').'<input required name="address_1" autocomplete="address-line1" maxlength="191"></label><label class="dk2-field-full">'.esc_html__('Apartment, suite, etc. (optional)','dropkey-v2').'<input name="address_2" autocomplete="address-line2" maxlength="191"></label><label>'.esc_html__('City','dropkey-v2').'<input required name="city" autocomplete="address-level2" maxlength="100"></label><label>'.esc_html__('State / Province','dropkey-v2').'<input required name="state" autocomplete="address-level1" maxlength="100"></label><label>'.esc_html__('Postal code','dropkey-v2').'<input required name="postcode" autocomplete="postal-code" maxlength="30"></label><label>'.esc_html__('Country code (2 letters)','dropkey-v2').'<input required name="country" autocomplete="country" minlength="2" maxlength="2" pattern="[A-Za-z]{2}" placeholder="US"></label></div><h3>'.esc_html__('Payment method','dropkey-v2').'</h3><div class="dk2-payment-options">';
 		echo '<div id="dk2-paid-payment-options" class="dk2-payment-options"'.(('free'===$o->billing_type)?' style="display:none"':'').'>';
 		if ($s['paypal']) echo '<label class="dk2-payment-option"><input '.(('free'!==$o->billing_type)?'required':'').' type="radio" name="gateway" value="paypal" '.(('free'===$o->billing_type)?'disabled':'').'><span><strong>PayPal</strong><small>'.esc_html__('Pay securely on PayPal, then return here for confirmation.','dropkey-v2').'</small></span></label>';
