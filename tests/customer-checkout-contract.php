@@ -25,7 +25,6 @@ namespace {
 	}
 }
 namespace DropKey\V2 {
-	if (!class_exists(__NAMESPACE__.'\\Logger')) { final class Logger { public static function info($category,$event,$message,$context=array()) {} } }
 	final class Logger {
 		public static function info($category,$event,$message,$context=array()) {}
 	}
