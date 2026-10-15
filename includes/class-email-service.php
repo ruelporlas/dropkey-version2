@@ -52,9 +52,11 @@ final class Email_Service {
 			if (is_string($body)) $sent=wp_mail($row->recipient,$row->subject,$body,array('Content-Type: text/plain; charset=UTF-8'));
 			$attempts=(int)$row->attempts+1;
 			if ($sent) {
+				Logger::info('email','sent','Transactional email sent',array('email_id'=>(int)$row->id,'order_id'=>(int)$row->order_id,'attempt'=>$attempts));
 				$wpdb->update($table,array('status'=>'sent','attempts'=>$attempts,'last_error'=>'','sent_at'=>$now,'next_attempt_at'=>null),array('id'=>$row->id));
 				do_action('dk2_email_sent',(int)$row->id,(int)$row->order_id);
 			} else {
+				Logger::error('email','send_failed','Transactional email delivery failed',array('email_id'=>(int)$row->id,'order_id'=>(int)$row->order_id,'attempt'=>$attempts));
 				$delay=min(86400,300*(2**max(0,$attempts-1)));
 				$status=$attempts>=5?'failed':'pending';
 				$wpdb->update($table,array('status'=>$status,'attempts'=>$attempts,'last_error'=>'wp_mail failed or queued content could not be decrypted','next_attempt_at'=>$attempts>=5?null:gmdate('Y-m-d H:i:s',time()+$delay)),array('id'=>$row->id));
