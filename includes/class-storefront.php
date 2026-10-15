@@ -42,6 +42,8 @@ final class Storefront {
 		$public_id=sanitize_text_field(wp_unslash($_GET['dk2_order']));
 		$order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE public_id=%s',$public_id));
 		if (!$order) return '<div class="dk2-store-notice dk2-store-error">'.esc_html__('We could not find that checkout. Please contact support if you were charged.','dropkey-v2').'</div>';
+		$authorization=(new Commerce_Service())->authorize_customer_order($order);
+		if (is_wp_error($authorization)) return '<div class="dk2-store-notice">'.esc_html__('Sign in to the customer account used for this purchase to view order status.','dropkey-v2').' <a href="'.esc_url(wp_login_url(esc_url_raw(add_query_arg(array())))).'">'.esc_html__('Sign in','dropkey-v2').'</a></div>';
 		if ('paypal'===$order->gateway&&'pending'===$order->status) {
 			$billing_type=$wpdb->get_var($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',(int)$order->billing_option_id));
 			if (in_array($billing_type,array('monthly','yearly'),true)) {
@@ -61,15 +63,14 @@ final class Storefront {
 		$amount=($billing&&'free'===$billing->billing_type)?__('Free','dropkey-v2'):strtoupper((string)$order->currency).' '.number_format((float)$order->amount,2);
 		$html='<section class="dk2-order-confirmation"><div class="dk2-store-notice '.('paid'===$order->status?'dk2-store-success':('failed'===$order->status?'dk2-store-error':'')).'"><strong>'.esc_html('paid'===$order->status?__('Order confirmed','dropkey-v2'):$status).'</strong><span>'.esc_html('paid'===$order->status?__('Your payment is confirmed. Order details are below.','dropkey-v2'):('pending'===$order->status?__('We have recorded your order, but payment is not yet confirmed. Your license will be issued after payment verification.','dropkey-v2'):__('This order has not been completed. If you believe you were charged, please contact support.','dropkey-v2'))).'</span></div>';
 		$html.='<h2>'.esc_html__('Order details','dropkey-v2').'</h2><dl class="dk2-order-details">';
-		$rows=array(__('Order number','dropkey-v2')=>(string)$order->public_id,__('Status','dropkey-v2')=>$status,__('Plugin','dropkey-v2')=>$product?:__('Plugin','dropkey-v2'),__('Plan','dropkey-v2')=>$tier?:'—',__('Billing','dropkey-v2')=>$cadence,__('Total','dropkey-v2')=>$amount,__('Payment method','dropkey-v2')=>ucfirst((string)$order->gateway),__('Customer','dropkey-v2')=>trim($order->customer_first_name.' '.$order->customer_last_name),__('Email','dropkey-v2')=>$order->customer_email,__('Phone','dropkey-v2')=>$order->customer_phone,__('Billing address','dropkey-v2')=>trim($order->billing_address_1.' '.$order->billing_address_2.', '.$order->billing_city.', '.$order->billing_state.' '.$order->billing_postcode.', '.$order->billing_country,', '),__('Order date','dropkey-v2')=>get_date_from_gmt($order->created_at,get_option('date_format').' '.get_option('time_format')));
+		$rows=array(__('Order number','dropkey-v2')=>(string)$order->public_id,__('Status','dropkey-v2')=>$status,__('Plugin','dropkey-v2')=>$product?:__('Plugin','dropkey-v2'),__('Plan','dropkey-v2')=>$tier?:'—',__('Billing','dropkey-v2')=>$cadence,__('Total','dropkey-v2')=>$amount,__('Payment method','dropkey-v2')=>ucfirst((string)$order->gateway),__('Order date','dropkey-v2')=>get_date_from_gmt($order->created_at,get_option('date_format').' '.get_option('time_format')));
 		foreach($rows as $label=>$value) $html.='<div><dt>'.esc_html($label).'</dt><dd>'.esc_html($value!==''?$value:'—').'</dd></div>';
 		$html.='</dl>';
 		if ('paid'===$order->status&&$order->license_id) {
-			$license=$wpdb->get_row($wpdb->prepare('SELECT key_encrypted,status,expires_at FROM '.Database::table('licenses').' WHERE id=%d',(int)$order->license_id));
+			$license=$wpdb->get_row($wpdb->prepare('SELECT status,expires_at FROM '.Database::table('licenses').' WHERE id=%d',(int)$order->license_id));
 			if ($license) {
-				$license_key=(new License_Service())->reveal_key($license);
 				$expiry=$license->expires_at?mysql2date(get_option('date_format'),$license->expires_at):__('Never (lifetime license)','dropkey-v2');
-				$html.='<h3>'.esc_html__('License information','dropkey-v2').'</h3><dl class="dk2-order-details"><div><dt>'.esc_html__('License key','dropkey-v2').'</dt><dd><code>'.esc_html($license_key?:__('Check your email for your license key.','dropkey-v2')).'</code></dd></div><div><dt>'.esc_html__('License status','dropkey-v2').'</dt><dd>'.esc_html(ucfirst($license->status)).'</dd></div><div><dt>'.esc_html__('Expires','dropkey-v2').'</dt><dd>'.esc_html($expiry).'</dd></div></dl>';
+				$html.='<h3>'.esc_html__('License information','dropkey-v2').'</h3><dl class="dk2-order-details"><div><dt>'.esc_html__('License status','dropkey-v2').'</dt><dd>'.esc_html(ucfirst($license->status)).'</dd></div><div><dt>'.esc_html__('Expires','dropkey-v2').'</dt><dd>'.esc_html($expiry).'</dd></div></dl>';
 			}
 			$html.='<p>'.esc_html__('A receipt and account setup instructions will be sent to the email address above.','dropkey-v2').'</p>';
 		}
