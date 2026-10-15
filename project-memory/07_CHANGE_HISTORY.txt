@@ -118,3 +118,9 @@ Newest entries first.
 - Commit: https://github.com/ruelporlas/dropkey-version2/commit/4bbc12465abb95396669987a61e06412ff966731.
 - Follow-up CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119 was queued at last check; do not claim it passed until confirmed.
 - Follow-up verification completed: PHP syntax/contract CI passed on PHP 7.4, 8.0, and 8.3 for commit `4bbc12465abb95396669987a61e06412ff966731`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119. Runtime PayPal Sandbox testing remains not run.
+
+2026-10-15 — Relaxed over-restrictive checkout URL validation
+- User reported that the first URL sanitization/validation patch caused DropKey to return its own “checkout return URL is invalid” message before PayPal checkout.
+- Identified `wp_http_validate_url()` as the newly added gate that was rejecting the URLs in this WordPress environment. Replaced it with URL parsing and syntax validation for absolute HTTP(S) URLs with a host; retained sanitization.
+- Commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc`; plugin version 0.3.5 commit `abe1b8dc94ea2669df03f44035f1efb190120557`.
+- CI was in progress/queued at the time of this entry; live PayPal Sandbox retest remains pending.
