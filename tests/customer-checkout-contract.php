@@ -12,7 +12,7 @@ namespace {
 	function is_user_logged_in() { return !empty($GLOBALS['dk2_test_logged_in']); }
 	function wp_get_current_user() { return isset($GLOBALS['dk2_test_user'])?$GLOBALS['dk2_test_user']:(object)array('ID'=>0,'user_email'=>''); }
 	function absint($value) { return abs((int)$value); }
-	function is_wp_error($value) { return $value instanceof \\WP_Error; }
+	function is_wp_error($value) { return $value instanceof \WP_Error; }
 	class WP_Error {
 		private $code;
 		private $message;
@@ -23,7 +23,7 @@ namespace {
 		public function get_error_data() { return $this->data; }
 	}
 }
-namespace DropKey\\V2 {
+namespace DropKey\V2 {
 	final class Logger {
 		public static function info($category,$event,$message,$context=array()) {}
 	}
@@ -34,7 +34,7 @@ namespace {
 		if (!$condition) { fwrite(STDERR,"FAIL: ".$message."\\n"); exit(1); }
 		echo "PASS: ".$message."\\n";
 	}
-	$service=new \\DropKey\\V2\\Commerce_Service();
+	$service=new \DropKey\V2\Commerce_Service();
 	$GLOBALS['dk2_test_logged_in']=false;
 	$GLOBALS['dk2_test_user']=(object)array('ID'=>0,'user_email'=>'');
 	$guest=$service->start_checkout(1,'buyer@example.test','stripe','https://example.test/success','https://example.test/cancel');
