@@ -180,3 +180,9 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - `includes/class-storefront.php` now includes the storefront permalink in a hidden `return_url` field on each checkout form. `submit_checkout()` reads that field, sanitizes it, and validates it with `wp_validate_redirect()` before using it as both success and cancel URL. This avoids relying on `wp_get_referer()` for a normal storefront form submission.
 - Commit: `3e4d1213da58b172ca9c3a9611ae5dcc2f1818da`.
 - Verification: CI and live WordPress/PayPal Sandbox retest pending at commit time.
+2026-10-15 — Recorded feature PR and staging test-purchase follow-up
+- Updated the main-branch project record to distinguish current main from the open feature branch. PR #1, `feature/complete-customer-checkout` → `main`, remains open/draft and unmerged.
+- PR scope currently includes customer profiles, operations dashboard, connected admin records, renewal order history, and renewal idempotency handling. These remain pending main until merge.
+- Recorded latest known successful feature-branch CI evidence at SHA `c128dcd1efb408388ec75b0eccd1828dc5f671b3`, run https://github.com/ruelporlas/dropkey-version2/actions/runs/38690007102: PHP lint on 7.4, 8.0, and 8.3 passed. This is not staging verification.
+- Recorded user-reported staging test purchase and warning `return_url_fallback_used` at 2026-10-15 01:21:51. The fallback used the canonical home URL after referer URL parsing failed. Actual payment/order reconciliation, return behavior, and email delivery remain unverified.
+- Next focus: inspect the actual live checkout return URL code path, reconcile the test order/payment/license/subscription/email queue, then continue end-to-end staging checks before merge.
