@@ -2,7 +2,7 @@
 /**
  * Plugin Name: DropKey Version 2
  * Description: Digital product administration, licensing, private ZIP downloads, and versioned licensing API.
- * Version: 0.3.8
+ * Version: 0.3.9
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Text Domain: dropkey-v2
@@ -10,7 +10,7 @@
  * @package DropKeyV2
  */
 defined('ABSPATH') || exit;
-define('DK2_VERSION','0.3.8');
+define('DK2_VERSION','0.3.9');
 define('DK2_FILE',__FILE__);
 define('DK2_PATH',plugin_dir_path(__FILE__));
 define('DK2_URL',plugin_dir_url(__FILE__));
