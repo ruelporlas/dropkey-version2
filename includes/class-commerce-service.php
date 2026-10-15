@@ -198,11 +198,12 @@ final class Commerce_Service {
 	private function normalize_subscription_status($status,$event_type='') {
 		if ('subscription_cancelled'===$event_type) return 'cancelled';
 		$status=strtolower(sanitize_key((string)$status));
-		if (in_array($status,array('active','approved'),true)) return 'active';
+		if (in_array($status,array('active','approved','trialing'),true)) return 'active';
 		if (in_array($status,array('past_due','suspended','unpaid'),true)) return 'past_due';
 		if (in_array($status,array('cancelled','canceled','expired'),true)) return 'cancelled';
 		if ('cancel_pending'===$status) return 'cancel_pending';
-		return 'active';
+		if (''===$status && 'payment_succeeded'===$event_type) return 'active';
+		return 'inactive';
 	}
 	private function save_subscription($order,$license_id,$event) {
 		global $wpdb;
@@ -228,7 +229,7 @@ final class Commerce_Service {
 			'license_id'=>(int)$license_id,
 			'gateway'=>$order->gateway,
 			'gateway_subscription_id'=>$sub_id,
-			'status'=>$this->normalize_subscription_status(isset($event['status'])?$event['status']:'',''),
+			'status'=>$this->normalize_subscription_status(isset($event['status'])?$event['status']:'',isset($event['type'])?$event['type']:'payment_succeeded'),
 			'grace_until'=>null,
 			'updated_at'=>$now
 		);
