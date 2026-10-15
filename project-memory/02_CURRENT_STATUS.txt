@@ -193,3 +193,7 @@ PAYPAL WEBHOOK DEBUGGING UPDATE — 2026-10-15
 - Added contract-test fixture coverage for underscore-form header names and missing required headers.
 - GitHub Actions run 38666594617 was queued at last inspection; results pending. Live WordPress/PayPal Sandbox webhook behavior remains unverified.
 - The checkout return URL fallback warning remains a separate known issue; this task did not fix it.
+
+CI FOLLOW-UP — 2026-10-15
+- The first run for the new header tests (38666594617) failed after PHP lint passed: the contract test's missing-header case called Logger although the standalone test harness had not loaded that class. The warning call is now guarded in commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542.
+- Follow-up GitHub Actions run 38666693429 was in progress at last inspection. Do not treat the PayPal fix as CI-verified until that run completes successfully.
