@@ -14,6 +14,7 @@ final class Admin {
 		add_submenu_page('dk2-products',__('ZIP Releases','dropkey-v2'),__('ZIP Releases','dropkey-v2'),'manage_options','dk2-releases',array($this,'releases'));
 		add_submenu_page('dk2-products',__('Licenses','dropkey-v2'),__('Licenses','dropkey-v2'),'manage_options','dk2-licenses',array($this,'licenses'));
 		add_submenu_page('dk2-products',__('Orders','dropkey-v2'),__('Orders','dropkey-v2'),'manage_options','dk2-orders',array($this,'orders'));
+		add_submenu_page('dk2-products',__('Subscriptions','dropkey-v2'),__('Subscriptions','dropkey-v2'),'manage_options','dk2-subscriptions',array($this,'subscriptions'));
 		add_submenu_page('dk2-products',__('Payment Settings','dropkey-v2'),__('Payment Settings','dropkey-v2'),'manage_options','dk2-settings',array($this,'settings'));
 		add_submenu_page('dk2-products',__('Debug Logs','dropkey-v2'),__('Debug Logs','dropkey-v2'),'manage_options','dk2-logs',array($this,'logs'));
 	}
@@ -202,6 +203,44 @@ final class Admin {
 		$this->footer();
 	}
 
+
+	public function subscriptions() {
+		if (!current_user_can('manage_options')) return;
+		global $wpdb;
+		$subs=Database::table('subscriptions'); $orders=Database::table('orders'); $products=Database::table('products'); $tiers=Database::table('tiers'); $licenses=Database::table('licenses');
+		$this->header(__('Subscriptions','dropkey-v2'),__('Manage recurring customer subscriptions. Payment status is synchronized from verified provider webhooks; cancellation requests are sent to the payment provider and take effect at the end of the paid period.','dropkey-v2'));
+		$counts=$wpdb->get_results("SELECT status,COUNT(*) AS total FROM {$subs} GROUP BY status");
+		echo '<div class="dk2-dashboard-stats">';
+		foreach(array('active'=>__('Active','dropkey-v2'),'past_due'=>__('Past due','dropkey-v2'),'cancel_pending'=>__('Cancel scheduled','dropkey-v2'),'cancelled'=>__('Cancelled','dropkey-v2')) as $key=>$label) {
+			$total=0; foreach($counts as $count) if ($key===$count->status) $total=(int)$count->total;
+			echo '<div class="dk2-stat-card"><span>'.esc_html($label).'</span><strong>'.number_format_i18n($total).'</strong></div>';
+		}
+		echo '</div>';
+		$rows=$wpdb->get_results("SELECT s.*,o.public_id,o.customer_email,o.amount,o.currency,o.status AS order_status,o.created_at AS order_created,p.name AS product_name,t.name AS tier_name,l.status AS license_status,l.expires_at FROM {$subs} s LEFT JOIN {$orders} o ON o.id=s.order_id LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id LEFT JOIN {$licenses} l ON l.id=s.license_id ORDER BY s.id DESC LIMIT 500");
+		echo '<p>'.esc_html__('Latest 500 subscription records. Change payment status in the provider dashboard and let its verified webhook update DropKey.','dropkey-v2').'</p>';
+		echo '<table class="widefat striped"><thead><tr><th>'.esc_html__('ID / customer','dropkey-v2').'</th><th>'.esc_html__('Product / tier','dropkey-v2').'</th><th>'.esc_html__('Billing','dropkey-v2').'</th><th>'.esc_html__('Provider subscription','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Paid through','dropkey-v2').'</th><th>'.esc_html__('License','dropkey-v2').'</th><th>'.esc_html__('Actions','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($rows as $sub) {
+			$cancel_scheduled=!empty($sub->cancel_at_period_end)||'cancel_pending'===$sub->status;
+			echo '<tr><td><strong>#'.(int)$sub->id.'</strong><br>'.esc_html($sub->customer_email?$sub->customer_email:__('Customer unavailable','dropkey-v2')).'<br><small>'.esc_html($sub->order_created?$sub->order_created:'').'</small></td>';
+			echo '<td>'.esc_html(($sub->product_name?$sub->product_name:'—').' / '.($sub->tier_name?$sub->tier_name:'—')).'<br><small>'.esc_html__('Order:','dropkey-v2').' '.esc_html(substr((string)$sub->public_id,0,8)).'…</small></td>';
+			echo '<td>'.esc_html(strtoupper((string)$sub->currency).' '.number_format((float)$sub->amount,2)).'</td>';
+			echo '<td>'.esc_html($sub->gateway).'<br><code>'.esc_html($sub->gateway_subscription_id).'</code></td>';
+			echo '<td><span class="dk2-status dk2-status-'.esc_attr(sanitize_html_class($sub->status)).'">'.esc_html($sub->status).'</span><br><small>'.esc_html__('Order:','dropkey-v2').' '.esc_html($sub->order_status?$sub->order_status:'—').'</small></td>';
+			echo '<td>'.esc_html($sub->current_period_end?$sub->current_period_end:__('Not reported','dropkey-v2'));
+			if (!empty($sub->grace_until)) echo '<br><small>'.esc_html__('Grace until','dropkey-v2').': '.esc_html($sub->grace_until).'</small>';
+			echo '<br><small>'.($cancel_scheduled?esc_html__('Cancellation scheduled','dropkey-v2'):esc_html__('No scheduled cancellation','dropkey-v2')).'</small></td>';
+			echo '<td>'.esc_html($sub->license_status?$sub->license_status:'—').'<br><small>'.esc_html($sub->expires_at?$sub->expires_at:__('No expiry date','dropkey-v2')).'</small></td><td>';
+			if (in_array($sub->status,array('active','past_due'),true)&&!empty($sub->current_period_end)&&empty($sub->cancel_at_period_end)) {
+				$this->form_start('subscription_cancel'); echo '<input type="hidden" name="subscription_id" value="'.(int)$sub->id.'"><button class="button button-small" onclick="return confirm(\''.esc_js(__('Schedule cancellation at the end of the current paid period?','dropkey-v2')).'\')">'.esc_html__('Cancel at period end','dropkey-v2').'</button></form>';
+			} elseif ($cancel_scheduled) echo esc_html__('Cancellation scheduled','dropkey-v2');
+			else echo '—';
+			echo '</td></tr>';
+		}
+		if (!$rows) echo '<tr><td colspan="8">'.esc_html__('No subscriptions yet. Recurring subscriptions will appear here after a verified checkout webhook.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		$this->footer();
+	}
+
 	public function logs() {
 		if (!current_user_can('manage_options')) return;
 		global $wpdb;
@@ -257,7 +296,7 @@ final class Admin {
 			Logger::info('admin','logs_cleared','Administrator cleared the DropKey log history');
 			wp_safe_redirect(add_query_arg(array('page'=>'dk2-logs','dk2_notice'=>'logs_cleared'),admin_url('admin.php'))); exit;
 		} elseif ('dk2_subscription_cancel'===$action) {
-			$page='dk2-orders'; $result=(new Commerce_Service())->request_cancel_subscription(absint($_POST['subscription_id']??0)); if (!is_wp_error($result)) { Logger::info('admin','admin_action_completed','Admin action completed',array('action'=>$action,'record_id'=>$id)); $this->redirect($page,'saved'); }
+			$page='dk2-subscriptions'; $subscription_id=absint($_POST['subscription_id']??0); $result=(new Commerce_Service())->request_cancel_subscription($subscription_id); if (!is_wp_error($result)) { Logger::info('admin','admin_action_completed','Admin action completed',array('action'=>$action,'record_id'=>$subscription_id)); $this->redirect($page,'saved'); }
 		} elseif ('dk2_gateway_settings'===$action) {
 			$page='dk2-settings'; $all=get_option('dk2_payment_settings',array()); $all=is_array($all)?$all:array();
 			$stripe=isset($all['stripe'])?$all['stripe']:array(); $paypal=isset($all['paypal'])?$all['paypal']:array();
