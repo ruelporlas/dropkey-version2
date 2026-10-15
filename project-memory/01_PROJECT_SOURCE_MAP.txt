@@ -73,3 +73,8 @@ SOURCE MAP UPDATE — PAYPAL BILLING PROVISIONING — 2026-10-15
 - `assets/css/admin.css` styles text-like inputs even when their type attribute is omitted and applies the theme accent to checkboxes/radios.
 - `dropkey-v2.php` plugin/style version is 0.3.1 to refresh cached admin CSS.
 - These source changes are committed on `main`; PHP syntax CI passed for code commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d`. WordPress/PayPal Sandbox runtime verification has not been performed.
+
+SOURCE MAP UPDATE — STOREFRONT PAYPAL VISIBILITY — 2026-10-15
+- `includes/class-storefront.php` no longer hides PayPal for monthly/yearly billing options when `paypal_plan_id` is empty. PayPal is listed whenever the configured PayPal gateway passes the storefront's enabled/credentials/webhook checks; the PayPal gateway creates and stores a recurring plan at checkout when needed.
+- Source commit: `4ae978906cc9bd2d7f81340a899bea2241806a4d`.
+- PHP syntax CI for this commit was queued when this note was written. TasteWP storefront runtime behavior has not yet been verified.
