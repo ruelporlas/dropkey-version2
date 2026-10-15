@@ -30,10 +30,11 @@ abstract class Payment_Gateway {
 		$defaults=array('timeout'=>20,'redirection'=>0,'sslverify'=>true,'headers'=>array('Accept'=>'application/json'),'body'=>'');
 		$args=wp_parse_args($args,$defaults);
 		$response=wp_remote_request($url,array_merge($args,array('method'=>$method)));
-		if (is_wp_error($response)) return new \WP_Error('dk2_gateway_transport',__('The payment provider could not be reached. Please try again.','dropkey-v2'),array('status'=>502));
+		if (is_wp_error($response)) { Logger::error($this->name(),'api_transport_failed','Payment provider transport failed',array('error_code'=>sanitize_key($response->get_error_code()),'method'=>sanitize_key($method),'provider'=>$this->name())); return new \WP_Error('dk2_gateway_transport',__('The payment provider could not be reached. Please try again.','dropkey-v2'),array('status'=>502)); }
 		$status=(int)wp_remote_retrieve_response_code($response);
 		$body=json_decode(wp_remote_retrieve_body($response),true);
 		if ($status<200||$status>=300||!is_array($body)) {
+			Logger::error($this->name(),'api_request_rejected','Payment provider rejected an API request',array('http_status'=>$status,'provider_error'=>isset($body['error']['type'])?sanitize_key($body['error']['type']):'provider_error','method'=>sanitize_key($method),'endpoint'=>sanitize_key(basename(parse_url($url,PHP_URL_PATH)))));
 			do_action('dk2_gateway_request_failed',$this->name(),$status,isset($body['error']['type'])?$body['error']['type']:'provider_error');
 			return new \WP_Error('dk2_gateway_request_failed',__('The payment provider rejected the request. Check gateway settings and provider logs.','dropkey-v2'),array('status'=>502,'provider_status'=>$status));
 		}
