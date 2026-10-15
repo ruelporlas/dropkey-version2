@@ -91,10 +91,13 @@ final class Storefront {
 	}
 	public function render_checkout() {
 		if (!empty($_GET['dk2_order'])) return $this->current_order_notice();
-		$id=absint($_GET['billing_option_id']??0); global $wpdb;
+		$id=absint($_GET['billing_option_id']??0); $product_id=absint($_GET['product_id']??0); global $wpdb;
 		$b=Database::table('billing_options'); $t=Database::table('tiers'); $p=Database::table('products');
-		$o=$wpdb->get_row($wpdb->prepare("SELECT b.*,t.name AS tier_name,t.description AS tier_description,p.name AS product_name,p.description AS product_description FROM {$b} b INNER JOIN {$t} t ON t.id=b.tier_id INNER JOIN {$p} p ON p.id=t.product_id WHERE b.id=%d AND b.status='published' AND t.status='published' AND p.status='published'",$id));
-		if (!$o) return '<div class="dk2-store-notice dk2-store-error">'.esc_html__('Choose a product from the store before checking out.','dropkey-v2').'</div>';
+		if (!$product_id && $id) $product_id=(int)$wpdb->get_var($wpdb->prepare("SELECT t.product_id FROM {$b} b INNER JOIN {$t} t ON t.id=b.tier_id WHERE b.id=%d",$id));
+		if (!$product_id) return '<div class="dk2-store-notice dk2-store-error">'.esc_html__('Choose a plugin from the store before checking out.','dropkey-v2').'</div>';
+		$options=$wpdb->get_results($wpdb->prepare("SELECT b.*,t.id AS tier_id,t.name AS tier_name,t.description AS tier_description,p.name AS product_name,p.description AS product_description FROM {$b} b INNER JOIN {$t} t ON t.id=b.tier_id INNER JOIN {$p} p ON p.id=t.product_id WHERE p.id=%d AND b.status='published' AND t.status='published' AND p.status='published' ORDER BY t.sort_order,t.id,b.id",$product_id));
+		if (!$options) return '<div class="dk2-store-notice dk2-store-error">'.esc_html__('This plugin has no available plans.','dropkey-v2').'</div>';
+		$selected=null; foreach($options as $option) if ((int)$option->id===$id) $selected=$option; if (!$selected) $selected=$options[0]; $o=$selected;
 		$s=$this->payment_settings(); $price='free'===$o->billing_type?__('Free','dropkey-v2'):strtoupper($o->currency).' '.number_format((float)$o->price,2);
 		$user=is_user_logged_in()?wp_get_current_user():null;
 		ob_start(); echo '<div class="dk2-checkout"><main class="dk2-checkout-main"><p class="dk2-store-eyebrow">'.esc_html__('Secure checkout','dropkey-v2').'</p><h2>'.esc_html__('Checkout','dropkey-v2').'</h2>';
