@@ -171,3 +171,7 @@ If CI passes: update the installed WordPress test site with the latest main-bran
 If CI fails: inspect the failing job output and fix only the failing PayPal header/test issue, then re-check CI.
 Acceptance criteria: PHP syntax and contract tests pass; missing headers fail closed; underscore/hyphen header key variants are handled; sandbox verification is confirmed by a fresh runtime log.
 Separate unresolved issue: checkout_urls_validated still reports return_url_fallback_used=true; investigate the referer URL construction/WordPress request context separately.
+
+CI FOLLOW-UP — 2026-10-15
+- First regression run 38666594617 failed in the missing-header contract assertion because the test harness does not load Logger; PHP syntax checks passed. Source was guarded in commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542.
+- Immediate next action: inspect run 38666693429. If it fails, inspect job logs and correct the regression before asking the user to deploy. If it passes, deploy to the WordPress test site and verify a fresh PayPal Sandbox webhook.
