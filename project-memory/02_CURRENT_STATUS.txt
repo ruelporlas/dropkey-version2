@@ -71,7 +71,7 @@ IMPLEMENTED IN MILESTONES 2–4 (SOURCE EXISTS; WORDPRESS BEHAVIOR NOT YET VERIF
 - Orders, subscriptions, payment events, payment references, and encrypted email queue are stored separately. Webhook event IDs are unique; payment amount/currency are checked before fulfillment; email content is authenticated-encrypted at rest and retries are bounded.
 - Free checkout issues a license through the same transactional fulfillment path. Paid fulfillment follows provider-confirmed payment/capture; licenses and protected download links are emailed after queueing succeeds.
 - Subscription failures use a three-day grace period; lifecycle cron suspends access after grace/paid-through expiry. Refunds suspend licenses; disputes mark orders disputed and suspend licenses.
-- Version bumped to 0.3.0; database schema version bumped to 6.
+- Plugin version is now 0.3.1; database schema version is 7.
 
 NOT IMPLEMENTED / NOT VERIFIED
 - No WordPress activation, table-creation, upgrade, or repository integration test has been run.
