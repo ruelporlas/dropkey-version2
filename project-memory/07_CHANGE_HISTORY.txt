@@ -117,3 +117,4 @@ Newest entries first.
 - Corrected the token in `includes/class-commerce-service.php`.
 - Commit: https://github.com/ruelporlas/dropkey-version2/commit/4bbc12465abb95396669987a61e06412ff966731.
 - Follow-up CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119 was queued at last check; do not claim it passed until confirmed.
+- Follow-up verification completed: PHP syntax/contract CI passed on PHP 7.4, 8.0, and 8.3 for commit `4bbc12465abb95396669987a61e06412ff966731`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119. Runtime PayPal Sandbox testing remains not run.
