@@ -242,3 +242,8 @@ AUTHORITATIVE STATUS RECONCILIATION — 2026-10-15
 - Combined commit-status lookup for that PR head returned an empty statuses list. Previously recorded workflow run https://github.com/ruelporlas/dropkey-version2/actions/runs/38690007102 was reported successful for PHP lint on 7.4/8.0/8.3; recheck latest workflow before merge. This is not WordPress runtime verification.
 - Main storefront renders and validates a hidden return_url, but commerce-service still contains the reported fallback-warning text. The staging warning remains unresolved. The test purchase's order/payment status, license/subscription association, and email queue/delivery have not been independently inspected.
 - README inconsistency: it says automatic PayPal catalog/plan creation is not implemented, while current source/history says it is. No application or README source was changed during this memory-only reconciliation.
+
+
+STAGING TEST PURCHASE UPDATE — 2026-10-15
+- User supplied the staging admin Order #19 detail view for order reference prefix `2579324d` (test product / Basic, USD 9.99, PayPal). The admin UI shows order status `paid`, payment record #4 status `paid`, subscription #4 `active` paid through 2026-11-14 10:00:00, and linked license #4.
+- This is user-provided admin-screen evidence, not direct database inspection. It materially narrows the email investigation: do not retry payment. Purchase email queue/delivery and license usability/expiry still need inspection; the return URL fallback warning also remains unexplained and needs a separate browser-return check.
