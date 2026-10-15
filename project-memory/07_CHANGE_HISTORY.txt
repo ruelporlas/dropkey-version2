@@ -199,3 +199,8 @@ User-provided staging Order #19 screen shows the PayPal order and payment marked
 - Found recurring renewal processing accepted any non-negative amount and skipped amount validation on renewal/idempotent paths. Added positive numeric amount validation, matching ISO-style currency, exact match to the original order amount, and moved validation before duplicate-payment recovery. Added four contract cases.
 - GitHub Actions run 38693385142 passed PHP lint and all network-free contract tests on PHP 7.4, 8.0, and 8.3.
 - Remaining pre-merge blocker: account creation/linking can attach a guest purchase to an existing WordPress account based only on the submitted email; require authentication/verified ownership before linking. README also needs to match current PayPal auto-provisioning and account behavior. No staging deployment, merge, or new payment attempt.
+
+
+2026-10-15 — Corrected PayPal recurring-plan setup docs on PR branch
+- Updated the feature-branch README to explain that DropKey provisions the PayPal catalog product and recurring plan automatically on first recurring checkout, and clears the stored plan ID when billing terms change.
+- This resolves the PayPal-provisioning documentation mismatch in the PR branch only. Main remains unchanged; the customer account-linking behavior still requires a security fix and matching documentation before merge.
