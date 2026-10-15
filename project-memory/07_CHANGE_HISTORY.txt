@@ -88,3 +88,9 @@ Newest entries first.
 - Files affected: `includes/class-paypal-gateway.php`, `includes/class-billing-option-repository.php`, `includes/class-admin.php`, `assets/css/admin.css`, `dropkey-v2.php`, and the project-memory status/architecture/verification/next-step records.
 - Source commits include: https://github.com/ruelporlas/dropkey-version2/commit/0e8d7bb43d3c3fcf15278c14c918bab051f77f45, https://github.com/ruelporlas/dropkey-version2/commit/d9cfbab21c9623b2dc205c10390eaac4b9dd39a5, https://github.com/ruelporlas/dropkey-version2/commit/aae9c0a21c5c92097542caf9d1136aa2e1950078, https://github.com/ruelporlas/dropkey-version2/commit/ee002de7a16749d5e17ca255deefd808914e5325, https://github.com/ruelporlas/dropkey-version2/commit/0bb5d8f8dd4179be53d2606c88dd3a0bb7ccb9cc, https://github.com/ruelporlas/dropkey-version2/commit/a26c21b81d53b0d6c457c8d98a3e4eba6c59360d.
 - Verification status at entry: PHP syntax CI pending; WordPress and PayPal Sandbox runtime tests not run.
+
+2026-10-15 — Fix PayPal missing from recurring checkout method dropdown
+- Cause: `includes/class-storefront.php` required a pre-existing `paypal_plan_id` for monthly/yearly billing options, even though the PayPal gateway now creates the plan automatically at first checkout.
+- Change: removed the plan-ID visibility condition; PayPal is displayed when its gateway settings pass the storefront availability check.
+- Commit: https://github.com/ruelporlas/dropkey-version2/commit/4ae978906cc9bd2d7f81340a899bea2241806a4d.
+- Verification at entry: static source readback passed; PHP syntax CI queued; TasteWP and PayPal Sandbox runtime testing not yet performed.
