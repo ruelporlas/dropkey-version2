@@ -166,6 +166,12 @@ final class Commerce_Service {
 			if ($existing_license) { $existing_key=(new License_Service())->reveal_key($existing_license); if ($existing_key) { $mail_result=$this->queue_fulfillment_email($locked,(int)$existing_license->id,$existing_key); if (is_wp_error($mail_result)) Logger::error('commerce','fulfillment_email_retry_failed','Paid order email could not be queued or retried',array('order_id'=>(int)$locked->id,'error_code'=>$mail_result->get_error_code())); } }
 			return $locked;
 		}
+		$billing_type=$wpdb->get_var($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',(int)$locked->billing_option_id));
+		if (in_array($billing_type,array('monthly','yearly'),true) && empty($event['subscription_id'])) {
+			$wpdb->query('ROLLBACK');
+			Logger::error('commerce','subscription_reference_missing','Recurring order fulfillment stopped because the verified event did not identify its subscription',array('order_id'=>(int)$locked->id,'billing_type'=>$billing_type,'gateway'=>$locked->gateway));
+			return new \WP_Error('dk2_subscription_reference_missing',__('The payment was received, but the subscription could not be verified yet. Please contact support before retrying.','dropkey-v2'),array('status'=>409));
+		}
 		$wpdb->update($orders,array('status'=>'processing','updated_at'=>current_time('mysql',true)),array('id'=>$locked->id));
 		$license=(new License_Service())->issue($locked->product_id,$locked->tier_id,$locked->customer_email,$locked->billing_option_id,'',(int)$locked->customer_user_id);
 		if (is_wp_error($license)) { $wpdb->query('ROLLBACK'); Logger::error('commerce','license_issuance_failed','Payment fulfillment could not issue a license',array('order_id'=>(int)$locked->id,'error_code'=>$license->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250))); return $license; }
@@ -189,16 +195,55 @@ final class Commerce_Service {
 		}
 		return $locked;
 	}
+	private function normalize_subscription_status($status,$event_type='') {
+		if ('subscription_cancelled'===$event_type) return 'cancelled';
+		$status=strtolower(sanitize_key((string)$status));
+		if (in_array($status,array('active','approved'),true)) return 'active';
+		if (in_array($status,array('past_due','suspended','unpaid'),true)) return 'past_due';
+		if (in_array($status,array('cancelled','canceled','expired'),true)) return 'cancelled';
+		if ('cancel_pending'===$status) return 'cancel_pending';
+		return 'active';
+	}
 	private function save_subscription($order,$license_id,$event) {
-		global $wpdb; $table=Database::table('subscriptions'); $now=current_time('mysql',true);
+		global $wpdb;
+		$table=Database::table('subscriptions');
+		$now=current_time('mysql',true);
 		$sub_id=sanitize_text_field($event['subscription_id']);
 		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_subscription_id=%s",$order->gateway,$sub_id));
-		$data=array('order_id'=>$order->id,'license_id'=>$license_id,'gateway'=>$order->gateway,'gateway_subscription_id'=>$sub_id,
-			'status'=>'active','grace_until'=>null,'updated_at'=>$now);
-		if (!empty($event['period_end'])) $data['current_period_end']=$event['period_end'];
+		$period_end='';
+		if (!empty($event['period_end'])) {
+			$stamp=strtotime((string)$event['period_end'].' UTC');
+			if ($stamp) $period_end=gmdate('Y-m-d H:i:s',$stamp);
+		}
+		if (''===$period_end) {
+			$billing_type=$wpdb->get_var($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',(int)$order->billing_option_id));
+			if (in_array($billing_type,array('monthly','yearly'),true)) {
+				$base=new \DateTimeImmutable('now',new \DateTimeZone('UTC'));
+				$period_end=$base->modify('monthly'===$billing_type?'+1 month':'+1 year')->format('Y-m-d H:i:s');
+				Logger::warning('commerce','subscription_period_estimated','Provider did not supply a billing period end; a temporary period was estimated from the plan interval',array('order_id'=>(int)$order->id,'license_id'=>(int)$license_id,'billing_type'=>$billing_type));
+			}
+		}
+		$data=array(
+			'order_id'=>(int)$order->id,
+			'license_id'=>(int)$license_id,
+			'gateway'=>$order->gateway,
+			'gateway_subscription_id'=>$sub_id,
+			'status'=>$this->normalize_subscription_status(isset($event['status'])?$event['status']:'',''),
+			'grace_until'=>null,
+			'updated_at'=>$now
+		);
+		if (''!==$period_end) $data['current_period_end']=$period_end;
+		if (isset($event['cancel_at_period_end'])) $data['cancel_at_period_end']=absint($event['cancel_at_period_end']);
 		if ($existing) $wpdb->update($table,$data,array('id'=>$existing->id));
-		else { if (!isset($data['current_period_end'])) $data['current_period_end']=null; $data['created_at']=$now; $wpdb->insert($table,$data); }
-		$wpdb->update(Database::table('licenses'),array('status'=>'active','updated_at'=>$now),array('id'=>$license_id));
+		else {
+			if (!isset($data['current_period_end'])) $data['current_period_end']=null;
+			if (!isset($data['cancel_at_period_end'])) $data['cancel_at_period_end']=0;
+			$data['created_at']=$now;
+			$wpdb->insert($table,$data);
+		}
+		$license_data=array('status'=>'active','updated_at'=>$now);
+		if (''!==$period_end) $license_data['expires_at']=$period_end;
+		$wpdb->update(Database::table('licenses'),$license_data,array('id'=>(int)$license_id));
 	}
 	private function record_payment_reference($order,$event) {
 		global $wpdb;
@@ -267,11 +312,24 @@ final class Commerce_Service {
 			}
 		} elseif ('subscription_updated'===$event['type']||'subscription_cancelled'===$event['type']) {
 			if (!empty($event['subscription_id'])) {
-				$status='subscription_cancelled'===$event['type']?'cancelled':('past_due'===(isset($event['status'])?$event['status']:'')?'past_due':'active');
+				$subs=Database::table('subscriptions');
+				$subscription=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$subs} WHERE gateway=%s AND gateway_subscription_id=%s",$gateway,$event['subscription_id']));
+				$status=$this->normalize_subscription_status(isset($event['status'])?$event['status']:'',$event['type']);
 				$update=array('status'=>$status,'updated_at'=>current_time('mysql',true));
-				if (!empty($event['period_end'])) $update['current_period_end']=$event['period_end'];
+				$period_end='';
+				if (!empty($event['period_end'])) {
+					$stamp=strtotime((string)$event['period_end'].' UTC');
+					if ($stamp) $period_end=gmdate('Y-m-d H:i:s',$stamp);
+				}
+				if (''!==$period_end) $update['current_period_end']=$period_end;
 				if (isset($event['cancel_at_period_end'])) $update['cancel_at_period_end']=absint($event['cancel_at_period_end']);
-				$wpdb->update(Database::table('subscriptions'),$update,array('gateway'=>$gateway,'gateway_subscription_id'=>$event['subscription_id']));
+				$wpdb->update($subs,$update,array('gateway'=>$gateway,'gateway_subscription_id'=>$event['subscription_id']));
+				if ($subscription) {
+					$license_update=array('updated_at'=>current_time('mysql',true));
+					if (''!==$period_end) $license_update['expires_at']=$period_end;
+					if ('past_due'===$status && empty($subscription->grace_until)) $license_update['status']='active';
+					$wpdb->update(Database::table('licenses'),$license_update,array('id'=>(int)$subscription->license_id));
+				}
 			}
 		} elseif ('refunded'===$event['type']||'chargeback'===$event['type']) {
 			if (!$order) $result=new \WP_Error('dk2_payment_event_order_missing',__('A refund or dispute event could not be matched to an order.','dropkey-v2'),array('status'=>500));
