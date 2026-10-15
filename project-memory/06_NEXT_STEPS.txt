@@ -92,3 +92,10 @@ FOLLOW-UP — INSTALL STOREFRONT FIX VERSION 0.3.2 — 2026-10-15
 2. PHP syntax CI passed for the storefront logic commit; check the version-bump commit run here before deployment: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659918482.
 3. Reload the public storefront and test a published recurring billing option. If PayPal is still absent, confirm the PayPal gateway is enabled and Client ID, Secret, and Webhook ID are all saved; never share the Secret.
 4. Run a PayPal Sandbox subscription checkout and confirm the plan is created and saved automatically.
+
+IMMEDIATE NEXT STEPS — PAYPAL CHECKOUT REJECTION — 2026-10-15
+1. Wait for PHP syntax CI for diagnostic commit `874d9b8a359392014838c5600385c9c3551e14f8` and version bump `846775707d8755dd8c31fe04b19b59c075d6b3f1` to finish; verify latest run status before declaring the source verified.
+2. Install/update TasteWP to DropKey V2 version 0.3.3 from `main`; GitHub changes do not update the site automatically.
+3. Reproduce the PayPal Sandbox checkout once.
+4. Inspect the site's PHP error log (or `wp-content/debug.log` if `WP_DEBUG_LOG` is enabled and configured) for `[DropKey V2] PayPal OAuth rejected:` or `[DropKey V2] PayPal API request rejected:`. Share the status, `name`, `debug_id`, and `issues` fields only; never share client secret, access token, authorization headers, or raw request/response bodies.
+5. Use those diagnostics to identify the actual rejection before changing checkout logic. Confirm the PayPal Client ID/Secret are both Sandbox credentials when Live mode is unchecked, and that the Webhook ID belongs to the same environment, but do not assume credentials are the cause without evidence.
