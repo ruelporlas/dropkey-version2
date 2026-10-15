@@ -224,3 +224,14 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - Source changes committed to `feature/complete-customer-checkout`: `includes/class-storefront.php` adds pre-checkout account registration and existing-user sign-in flow; `includes/class-commerce-service.php` requires an authenticated account and matching email for checkout and refuses fulfillment if the order has no matching account ID; `tests/customer-checkout-contract.php` tests guest and email-mismatch rejection and is included by the existing contract suite; `README.md` documents no guest checkout.
 - CI run 38697723559 failed before final correction because `includes/class-commerce-service.php` had over-escaped namespace separators in the new fulfillment error returns. Those separators were corrected in commit 0e07ac0bbc6bec1db4ad12bbd0a63e0a867dd260, and the checkout test's duplicate Logger stub was corrected afterward. No CI run after these corrections has been observed, so syntax and contract results for the final head are NOT YET VERIFIED.
 - No WordPress integration test or staging checkout was run. Account creation/login, redirect preservation, order ownership, and legacy pending guest-order behavior require runtime testing.
+
+
+2026-10-15 — Mandatory customer checkout contract CI (feature/complete-customer-checkout)
+- Test file expanded: tests/customer-checkout-contract.php now checks four rejection cases: unauthenticated checkout, malformed email, email mismatch with the signed-in account, and authenticated session with no valid user ID.
+- Commit: ebd3f4245296125c250616d63b1cbb5067410fa5.
+- GitHub Actions run: https://github.com/ruelporlas/dropkey-version2/actions/runs/38700730891
+- PHP 8.0: PASS; all PHP files linted and payment/webhook/client + customer-checkout contract tests passed.
+- PHP 8.3: PASS; all PHP files linted and payment/webhook/client + customer-checkout contract tests passed.
+- PHP 7.4: QUEUED at last inspection; matrix incomplete, not yet verified.
+- Prior run 38700642721 FAILED due to a test-file parse error (escaped namespace separator); corrected in commit ebd3f424... and fresh run 38700730891 started.
+- No WordPress integration test, browser test, or staging purchase flow was run in this verification.
