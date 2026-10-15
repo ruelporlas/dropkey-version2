@@ -18,7 +18,7 @@ final class Storefront {
 	public function enqueue_assets() {
 		if (!is_singular()) return;
 		$post=get_post();
-		if ($post&&(has_shortcode($post->post_content,'dropkey_store')||has_shortcode($post->post_content,'dropkey_checkout'))) wp_enqueue_style('dropkey-v2-storefront',DK2_URL.'assets/css/storefront.css',array(),DK2_VERSION);
+		if ($post&&(has_shortcode($post->post_content,'dropkey_store')||has_shortcode($post->post_content,'dropkey_checkout')||has_shortcode($post->post_content,'dropkey_account'))) wp_enqueue_style('dropkey-v2-storefront',DK2_URL.'assets/css/storefront.css',array(),DK2_VERSION);
 	}
 	private function checkout_url() {
 		$id=absint(get_option('dk2_checkout_page_id',0));
