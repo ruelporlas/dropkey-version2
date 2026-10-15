@@ -78,3 +78,6 @@ SOURCE MAP UPDATE — STOREFRONT PAYPAL VISIBILITY — 2026-10-15
 - `includes/class-storefront.php` no longer hides PayPal for monthly/yearly billing options when `paypal_plan_id` is empty. PayPal is listed whenever the configured PayPal gateway passes the storefront's enabled/credentials/webhook checks; the PayPal gateway creates and stores a recurring plan at checkout when needed.
 - Source commit: `4ae978906cc9bd2d7f81340a899bea2241806a4d`.
 - PHP syntax CI for this commit was queued when this note was written. TasteWP storefront runtime behavior has not yet been verified.
+
+PAYPAL DIAGNOSTICS UPDATE — 2026-10-15
+- `includes/class-paypal-gateway.php` now records safe PayPal OAuth/API failure diagnostics in the PHP error log: HTTP status, provider error name/debug ID, and issue/field codes where available. It intentionally does not log credentials, authorization headers, checkout request bodies, or full provider responses.
