@@ -36,7 +36,7 @@ final class Customer_Account {
 	private function render_licenses($user_id,$licenses) {
 		global $wpdb; $a=Database::table('activations'); $service=new License_Service();
 		echo '<section class="dk2-account-section" id="dk2-licenses"><div class="dk2-account-section-heading"><h2>'.esc_html__('Your licenses','dropkey-v2').'</h2><span class="dk2-account-count">'.number_format_i18n(count($licenses)).'</span></div>';
-		if (!$licenses) echo '<p class="dk2-account-empty">'.esc_html__('No licenses are linked to this account yet. Guest purchases need to be securely linked before they appear here.','dropkey-v2').'</p>';
+		if (!$licenses) echo '<p class="dk2-account-empty">'.esc_html__('No licenses are linked to this account yet. If you completed a purchase and do not see your license, contact support using your order email.','dropkey-v2').'</p>';
 		foreach ($licenses as $license) {
 			$sites=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$a} WHERE license_id=%d ORDER BY activated_at DESC",$license->id)); $key=$service->reveal_key($license);
 			echo '<article class="dk2-account-card"><div class="dk2-account-card-head"><div><p class="dk2-account-product">'.esc_html($license->product_name).'</p><h3>'.esc_html($license->tier_name).'</h3></div><span class="dk2-account-status dk2-status-'.esc_attr(sanitize_html_class($license->status)).'">'.esc_html(ucfirst($license->status)).'</span></div>';
@@ -44,7 +44,8 @@ final class Customer_Account {
 			if ($key) echo '<code>'.esc_html($key).'</code><button type="button" class="dk2-account-copy" data-copy="'.esc_attr($key).'">'.esc_html__('Copy key','dropkey-v2').'</button>';
 			else echo '<code>'.esc_html($license->key_prefix).'…</code><p class="dk2-account-muted">'.esc_html__('This older key cannot be recovered from its stored hash. Contact the site administrator if you need a replacement.','dropkey-v2').'</p>';
 			echo '</div><div class="dk2-account-meta"><span>'.esc_html__('Issued','dropkey-v2').' '.esc_html(mysql2date(get_option('date_format'),$license->created_at)).'</span>';
-			if ($license->expires_at) echo '<span>'.esc_html__('Expires','dropkey-v2').' '.esc_html(mysql2date(get_option('date_format'),$license->expires_at)).'</span>';
+			$expiry=$license->expires_at?mysql2date(get_option('date_format'),$license->expires_at):__('Never (lifetime license)','dropkey-v2');
+			echo '<span>'.esc_html__('Expires','dropkey-v2').' '.esc_html($expiry).'</span>';
 			$active=count(array_filter($sites,function($site){return 'active'===$site->status;})); echo '<span>'.sprintf(esc_html__('%d active website(s)','dropkey-v2'),$active).'</span></div>';
 			if ($sites) { echo '<div class="dk2-account-sites"><h4>'.esc_html__('Activated websites','dropkey-v2').'</h4>'; foreach($sites as $site) { echo '<div class="dk2-account-site"><div><strong>'.esc_html($site->site_url).'</strong><span>'.esc_html(ucfirst($site->status)).'</span></div>'; if ('active'===$site->status) $this->form('deactivate_site',(int)$site->id,__('Deactivate','dropkey-v2')); echo '</div>'; } echo '</div>'; }
 			if ('active'===$license->status) $this->form('download',(int)$license->id,__('Generate fresh download link','dropkey-v2'));

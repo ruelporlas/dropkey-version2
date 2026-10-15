@@ -19,6 +19,11 @@ final class Commerce_Service {
 		$billing_id=absint($billing_id); $email=sanitize_email($email); $gateway=sanitize_key($gateway);
 		Logger::info('checkout','checkout_started','Checkout attempt started',array('billing_option_id'=>$billing_id,'gateway'=>$gateway));
 		if (!is_email($email)) return new \WP_Error('dk2_checkout_email_invalid',__('Enter a valid email address.','dropkey-v2'),array('status'=>400));
+		if (!is_user_logged_in()) return new \WP_Error('dk2_checkout_account_required',__('Create a customer account or sign in before checkout.','dropkey-v2'),array('status'=>401));
+		$current_user=wp_get_current_user();
+		if (!$current_user||empty($current_user->ID)||!is_email($current_user->user_email)||strtolower((string)$current_user->user_email)!==strtolower($email)) return new \WP_Error('dk2_checkout_account_email_mismatch',__('Checkout email must match the signed-in customer account.','dropkey-v2'),array('status'=>403));
+		$email=sanitize_email($current_user->user_email);
+		$customer_user_id=(int)$current_user->ID;
 		$b=Database::table('billing_options'); $t=Database::table('tiers'); $p=Database::table('products');
 		$billing=$wpdb->get_row($wpdb->prepare("SELECT b.*,t.id AS tier_id,t.name AS tier_name,t.status AS tier_status,p.id AS product_id,p.name AS product_name,p.status AS product_status FROM {$b} b INNER JOIN {$t} t ON t.id=b.tier_id INNER JOIN {$p} p ON p.id=t.product_id WHERE b.id=%d",$billing_id));
 		if (!$billing||'published'!==$billing->status||'published'!==$billing->tier_status||'published'!==$billing->product_status) return new \WP_Error('dk2_checkout_option_unavailable',__('This product option is not available.','dropkey-v2'),array('status'=>404));
@@ -33,8 +38,7 @@ final class Commerce_Service {
 			if (empty($config['enabled'])||('stripe'===$gateway&&(empty($config['secret'])||empty($config['webhook_secret'])))||('paypal'===$gateway&&(empty($config['client_id'])||empty($config['secret'])||empty($config['webhook_id'])))) return new \WP_Error('dk2_checkout_gateway_disabled',__('That payment method is not currently available.','dropkey-v2'),array('status'=>503));
 		}
 		$rate_limit=$this->rate_limit_checkout($email); if (is_wp_error($rate_limit)) return $rate_limit;
-		$public_id=wp_generate_uuid4(); $now=current_time('mysql',true); $customer_user_id=null;
-		if (is_user_logged_in()) { $current_user=wp_get_current_user(); if ($current_user&&strtolower($current_user->user_email)===strtolower($email)) $customer_user_id=(int)$current_user->ID; }
+		$public_id=wp_generate_uuid4(); $now=current_time('mysql',true);
 		$ok=$wpdb->insert(Database::table('orders'),array(
 			'public_id'=>$public_id,'product_id'=>$billing->product_id,'tier_id'=>$billing->tier_id,'billing_option_id'=>$billing_id,
 			'customer_email'=>$email,'customer_user_id'=>$customer_user_id?:null,
@@ -103,22 +107,67 @@ final class Commerce_Service {
 	private function queue_fulfillment_email($order,$license_id,$license_key) {
 		global $wpdb;
 		$release=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".Database::table('releases')." WHERE product_id=%d AND status='published' ORDER BY created_at DESC,id DESC LIMIT 1",$order->product_id));
-		if (!$release) return new \WP_Error('dk2_fulfillment_release_missing',__('No published download release is available for this order.','dropkey-v2'));
-		$link=(new Download_Service())->create_token($license_id,$release->id);
-		if (is_wp_error($link)) return $link;
 		$product_name=$wpdb->get_var($wpdb->prepare('SELECT name FROM '.Database::table('products').' WHERE id=%d',$order->product_id));
-		$body="Thank you for your purchase.\n\nProduct: ".$product_name."\nLicense key: ".$license_key."\nDownload: ".$link['url']."\nThis download link expires in 48 hours and allows up to 5 downloads.\n";
-		$queued=(new Email_Service())->enqueue($order->id,$order->customer_email,'Your DropKey purchase',$body);
+		$tier_name=$wpdb->get_var($wpdb->prepare('SELECT name FROM '.Database::table('tiers').' WHERE id=%d',$order->tier_id));
+		$billing=$wpdb->get_row($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',$order->billing_option_id));
+		$download_line='';
+		if ($release) {
+			$link=(new Download_Service())->create_token($license_id,$release->id);
+			if (!is_wp_error($link)) $download_line="\nDownload: ".$link['url']."\nThis download link expires in 48 hours and allows up to 5 downloads.\n";
+			else Logger::warning('email','download_link_unavailable','Purchase email will be sent without a download link',array('order_id'=>(int)$order->id,'error_code'=>$link->get_error_code()));
+		}
+		$billing_label=$billing?('monthly'===$billing->billing_type?'Monthly':('yearly'===$billing->billing_type?'Yearly':('free'===$billing->billing_type?'Free':'One-time'))):'—';
+		$amount=$billing&&'free'===$billing->billing_type?'Free':strtoupper((string)$order->currency).' '.number_format((float)$order->amount,2);
+		$body="Thank you for your purchase.\n\nOrder: ".(string)$order->public_id."\nStatus: Paid\nProduct: ".$product_name."\nPlan: ".$tier_name."\nBilling: ".$billing_label."\nTotal: ".$amount."\nLicense key: ".$license_key."\n".$download_line."\nManage your account: ".wp_login_url()."\nIf you have not set a password yet, use the password reset link on the sign-in page to set one.\n";
+		$email_service=new Email_Service(); $queue=Database::table('email_queue');
+		$existing=$wpdb->get_row($wpdb->prepare("SELECT id,status FROM {$queue} WHERE order_id=%d AND subject=%s ORDER BY id DESC LIMIT 1",(int)$order->id,'Your DropKey order confirmation'));
+		if ($existing) {
+			if ('sent'===$existing->status) return (int)$existing->id;
+			if ('failed'===$existing->status) $email_service->resend((int)$existing->id);
+			$email_service->process_queue();
+			return (int)$existing->id;
+		}
+		$queued=$email_service->enqueue($order->id,$order->customer_email,'Your DropKey order confirmation',$body);
 		if (is_wp_error($queued)) { do_action('dk2_fulfillment_email_queue_error',(int)$order->id,$queued->get_error_code()); return $queued; }
+		// Attempt delivery immediately; scheduled retries remain available if wp_mail fails.
+		$email_service->process_queue();
 		return $queued;
 	}
+	private function ensure_customer_account($order) {
+		global $wpdb;
+		$email=sanitize_email($order->customer_email);
+		$user_id=isset($order->customer_user_id)?absint($order->customer_user_id):0;
+		if (!is_email($email)) return new \WP_Error('dk2_customer_email_invalid',__('A valid customer email is required for fulfillment.','dropkey-v2'));
+		if (!$user_id) return new \WP_Error('dk2_customer_account_required',__('This order has no verified customer account. Contact support to resolve this order securely.','dropkey-v2'));
+		$user=get_user_by('id',$user_id);
+		if (!$user||strtolower((string)$user->user_email)!==strtolower($email)) return new \WP_Error('dk2_customer_account_mismatch',__('The order is not linked to a matching customer account. Contact support before retrying fulfillment.','dropkey-v2'));
+		$orders=Database::table('orders');
+		$wpdb->update($orders,array('customer_user_id'=>$user_id,'updated_at'=>current_time('mysql',true)),array('id'=>(int)$order->id));
+		if (!empty($order->license_id)) $wpdb->update(Database::table('licenses'),array('customer_user_id'=>$user_id,'updated_at'=>current_time('mysql',true)),array('id'=>(int)$order->license_id));
+		$order->customer_user_id=$user_id;
+		return $user_id;
+	}
+
 	public function complete_order($order,$event=array()) {
 		global $wpdb;
+		$account=$this->ensure_customer_account($order);
+		if (is_wp_error($account)) { Logger::error('customer','account_creation_failed','Could not link customer account to order',array('order_id'=>(int)$order->id,'error_code'=>$account->get_error_code())); return $account; }
 		$orders=Database::table('orders');
 		$wpdb->query('START TRANSACTION');
 		$locked=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d FOR UPDATE",$order->id));
 		if (!$locked) { $wpdb->query('ROLLBACK'); Logger::error('commerce','fulfillment_order_missing','The order disappeared before fulfillment',array('order_id'=>(int)$order->id)); return new \WP_Error('dk2_order_not_found',__('The checkout order was not found.','dropkey-v2'),array('status'=>404)); }
-		if ('paid'===$locked->status && $locked->license_id) { $wpdb->query('COMMIT'); return $locked; }
+		if ('paid'===$locked->status && $locked->license_id) {
+			$wpdb->query('COMMIT');
+			$existing_license=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('licenses').' WHERE id=%d',(int)$locked->license_id));
+			if ($existing_license) { $existing_key=(new License_Service())->reveal_key($existing_license); if ($existing_key) { $mail_result=$this->queue_fulfillment_email($locked,(int)$existing_license->id,$existing_key); if (is_wp_error($mail_result)) Logger::error('commerce','fulfillment_email_retry_failed','Paid order email could not be queued or retried',array('order_id'=>(int)$locked->id,'error_code'=>$mail_result->get_error_code())); } }
+			return $locked;
+		}
+		$billing_type=$wpdb->get_var($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',(int)$locked->billing_option_id));
+		if (in_array($billing_type,array('monthly','yearly'),true) && empty($event['subscription_id'])) {
+			$wpdb->query('ROLLBACK');
+			Logger::error('commerce','subscription_reference_missing','Recurring order fulfillment stopped because the verified event did not identify its subscription',array('order_id'=>(int)$locked->id,'billing_type'=>$billing_type,'gateway'=>$locked->gateway));
+			return new \WP_Error('dk2_subscription_reference_missing',__('The payment was received, but the subscription could not be verified yet. Please contact support before retrying.','dropkey-v2'),array('status'=>409));
+		}
 		$wpdb->update($orders,array('status'=>'processing','updated_at'=>current_time('mysql',true)),array('id'=>$locked->id));
 		$license=(new License_Service())->issue($locked->product_id,$locked->tier_id,$locked->customer_email,$locked->billing_option_id,'',(int)$locked->customer_user_id);
 		if (is_wp_error($license)) { $wpdb->query('ROLLBACK'); Logger::error('commerce','license_issuance_failed','Payment fulfillment could not issue a license',array('order_id'=>(int)$locked->id,'error_code'=>$license->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250))); return $license; }
@@ -142,16 +191,58 @@ final class Commerce_Service {
 		}
 		return $locked;
 	}
+	private function normalize_subscription_status($status,$event_type='') {
+		if ('subscription_cancelled'===$event_type) return 'cancelled';
+		$status=strtolower(sanitize_key((string)$status));
+		if (in_array($status,array('active','approved','trialing'),true)) return 'active';
+		if (in_array($status,array('past_due','suspended','unpaid'),true)) return 'past_due';
+		if (in_array($status,array('cancelled','canceled','expired'),true)) return 'cancelled';
+		if ('cancel_pending'===$status) return 'cancel_pending';
+		if (''===$status && 'payment_succeeded'===$event_type) return 'active';
+		return 'inactive';
+	}
 	private function save_subscription($order,$license_id,$event) {
-		global $wpdb; $table=Database::table('subscriptions'); $now=current_time('mysql',true);
+		global $wpdb;
+		$table=Database::table('subscriptions');
+		$now=current_time('mysql',true);
 		$sub_id=sanitize_text_field($event['subscription_id']);
 		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE gateway=%s AND gateway_subscription_id=%s",$order->gateway,$sub_id));
-		$data=array('order_id'=>$order->id,'license_id'=>$license_id,'gateway'=>$order->gateway,'gateway_subscription_id'=>$sub_id,
-			'status'=>'active','grace_until'=>null,'updated_at'=>$now);
-		if (!empty($event['period_end'])) $data['current_period_end']=$event['period_end'];
+		$period_end='';
+		if (!empty($event['period_end'])) {
+			$stamp=strtotime((string)$event['period_end'].' UTC');
+			if ($stamp) $period_end=gmdate('Y-m-d H:i:s',$stamp);
+		}
+		if (''===$period_end) {
+			$billing_type=$wpdb->get_var($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',(int)$order->billing_option_id));
+			if (in_array($billing_type,array('monthly','yearly'),true)) {
+				$base=new \DateTimeImmutable('now',new \DateTimeZone('UTC'));
+				$period_end=$base->modify('monthly'===$billing_type?'+1 month':'+1 year')->format('Y-m-d H:i:s');
+				Logger::warning('commerce','subscription_period_estimated','Provider did not supply a billing period end; a temporary period was estimated from the plan interval',array('order_id'=>(int)$order->id,'license_id'=>(int)$license_id,'billing_type'=>$billing_type));
+			}
+		}
+		$status_raw=isset($event['status'])?sanitize_key($event['status']):'';
+		if (isset($event['type'])&&'payment_succeeded'===$event['type']&&!in_array($status_raw,array('active','approved','trialing','past_due','suspended','unpaid','cancelled','canceled','expired','cancel_pending'),true)) $status_raw='active';
+		$data=array(
+			'order_id'=>$existing?(int)$existing->order_id:(int)$order->id,
+			'license_id'=>(int)$license_id,
+			'gateway'=>$order->gateway,
+			'gateway_subscription_id'=>$sub_id,
+			'status'=>$this->normalize_subscription_status($status_raw,isset($event['type'])?$event['type']:'payment_succeeded'),
+			'grace_until'=>null,
+			'updated_at'=>$now
+		);
+		if (''!==$period_end) $data['current_period_end']=$period_end;
+		if (isset($event['cancel_at_period_end'])) $data['cancel_at_period_end']=absint($event['cancel_at_period_end']);
 		if ($existing) $wpdb->update($table,$data,array('id'=>$existing->id));
-		else { if (!isset($data['current_period_end'])) $data['current_period_end']=null; $data['created_at']=$now; $wpdb->insert($table,$data); }
-		$wpdb->update(Database::table('licenses'),array('status'=>'active','updated_at'=>$now),array('id'=>$license_id));
+		else {
+			if (!isset($data['current_period_end'])) $data['current_period_end']=null;
+			if (!isset($data['cancel_at_period_end'])) $data['cancel_at_period_end']=0;
+			$data['created_at']=$now;
+			$wpdb->insert($table,$data);
+		}
+		$license_data=array('status'=>'active','updated_at'=>$now);
+		if (''!==$period_end) $license_data['expires_at']=$period_end;
+		$wpdb->update(Database::table('licenses'),$license_data,array('id'=>(int)$license_id));
 	}
 	private function record_payment_reference($order,$event) {
 		global $wpdb;
@@ -175,6 +266,64 @@ final class Commerce_Service {
 		if (!$order&&!empty($event['gateway_payment_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT o.* FROM {$table} o LEFT JOIN ".Database::table('payments')." pay ON pay.order_id=o.id WHERE o.gateway=%s AND (o.gateway_payment_id=%s OR pay.gateway_payment_id=%s) LIMIT 1",$gateway,$event['gateway_payment_id'],$event['gateway_payment_id']));
 		if (!$order&&!empty($event['subscription_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT o.* FROM {$table} o INNER JOIN ".Database::table('subscriptions')." s ON s.order_id=o.id WHERE s.gateway=%s AND s.gateway_subscription_id=%s",$gateway,$event['subscription_id']));
 		return $order;
+	}
+
+	/** Validate a renewal against the original subscription's captured price and currency. */
+	private function validate_renewal_payment_amount($base,$event) {
+		if (!isset($event['amount']) || !is_numeric($event['amount']) || !is_finite((float)$event['amount']) || (float)$event['amount']<=0) {
+			return new \WP_Error('dk2_renewal_amount_invalid',__('The recurring payment amount must be a positive numeric value.','dropkey-v2'));
+		}
+		$currency=strtoupper(sanitize_text_field(isset($event['currency'])?$event['currency']:''));
+		if (!preg_match('/^[A-Z]{3}$/',$currency)) return new \WP_Error('dk2_renewal_currency_invalid',__('The recurring payment currency is invalid.','dropkey-v2'));
+		if (strtoupper((string)$base->currency)!==$currency) return new \WP_Error('dk2_renewal_currency_mismatch',__('The recurring payment currency does not match the original subscription currency.','dropkey-v2'));
+		if (abs((float)$event['amount']-(float)$base->amount)>0.009) return new \WP_Error('dk2_renewal_amount_mismatch',__('The recurring payment amount does not match the original subscription amount.','dropkey-v2'));
+		return true;
+	}
+
+	/**
+	 * Create or recover one order for a verified recurring payment.
+	 * Renewals reuse the original license and subscription; they never issue another license.
+	 */
+	private function create_renewal_order($subscription,$event) {
+		global $wpdb;
+		if (empty($event['gateway_payment_id'])||!isset($event['amount'])||null===$event['amount']||empty($event['currency'])) return new \WP_Error('dk2_renewal_payment_reference_missing',__('The recurring payment is verified but lacks a payment ID, amount, or currency required to record a renewal safely.','dropkey-v2'));
+		$gateway=sanitize_key($subscription->gateway); $payment_id=sanitize_text_field($event['gateway_payment_id']); $renewal_key=hash('sha256',$gateway.'|'.$payment_id);
+		$orders=Database::table('orders'); $payments=Database::table('payments');
+		$base=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$subscription->order_id));
+		if (!$base || empty($subscription->license_id) || 'paid'!==$base->status) return new \WP_Error('dk2_renewal_parent_order_invalid',__('The original paid order or its license could not be found for this renewal.','dropkey-v2'));
+		$amount_check=$this->validate_renewal_payment_amount($base,$event);
+		if (is_wp_error($amount_check)) return $amount_check;
+		if ((string)$base->gateway_payment_id===$payment_id) return $base;
+		$known_payment=$wpdb->get_row($wpdb->prepare("SELECT order_id FROM {$payments} WHERE gateway=%s AND gateway_payment_id=%s",$gateway,$payment_id));
+		if ($known_payment) {
+			$known_order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$known_payment->order_id));
+			if ($known_order && (int)$known_order->id===(int)$subscription->order_id) return $known_order;
+			if ($known_order && 'renewal'===$known_order->order_type && (int)$known_order->subscription_id===(int)$subscription->id) return $known_order;
+			return new \WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey order.','dropkey-v2'));
+		}
+		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE renewal_key=%s AND order_type='renewal'",$renewal_key));
+		if ($existing) return (int)$existing->subscription_id===(int)$subscription->id?$existing:new \WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey renewal.','dropkey-v2'));
+		$currency=strtoupper(sanitize_text_field($event['currency'])); $amount=(float)$event['amount'];
+		$now=current_time('mysql',true);
+		$data=array(
+			'public_id'=>wp_generate_uuid4(),'product_id'=>(int)$base->product_id,'tier_id'=>(int)$base->tier_id,'billing_option_id'=>(int)$base->billing_option_id,
+			'license_id'=>(int)$subscription->license_id,'parent_order_id'=>(int)$base->id,'subscription_id'=>(int)$subscription->id,'order_type'=>'renewal','renewal_key'=>$renewal_key,
+			'customer_email'=>$base->customer_email,'customer_user_id'=>$base->customer_user_id,'customer_first_name'=>$base->customer_first_name,'customer_last_name'=>$base->customer_last_name,
+			'customer_phone'=>$base->customer_phone,'billing_address_1'=>$base->billing_address_1,'billing_address_2'=>$base->billing_address_2,'billing_city'=>$base->billing_city,
+			'billing_state'=>$base->billing_state,'billing_postcode'=>$base->billing_postcode,'billing_country'=>$base->billing_country,'gateway'=>$gateway,
+			'gateway_order_id'=>isset($event['gateway_order_id'])?sanitize_text_field($event['gateway_order_id']):'',
+			'gateway_session_id'=>isset($event['gateway_session_id'])?sanitize_text_field($event['gateway_session_id']):'',
+			'gateway_payment_id'=>$payment_id,'status'=>'paid','amount'=>$amount,'currency'=>$currency,'created_at'=>$now,'updated_at'=>$now
+		);
+		if (!$wpdb->insert($orders,$data)) {
+			$retry=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE renewal_key=%s AND order_type='renewal'",$renewal_key));
+			if ($retry && (int)$retry->subscription_id===(int)$subscription->id) return $retry;
+			Logger::error('commerce','renewal_order_insert_failed','Could not create a renewal order for a verified provider payment',array('subscription_id'=>(int)$subscription->id,'gateway'=>$gateway,'db_error'=>substr((string)$wpdb->last_error,0,250)));
+			return new \WP_Error('dk2_renewal_order_failed',__('The recurring payment could not be recorded as a renewal order.','dropkey-v2'));
+		}
+		$renewal=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$wpdb->insert_id));
+		Logger::info('commerce','renewal_order_created','A verified recurring payment was recorded as a renewal order',array('order_id'=>(int)$renewal->id,'parent_order_id'=>(int)$base->id,'subscription_id'=>(int)$subscription->id,'license_id'=>(int)$subscription->license_id,'gateway'=>$gateway,'amount'=>$amount,'currency'=>$currency));
+		return $renewal;
 	}
 	public function process_webhook($gateway,$event) {
 		global $wpdb;
@@ -201,15 +350,20 @@ final class Commerce_Service {
 				if (!is_wp_error($details)) foreach($details as $key=>$value) if (''!==$value&&null!==$value) $event[$key]=$value;
 			}
 		}
-		$result=true; $order=$this->find_order($gateway,$event);
-		if ('payment_succeeded'===$event['type']&&$order&&isset($event['amount'])&&null!==$event['amount']&&abs((float)$event['amount']-(float)$order->amount)>0.009) $result=new \WP_Error('dk2_payment_amount_mismatch',__('The payment amount does not match the checkout order.','dropkey-v2'));
-		if ('payment_succeeded'===$event['type']&&$order&&!empty($event['currency'])&&strtoupper($event['currency'])!==strtoupper($order->currency)) $result=new \WP_Error('dk2_payment_currency_mismatch',__('The payment currency does not match the checkout order.','dropkey-v2'));
+		$result=true; $order=$this->find_order($gateway,$event); $is_renewal=false;
+		if ('payment_succeeded'===$event['type']&&!empty($event['subscription_id'])) {
+			$subscription=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".Database::table('subscriptions')." WHERE gateway=%s AND gateway_subscription_id=%s",$gateway,$event['subscription_id']));
+			if ($subscription) { $renewal=$this->create_renewal_order($subscription,$event); if (is_wp_error($renewal)) $result=$renewal; else { $order=$renewal; $is_renewal=('renewal'===$renewal->order_type); } }
+		}
+		if (!is_wp_error($result)&&'payment_succeeded'===$event['type']&&!$is_renewal&&$order&&isset($event['amount'])&&null!==$event['amount']&&abs((float)$event['amount']-(float)$order->amount)>0.009) $result=new \WP_Error('dk2_payment_amount_mismatch',__('The payment amount does not match the checkout order.','dropkey-v2'));
+		if (!is_wp_error($result)&&'payment_succeeded'===$event['type']&&!$is_renewal&&$order&&!empty($event['currency'])&&strtoupper($event['currency'])!==strtoupper($order->currency)) $result=new \WP_Error('dk2_payment_currency_mismatch',__('The payment currency does not match the checkout order.','dropkey-v2'));
 		if (is_wp_error($result)) {
 			// A signed provider event with mismatched money values is retained as a failed event for review.
 		} elseif ('ignored'===$event['type']) {
 			$result=true;
 		} elseif ('payment_succeeded'===$event['type']) {
 			if (!$order) $result=new \WP_Error('dk2_webhook_order_missing',__('The payment event could not be matched to a DropKey order.','dropkey-v2'));
+			elseif ($is_renewal) $result=$order;
 			else $result=$this->complete_order($order,$event);
 			if (!is_wp_error($result)&&$order&&'paid'===$order->status&&!empty($event['subscription_id'])) $this->save_subscription($order,$order->license_id,$event);
 		} elseif ('payment_failed'===$event['type']) {
@@ -220,11 +374,24 @@ final class Commerce_Service {
 			}
 		} elseif ('subscription_updated'===$event['type']||'subscription_cancelled'===$event['type']) {
 			if (!empty($event['subscription_id'])) {
-				$status='subscription_cancelled'===$event['type']?'cancelled':('past_due'===(isset($event['status'])?$event['status']:'')?'past_due':'active');
+				$subs=Database::table('subscriptions');
+				$subscription=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$subs} WHERE gateway=%s AND gateway_subscription_id=%s",$gateway,$event['subscription_id']));
+				$status=$this->normalize_subscription_status(isset($event['status'])?$event['status']:'',$event['type']);
 				$update=array('status'=>$status,'updated_at'=>current_time('mysql',true));
-				if (!empty($event['period_end'])) $update['current_period_end']=$event['period_end'];
+				$period_end='';
+				if (!empty($event['period_end'])) {
+					$stamp=strtotime((string)$event['period_end'].' UTC');
+					if ($stamp) $period_end=gmdate('Y-m-d H:i:s',$stamp);
+				}
+				if (''!==$period_end) $update['current_period_end']=$period_end;
 				if (isset($event['cancel_at_period_end'])) $update['cancel_at_period_end']=absint($event['cancel_at_period_end']);
-				$wpdb->update(Database::table('subscriptions'),$update,array('gateway'=>$gateway,'gateway_subscription_id'=>$event['subscription_id']));
+				$wpdb->update($subs,$update,array('gateway'=>$gateway,'gateway_subscription_id'=>$event['subscription_id']));
+				if ($subscription) {
+					$license_update=array('updated_at'=>current_time('mysql',true));
+					if (''!==$period_end) $license_update['expires_at']=$period_end;
+					if ('past_due'===$status && empty($subscription->grace_until)) $license_update['status']='active';
+					$wpdb->update(Database::table('licenses'),$license_update,array('id'=>(int)$subscription->license_id));
+				}
 			}
 		} elseif ('refunded'===$event['type']||'chargeback'===$event['type']) {
 			if (!$order) $result=new \WP_Error('dk2_payment_event_order_missing',__('A refund or dispute event could not be matched to an order.','dropkey-v2'),array('status'=>500));

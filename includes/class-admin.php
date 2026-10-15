@@ -7,15 +7,18 @@ namespace DropKey\V2;
 defined('ABSPATH') || exit;
 final class Admin {
 	public function register_menu() {
-		add_menu_page(__('DropKey','dropkey-v2'),__('DropKey','dropkey-v2'),'manage_options','dk2-products',array($this,'products'),'dashicons-admin-network',56);
-		add_submenu_page('dk2-products',__('Products','dropkey-v2'),__('Products','dropkey-v2'),'manage_options','dk2-products',array($this,'products'));
-		add_submenu_page('dk2-products',__('Tiers','dropkey-v2'),__('Tiers','dropkey-v2'),'manage_options','dk2-tiers',array($this,'tiers'));
-		add_submenu_page('dk2-products',__('Billing Options','dropkey-v2'),__('Billing Options','dropkey-v2'),'manage_options','dk2-billing',array($this,'billing'));
-		add_submenu_page('dk2-products',__('ZIP Releases','dropkey-v2'),__('ZIP Releases','dropkey-v2'),'manage_options','dk2-releases',array($this,'releases'));
-		add_submenu_page('dk2-products',__('Licenses','dropkey-v2'),__('Licenses','dropkey-v2'),'manage_options','dk2-licenses',array($this,'licenses'));
-		add_submenu_page('dk2-products',__('Orders','dropkey-v2'),__('Orders','dropkey-v2'),'manage_options','dk2-orders',array($this,'orders'));
-		add_submenu_page('dk2-products',__('Payment Settings','dropkey-v2'),__('Payment Settings','dropkey-v2'),'manage_options','dk2-settings',array($this,'settings'));
-		add_submenu_page('dk2-products',__('Debug Logs','dropkey-v2'),__('Debug Logs','dropkey-v2'),'manage_options','dk2-logs',array($this,'logs'));
+		add_menu_page(__('DropKey','dropkey-v2'),__('DropKey','dropkey-v2'),'manage_options','dk2-dashboard',array($this,'dashboard'),'dashicons-admin-network',56);
+		add_submenu_page('dk2-dashboard',__('Dashboard','dropkey-v2'),__('Dashboard','dropkey-v2'),'manage_options','dk2-dashboard',array($this,'dashboard'));
+		add_submenu_page('dk2-dashboard',__('Customers','dropkey-v2'),__('Customers','dropkey-v2'),'manage_options','dk2-customers',array($this,'customers'));
+		add_submenu_page('dk2-dashboard',__('Products','dropkey-v2'),__('Products','dropkey-v2'),'manage_options','dk2-products',array($this,'products'));
+		add_submenu_page('dk2-dashboard',__('Tiers','dropkey-v2'),__('Tiers','dropkey-v2'),'manage_options','dk2-tiers',array($this,'tiers'));
+		add_submenu_page('dk2-dashboard',__('Billing Options','dropkey-v2'),__('Billing Options','dropkey-v2'),'manage_options','dk2-billing',array($this,'billing'));
+		add_submenu_page('dk2-dashboard',__('ZIP Releases','dropkey-v2'),__('ZIP Releases','dropkey-v2'),'manage_options','dk2-releases',array($this,'releases'));
+		add_submenu_page('dk2-dashboard',__('Licenses','dropkey-v2'),__('Licenses','dropkey-v2'),'manage_options','dk2-licenses',array($this,'licenses'));
+		add_submenu_page('dk2-dashboard',__('Orders','dropkey-v2'),__('Orders','dropkey-v2'),'manage_options','dk2-orders',array($this,'orders'));
+		add_submenu_page('dk2-dashboard',__('Subscriptions','dropkey-v2'),__('Subscriptions','dropkey-v2'),'manage_options','dk2-subscriptions',array($this,'subscriptions'));
+		add_submenu_page('dk2-dashboard',__('Payment Settings','dropkey-v2'),__('Payment Settings','dropkey-v2'),'manage_options','dk2-settings',array($this,'settings'));
+		add_submenu_page('dk2-dashboard',__('Debug Logs','dropkey-v2'),__('Debug Logs','dropkey-v2'),'manage_options','dk2-logs',array($this,'logs'));
 	}
 	public function register_handlers() {
 		foreach(array('product','tier','billing','release','license','license_status','download_link','activation_status','gateway_settings','email_resend','subscription_cancel','logs_clear','logs_settings') as $action) add_action('admin_post_dk2_'.$action,array($this,'handle'));
@@ -76,6 +79,81 @@ final class Admin {
 		echo '</nav>';
 	}
 
+
+	public function dashboard() {
+		if (!current_user_can('manage_options')) return;
+		global $wpdb;
+		$orders=Database::table('orders'); $subs=Database::table('subscriptions'); $licenses=Database::table('licenses'); $products=Database::table('products'); $tiers=Database::table('tiers'); $payments=Database::table('payments');
+		$now=current_time('mysql',true); $future=gmdate('Y-m-d H:i:s',time()+14*DAY_IN_SECONDS);
+		$paid_orders=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$orders} WHERE status='paid'");
+		$revenue=(float)$wpdb->get_var("SELECT COALESCE(SUM(amount),0) FROM {$payments} WHERE status='paid'");
+		$active_subs=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$subs} WHERE status='active'");
+		$due_subs=(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$subs} WHERE status IN ('active','past_due') AND current_period_end IS NOT NULL AND current_period_end BETWEEN %s AND %s",$now,$future));
+		$past_due=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$subs} WHERE status='past_due'");
+		$pending=(int)$wpdb->get_var("SELECT COUNT(*) FROM {$orders} WHERE status IN ('pending','processing','failed')");
+		$this->header(__('Dashboard','dropkey-v2'),__('A connected operational view of sales, renewals, subscriptions, and license access.','dropkey-v2'));
+		echo '<div class="dk2-dashboard-stats">';
+		foreach(array(__('Paid orders','dropkey-v2')=>$paid_orders,__('Recorded revenue','dropkey-v2')=>number_format_i18n($revenue,2),__('Active subscriptions','dropkey-v2')=>$active_subs,__('Renewals due in 14 days','dropkey-v2')=>$due_subs,__('Past-due subscriptions','dropkey-v2')=>$past_due,__('Orders needing review','dropkey-v2')=>$pending) as $label=>$value) echo '<div class="dk2-stat-card"><span>'.esc_html($label).'</span><strong>'.esc_html((string)$value).'</strong></div>';
+		echo '</div>';
+		echo '<nav class="dk2-quick-links" aria-label="'.esc_attr__('DropKey management shortcuts','dropkey-v2').'">';
+		foreach(array('dk2-customers'=>__('Customers','dropkey-v2'),'dk2-orders'=>__('Orders & payments','dropkey-v2'),'dk2-subscriptions'=>__('Subscriptions','dropkey-v2'),'dk2-licenses'=>__('Licenses','dropkey-v2'),'dk2-products'=>__('Products & plans','dropkey-v2'),'dk2-settings'=>__('Payment settings','dropkey-v2'),'dk2-logs'=>__('Debug logs','dropkey-v2')) as $page=>$label) echo '<a href="'.esc_url(admin_url('admin.php?page='.$page)).'">'.esc_html($label).' <span aria-hidden="true">→</span></a>';
+		echo '</nav>';
+		$recent=$wpdb->get_results("SELECT o.id,o.public_id,o.order_type,o.customer_email,o.amount,o.currency,o.status,o.created_at,p.name AS product_name,t.name AS tier_name FROM {$orders} o LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id ORDER BY o.id DESC LIMIT 10");
+		echo '<h2>'.esc_html__('Recent orders','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>'.esc_html__('Order','dropkey-v2').'</th><th>'.esc_html__('Customer','dropkey-v2').'</th><th>'.esc_html__('Product / tier','dropkey-v2').'</th><th>'.esc_html__('Amount','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Date','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($recent as $row) echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-orders&view_order='.(int)$row->id)).'"><code>'.esc_html(substr($row->public_id,0,8)).'…</code></a><br><small>'.esc_html('renewal'===$row->order_type?__('Renewal','dropkey-v2'):__('Initial purchase','dropkey-v2')).'</small></td><td>'.esc_html($row->customer_email).'</td><td>'.esc_html(($row->product_name?:'—').' / '.($row->tier_name?:'—')).'</td><td>'.esc_html($row->currency.' '.number_format((float)$row->amount,2)).'</td><td>'.esc_html($row->status).'</td><td>'.esc_html($row->created_at).'</td></tr>';
+		if (!$recent) echo '<tr><td colspan="6">'.esc_html__('No orders recorded yet.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		$upcoming=$wpdb->get_results($wpdb->prepare("SELECT s.id,s.status,s.current_period_end,s.cancel_at_period_end,o.customer_email,p.name AS product_name,t.name AS tier_name,o.currency,o.amount FROM {$subs} s LEFT JOIN {$orders} o ON o.id=s.order_id LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id WHERE s.status IN ('active','past_due') AND s.current_period_end IS NOT NULL AND s.current_period_end BETWEEN %s AND %s ORDER BY s.current_period_end ASC LIMIT 10",$now,$future));
+		echo '<h2>'.esc_html__('Upcoming renewals','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Customer / product','dropkey-v2').'</th><th>'.esc_html__('Renewal date','dropkey-v2').'</th><th>'.esc_html__('Expected amount','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($upcoming as $sub) echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-subscriptions&view_subscription='.(int)$sub->id)).'">#'.(int)$sub->id.'</a></td><td>'.esc_html($sub->customer_email).'<br>'.esc_html(($sub->product_name?:'—').' / '.($sub->tier_name?:'—')).'</td><td>'.esc_html($sub->current_period_end).(!empty($sub->cancel_at_period_end)?'<br><small>'.esc_html__('Cancellation scheduled','dropkey-v2').'</small>':'').'</td><td>'.esc_html($sub->currency.' '.number_format((float)$sub->amount,2)).'</td><td>'.esc_html($sub->status).'</td></tr>';
+		if (!$upcoming) echo '<tr><td colspan="5">'.esc_html__('No renewals are due in the next 14 days.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		$this->footer();
+	}
+
+
+	private function customer_detail($email) {
+		global $wpdb;
+		$orders=Database::table('orders'); $licenses=Database::table('licenses'); $subs=Database::table('subscriptions'); $products=Database::table('products'); $tiers=Database::table('tiers');
+		$this->header(__('Customer profile','dropkey-v2'),__('All DropKey purchases, subscriptions, and licenses associated with this customer email.','dropkey-v2'));
+		echo '<p><a href="'.esc_url(admin_url('admin.php?page=dk2-customers')).'">← '.esc_html__('All customers','dropkey-v2').'</a></p><h2>'.esc_html($email).'</h2>';
+		$order_rows=$wpdb->get_results($wpdb->prepare("SELECT o.*,p.name AS product_name,t.name AS tier_name FROM {$orders} o LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id WHERE LOWER(o.customer_email)=LOWER(%s) ORDER BY o.id DESC LIMIT 200",$email));
+		echo '<h2>'.esc_html__('Orders and renewals','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Type','dropkey-v2').'</th><th>'.esc_html__('Product / tier','dropkey-v2').'</th><th>'.esc_html__('Date','dropkey-v2').'</th><th>'.esc_html__('Amount','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($order_rows as $row) echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-orders&view_order='.(int)$row->id)).'">#'.(int)$row->id.' · '.esc_html(substr($row->public_id,0,8)).'…</a></td><td>'.esc_html('renewal'===$row->order_type?__('Renewal','dropkey-v2'):__('Initial purchase','dropkey-v2')).'</td><td>'.esc_html(($row->product_name?:'—').' / '.($row->tier_name?:'—')).'</td><td>'.esc_html($row->created_at).'</td><td>'.esc_html($row->currency.' '.number_format((float)$row->amount,2)).'</td><td>'.esc_html($row->status).'</td></tr>';
+		if (!$order_rows) echo '<tr><td colspan="6">'.esc_html__('No orders found.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		$license_rows=$wpdb->get_results($wpdb->prepare("SELECT l.*,p.name AS product_name,t.name AS tier_name FROM {$licenses} l LEFT JOIN {$products} p ON p.id=l.product_id LEFT JOIN {$tiers} t ON t.id=l.tier_id WHERE LOWER(l.customer_email)=LOWER(%s) ORDER BY l.id DESC LIMIT 200",$email));
+		echo '<h2>'.esc_html__('Licenses','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID / prefix</th><th>'.esc_html__('Product / tier','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Expires','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($license_rows as $row) echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-licenses&view_license='.(int)$row->id)).'">#'.(int)$row->id.' · '.esc_html($row->key_prefix).'…</a></td><td>'.esc_html(($row->product_name?:'—').' / '.($row->tier_name?:'—')).'</td><td>'.esc_html($row->status).'</td><td>'.esc_html($row->expires_at?:__('Never','dropkey-v2')).'</td></tr>';
+		if (!$license_rows) echo '<tr><td colspan="4">'.esc_html__('No licenses found.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		$subscription_rows=$wpdb->get_results($wpdb->prepare("SELECT s.*,o.id AS original_order_id,p.name AS product_name,t.name AS tier_name FROM {$subs} s INNER JOIN {$orders} o ON o.id=s.order_id LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id WHERE LOWER(o.customer_email)=LOWER(%s) ORDER BY s.id DESC LIMIT 200",$email));
+		echo '<h2>'.esc_html__('Subscriptions','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Product / tier','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Next renewal / paid through','dropkey-v2').'</th><th>'.esc_html__('License','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($subscription_rows as $row) echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-subscriptions&view_subscription='.(int)$row->id)).'">#'.(int)$row->id.'</a></td><td>'.esc_html(($row->product_name?:'—').' / '.($row->tier_name?:'—')).'</td><td>'.esc_html($row->status).'</td><td>'.esc_html($row->current_period_end?:__('Not reported','dropkey-v2')).'</td><td><a href="'.esc_url(admin_url('admin.php?page=dk2-licenses&view_license='.(int)$row->license_id)).'">#'.(int)$row->license_id.'</a></td></tr>';
+		if (!$subscription_rows) echo '<tr><td colspan="5">'.esc_html__('No subscriptions found.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>'; $this->footer();
+	}
+
+	public function customers() {
+		if (!current_user_can('manage_options')) return;
+		global $wpdb;
+		$email=isset($_GET['customer_email'])?sanitize_email(wp_unslash($_GET['customer_email'])):'';
+		if (''!==$email && is_email($email)) { $this->customer_detail($email); return; }
+		$orders=Database::table('orders'); $licenses=Database::table('licenses');
+		$this->header(__('Customers','dropkey-v2'),__('Find a customer once and view their orders, recurring subscriptions, and licenses together.','dropkey-v2'));
+		$emails=$wpdb->get_col("SELECT customer_email FROM {$orders} UNION SELECT customer_email FROM {$licenses} ORDER BY customer_email LIMIT 200");
+		echo '<table class="widefat striped"><thead><tr><th>'.esc_html__('Customer email','dropkey-v2').'</th><th>'.esc_html__('Orders','dropkey-v2').'</th><th>'.esc_html__('Licenses','dropkey-v2').'</th><th>'.esc_html__('Subscriptions','dropkey-v2').'</th><th>'.esc_html__('Last order','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($emails as $customer_email) {
+			$order_count=(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$orders} WHERE LOWER(customer_email)=LOWER(%s)",$customer_email));
+			$license_count=(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$licenses} WHERE LOWER(customer_email)=LOWER(%s)",$customer_email));
+			$subscription_count=(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM ".Database::table('subscriptions')." s INNER JOIN {$orders} o ON o.id=s.order_id WHERE LOWER(o.customer_email)=LOWER(%s)",$customer_email));
+			$last_order=$wpdb->get_var($wpdb->prepare("SELECT MAX(created_at) FROM {$orders} WHERE LOWER(customer_email)=LOWER(%s)",$customer_email));
+			echo '<tr><td><a href="'.esc_url(add_query_arg(array('page'=>'dk2-customers','customer_email'=>$customer_email),admin_url('admin.php'))).'">'.esc_html($customer_email).'</a></td><td>'.number_format_i18n($order_count).'</td><td>'.number_format_i18n($license_count).'</td><td>'.number_format_i18n($subscription_count).'</td><td>'.esc_html($last_order?:'—').'</td></tr>';
+		}
+		if (!$emails) echo '<tr><td colspan="5">'.esc_html__('No customers yet. Completed purchases and issued licenses will appear here.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>'; $this->footer();
+	}
+
 	public function products() {
 		if (!current_user_can('manage_options')) return;
 		$id=isset($_GET['edit'])?absint($_GET['edit']):0; $r=$id?(new Product_Repository())->get($id):null;
@@ -133,7 +211,8 @@ final class Admin {
 	public function licenses() {
 		if (!current_user_can('manage_options')) return;
 		global $wpdb;
-		$this->header(__('Licenses','dropkey-v2'),__('Issue test or manually granted licenses for published products and tiers. The full purchase, subscription, and customer-email lifecycle is not implemented yet.','dropkey-v2'));
+		if (isset($_GET['view_license'])) { $this->license_detail(absint($_GET['view_license'])); return; }
+		$this->header(__('Licenses','dropkey-v2'),__('Issue or review licenses, and follow each license back to its customer, purchase orders, and subscription.','dropkey-v2'));
 		if (isset($_GET['reveal_license'])) {
 			$reveal_id=absint($_GET['reveal_license']);
 			$nonce=isset($_GET['_wpnonce'])?sanitize_text_field(wp_unslash($_GET['_wpnonce'])):'';
@@ -149,7 +228,7 @@ final class Admin {
 		$this->form_start('license'); echo '<table class="form-table"><tr><th>'.esc_html__('Product','dropkey-v2').'</th><td>'; $this->product_options(); echo '</td></tr><tr><th>'.esc_html__('Tier','dropkey-v2').'</th><td>'; $this->tier_options(); echo '</td></tr><tr><th><label>'.esc_html__('Customer email','dropkey-v2').'</label></th><td><input required type="email" class="regular-text" name="customer_email"></td></tr><tr><th>'.esc_html__('Billing option','dropkey-v2').'</th><td>'; global $wpdb; $opts=Database::table('billing_options'); $tiers=Database::table('tiers'); $products=Database::table('products'); $all=$wpdb->get_results("SELECT b.*,t.name AS tier_name,p.name AS product_name FROM {$opts} b INNER JOIN {$tiers} t ON t.id=b.tier_id INNER JOIN {$products} p ON p.id=t.product_id WHERE b.status='published' ORDER BY p.name,t.name,b.id"); echo '<select name="billing_option_id"><option value="0">'.esc_html__('Not specified','dropkey-v2').'</option>'; foreach($all as $x) echo '<option value="'.(int)$x->id.'">'.esc_html($x->product_name.' — '.$x->tier_name.' — '.$x->billing_type).'</option>'; echo '</select></td></tr><tr><th><label>'.esc_html__('Expiration (optional)','dropkey-v2').'</label></th><td><input type="date" name="expires_at"></td></tr></table><p><button class="button button-primary">'.esc_html__('Issue license','dropkey-v2').'</button></p></form>';
 		$lt=Database::table('licenses'); $rows=$wpdb->get_results("SELECT l.*,p.name AS product_name,t.name AS tier_name FROM {$lt} l LEFT JOIN {$products} p ON p.id=l.product_id LEFT JOIN {$tiers} t ON t.id=l.tier_id ORDER BY l.id DESC LIMIT 200");
 		echo '<h2>'.esc_html__('Existing licenses','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID / key prefix</th><th>'.esc_html__('Customer','dropkey-v2').'</th><th>'.esc_html__('Product / tier','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Expires','dropkey-v2').'</th><th>'.esc_html__('Actions','dropkey-v2').'</th></tr></thead><tbody>';
-		foreach($rows as $x) { echo '<tr><td>'.(int)$x->id.'<br><code>'.esc_html($x->key_prefix).'…</code></td><td>'.esc_html($x->customer_email).'</td><td>'.esc_html($x->product_name.' / '.$x->tier_name).'</td><td>'.esc_html($x->status).'</td><td>'.esc_html($x->expires_at?$x->expires_at:__('Never','dropkey-v2')).'</td><td>';
+		foreach($rows as $x) { echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-licenses&view_license='.(int)$x->id)).'">'.(int)$x->id.'</a><br><code>'.esc_html($x->key_prefix).'…</code></td><td>'.esc_html($x->customer_email).'</td><td>'.esc_html($x->product_name.' / '.$x->tier_name).'</td><td>'.esc_html($x->status).'</td><td>'.esc_html($x->expires_at?$x->expires_at:__('Never','dropkey-v2')).'</td><td>';
 			echo '<p><a class="button button-small" href="'.esc_url(wp_nonce_url(add_query_arg(array('page'=>'dk2-licenses','reveal_license'=>(int)$x->id),admin_url('admin.php')),'dk2_reveal_license_'.(int)$x->id)).'">'.esc_html__('Reveal key','dropkey-v2').'</a></p>';
 			foreach(array('active'=>__('Reactivate','dropkey-v2'),'suspended'=>__('Suspend','dropkey-v2'),'revoked'=>__('Revoke','dropkey-v2'),'expired'=>__('Mark expired','dropkey-v2')) as $status=>$label) { $this->form_start('license_status'); echo '<input type="hidden" name="id" value="'.(int)$x->id.'"><input type="hidden" name="status" value="'.esc_attr($status).'"><button class="button button-small">'.esc_html($label).'</button></form> '; }
 			$this->form_start('download_link'); echo '<input type="hidden" name="license_id" value="'.(int)$x->id.'"><label>'.esc_html__('Release','dropkey-v2').' <select name="release_id">'; $rels=Database::table('releases'); $available=$wpdb->get_results($wpdb->prepare("SELECT id,version FROM {$rels} WHERE product_id=%d AND status='published' ORDER BY id DESC",$x->product_id)); foreach($available as $rel) echo '<option value="'.(int)$rel->id.'">'.esc_html($rel->version).'</option>'; echo '</select></label> <button class="button button-small">'.esc_html__('Create download link','dropkey-v2').'</button></form></td></tr>';
@@ -171,15 +250,98 @@ final class Admin {
 		echo '<h2>'.esc_html__('PayPal','dropkey-v2').'</h2><table class="form-table"><tr><th>'.esc_html__('Enable PayPal','dropkey-v2').'</th><td><label><input type="checkbox" name="paypal_enabled" value="1" '.checked(isset($paypal['enabled'])?$paypal['enabled']:'0','1',false).'> '.esc_html__('Allow customers to pay through PayPal','dropkey-v2').'</label></td></tr><tr><th>'.esc_html__('Environment','dropkey-v2').'</th><td><label><input type="checkbox" name="paypal_live_mode" value="1" '.checked(isset($paypal['live_mode'])?$paypal['live_mode']:'0','1',false).'> '.esc_html__('Live mode (leave unchecked for sandbox)','dropkey-v2').'</label></td></tr><tr><th><label>'.esc_html__('Client ID','dropkey-v2').'</label></th><td><input type="text" class="regular-text" name="paypal_client_id" autocomplete="off" placeholder="'.esc_attr(!empty($paypal['client_id'])?__('Saved — leave blank to keep current value','dropkey-v2'):__('Paste PayPal client ID','dropkey-v2')).'"></td></tr><tr><th><label>'.esc_html__('Client secret','dropkey-v2').'</label></th><td><input type="password" class="regular-text" name="paypal_secret" autocomplete="new-password" placeholder="'.esc_attr(!empty($paypal['secret'])?__('Saved — leave blank to keep current value','dropkey-v2'):__('Paste PayPal client secret','dropkey-v2')).'"></td></tr><tr><th><label>'.esc_html__('Webhook ID','dropkey-v2').'</label></th><td><input type="text" class="regular-text" name="paypal_webhook_id" placeholder="'.esc_attr(!empty($paypal['webhook_id'])?__('Saved — leave blank to keep current value','dropkey-v2'):__('Paste webhook ID','dropkey-v2')).'"><p class="description">'.esc_html__('Webhook endpoint:','dropkey-v2').' <code>'.esc_html(rest_url('dropkey/v1/webhooks/paypal')).'</code></p></td></tr></table><p><button class="button button-primary">'.esc_html__('Save payment settings','dropkey-v2').'</button></p></form>';
 		$this->footer();
 	}
+
+	private function order_detail($id) {
+		global $wpdb;
+		$orders=Database::table('orders'); $products=Database::table('products'); $tiers=Database::table('tiers'); $billing=Database::table('billing_options');
+		$order=$wpdb->get_row($wpdb->prepare("SELECT o.*,p.name AS product_name,t.name AS tier_name,b.billing_type FROM {$orders} o LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id LEFT JOIN {$billing} b ON b.id=o.billing_option_id WHERE o.id=%d",$id));
+		if (!$order) { $this->header(__('Order not found','dropkey-v2'),__('This order may have been removed or the link is invalid.','dropkey-v2')); echo '<p><a href="'.esc_url(admin_url('admin.php?page=dk2-orders')).'">'.esc_html__('Back to orders','dropkey-v2').'</a></p>'; $this->footer(); return; }
+		$sub=null;
+		if (!empty($order->subscription_id)) $sub=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".Database::table('subscriptions')." WHERE id=%d",(int)$order->subscription_id));
+		if (!$sub) $sub=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".Database::table('subscriptions')." WHERE order_id=%d LIMIT 1",(int)$order->id));
+		$this->header(sprintf(__('Order %s','dropkey-v2'),substr($order->public_id,0,8)),__('A connected view of this transaction, its customer, subscription, license, and payment references.','dropkey-v2'));
+		echo '<p>'.esc_html__('Customer:','dropkey-v2').' <a href="'.esc_url(add_query_arg(array('page'=>'dk2-customers','customer_email'=>$order->customer_email),admin_url('admin.php'))).'">'.esc_html($order->customer_email).'</a></p>';
+		echo '<p><a href="'.esc_url(admin_url('admin.php?page=dk2-orders')).'">← '.esc_html__('All orders','dropkey-v2').'</a></p>';
+		echo '<div class="dk2-dashboard-stats"><div class="dk2-stat-card"><span>'.esc_html__('Order status','dropkey-v2').'</span><strong>'.esc_html($order->status).'</strong></div><div class="dk2-stat-card"><span>'.esc_html__('Order type','dropkey-v2').'</span><strong>'.esc_html('renewal'===$order->order_type?__('Renewal','dropkey-v2'):__('Initial purchase','dropkey-v2')).'</strong></div><div class="dk2-stat-card"><span>'.esc_html__('Total','dropkey-v2').'</span><strong>'.esc_html(strtoupper($order->currency).' '.number_format((float)$order->amount,2)).'</strong></div></div>';
+		echo '<h2>'.esc_html__('Order details','dropkey-v2').'</h2><table class="widefat striped"><tbody>';
+		$details=array(__('Order reference','dropkey-v2')=>$order->public_id,__('Created','dropkey-v2')=>$order->created_at,__('Customer','dropkey-v2')=>trim($order->customer_first_name.' '.$order->customer_last_name).' · '.$order->customer_email,__('Product / tier','dropkey-v2')=>$order->product_name.' / '.$order->tier_name,__('Billing cycle','dropkey-v2')=>$order->billing_type?ucfirst($order->billing_type):'—',__('Payment provider','dropkey-v2')=>$order->gateway,__('Provider order ID','dropkey-v2')=>$order->gateway_order_id?:'—',__('Provider payment ID','dropkey-v2')=>$order->gateway_payment_id?:'—');
+		foreach($details as $label=>$value) echo '<tr><th style="width:220px">'.esc_html($label).'</th><td>'.esc_html((string)$value).'</td></tr>';
+		if (!empty($order->parent_order_id)) echo '<tr><th>'.esc_html__('Original order','dropkey-v2').'</th><td><a href="'.esc_url(admin_url('admin.php?page=dk2-orders&view_order='.(int)$order->parent_order_id)).'">#'.(int)$order->parent_order_id.' · '.esc_html__('View original order','dropkey-v2').'</a></td></tr>';
+		if ($sub) echo '<tr><th>'.esc_html__('Subscription','dropkey-v2').'</th><td><a href="'.esc_url(admin_url('admin.php?page=dk2-subscriptions&view_subscription='.(int)$sub->id)).'">#'.(int)$sub->id.' · '.esc_html($sub->status).' · '.esc_html__('Paid through','dropkey-v2').' '.esc_html($sub->current_period_end?:__('Not reported','dropkey-v2')).'</a></td></tr>';
+		if (!empty($order->license_id)) echo '<tr><th>'.esc_html__('License','dropkey-v2').'</th><td><a href="'.esc_url(admin_url('admin.php?page=dk2-licenses&view_license='.(int)$order->license_id)).'">#'.(int)$order->license_id.' · '.esc_html__('View linked license','dropkey-v2').'</a></td></tr>';
+		echo '</tbody></table>';
+		$payments=Database::table('payments'); $payment_rows=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$payments} WHERE order_id=%d ORDER BY id DESC",(int)$order->id));
+		echo '<h2>'.esc_html__('Payment records','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Provider payment ID','dropkey-v2').'</th><th>'.esc_html__('Amount','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Recorded','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($payment_rows as $pay) echo '<tr><td>'.(int)$pay->id.'</td><td><code>'.esc_html($pay->gateway_payment_id).'</code></td><td>'.esc_html($pay->currency.' '.number_format((float)$pay->amount,2)).'</td><td>'.esc_html($pay->status).'</td><td>'.esc_html($pay->created_at).'</td></tr>';
+		if (!$payment_rows) echo '<tr><td colspan="5">'.esc_html__('No payment records have been linked to this order yet.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		$related=$wpdb->get_results($wpdb->prepare("SELECT id,public_id,order_type,status,amount,currency,created_at FROM {$orders} WHERE id=%d OR parent_order_id=%d OR subscription_id=%d ORDER BY id ASC",(int)$order->id,(int)($order->parent_order_id?:$order->id),(int)($sub?$sub->id:($order->subscription_id?:0))));
+		echo '<h2>'.esc_html__('Related order history','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Type','dropkey-v2').'</th><th>'.esc_html__('Date','dropkey-v2').'</th><th>'.esc_html__('Amount','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($related as $rel) echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-orders&view_order='.(int)$rel->id)).'">#'.(int)$rel->id.' · '.esc_html(substr($rel->public_id,0,8)).'…</a></td><td>'.esc_html('renewal'===$rel->order_type?__('Renewal','dropkey-v2'):__('Initial purchase','dropkey-v2')).'</td><td>'.esc_html($rel->created_at).'</td><td>'.esc_html($rel->currency.' '.number_format((float)$rel->amount,2)).'</td><td>'.esc_html($rel->status).'</td></tr>';
+		echo '</tbody></table>'; $this->footer();
+	}
+
+	private function subscription_detail($id) {
+		global $wpdb;
+		$subs=Database::table('subscriptions'); $orders=Database::table('orders'); $licenses=Database::table('licenses'); $products=Database::table('products'); $tiers=Database::table('tiers');
+		$sub=$wpdb->get_row($wpdb->prepare("SELECT s.*,o.public_id,o.customer_email,o.product_id,o.tier_id,o.billing_option_id,o.customer_user_id,o.amount,o.currency,o.gateway_order_id AS original_gateway_order_id,p.name AS product_name,t.name AS tier_name,l.status AS license_status,l.expires_at FROM {$subs} s LEFT JOIN {$orders} o ON o.id=s.order_id LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id LEFT JOIN {$licenses} l ON l.id=s.license_id WHERE s.id=%d",$id));
+		if (!$sub) { $this->header(__('Subscription not found','dropkey-v2'),__('This subscription may have been removed or the link is invalid.','dropkey-v2')); echo '<p><a href="'.esc_url(admin_url('admin.php?page=dk2-subscriptions')).'">'.esc_html__('Back to subscriptions','dropkey-v2').'</a></p>'; $this->footer(); return; }
+		$this->header(sprintf(__('Subscription #%d','dropkey-v2'),(int)$sub->id),__('Subscription lifecycle, paid-through date, linked license, original purchase, and every renewal order.','dropkey-v2'));
+		echo '<p>'.esc_html__('Customer:','dropkey-v2').' <a href="'.esc_url(add_query_arg(array('page'=>'dk2-customers','customer_email'=>$sub->customer_email),admin_url('admin.php'))).'">'.esc_html($sub->customer_email).'</a></p>';
+		echo '<p><a href="'.esc_url(admin_url('admin.php?page=dk2-subscriptions')).'">← '.esc_html__('All subscriptions','dropkey-v2').'</a></p>';
+		echo '<div class="dk2-dashboard-stats"><div class="dk2-stat-card"><span>'.esc_html__('Status','dropkey-v2').'</span><strong>'.esc_html($sub->status).'</strong></div><div class="dk2-stat-card"><span>'.esc_html__('Paid through / next renewal','dropkey-v2').'</span><strong>'.esc_html($sub->current_period_end?:__('Not reported','dropkey-v2')).'</strong></div><div class="dk2-stat-card"><span>'.esc_html__('Grace deadline','dropkey-v2').'</span><strong>'.esc_html($sub->grace_until?:'—').'</strong></div></div>';
+		echo '<table class="widefat striped"><tbody>';
+		$details=array(__('Customer','dropkey-v2')=>$sub->customer_email,__('Product / tier','dropkey-v2')=>$sub->product_name.' / '.$sub->tier_name,__('Provider','dropkey-v2')=>$sub->gateway,__('Provider subscription ID','dropkey-v2')=>$sub->gateway_subscription_id,__('Cancellation','dropkey-v2')=>!empty($sub->cancel_at_period_end)?__('At period end','dropkey-v2'):__('Not scheduled','dropkey-v2'),__('License status','dropkey-v2')=>$sub->license_status?:'—',__('License expiry','dropkey-v2')=>$sub->expires_at?:__('No expiry date','dropkey-v2'));
+		foreach($details as $label=>$value) echo '<tr><th style="width:220px">'.esc_html($label).'</th><td>'.esc_html((string)$value).'</td></tr>';
+		if (!empty($sub->order_id)) echo '<tr><th>'.esc_html__('Original order','dropkey-v2').'</th><td><a href="'.esc_url(admin_url('admin.php?page=dk2-orders&view_order='.(int)$sub->order_id)).'">#'.(int)$sub->order_id.' · '.esc_html__('View initial purchase','dropkey-v2').'</a></td></tr>';
+		if (!empty($sub->license_id)) echo '<tr><th>'.esc_html__('License','dropkey-v2').'</th><td><a href="'.esc_url(admin_url('admin.php?page=dk2-licenses&view_license='.(int)$sub->license_id)).'">#'.(int)$sub->license_id.' · '.esc_html__('View license','dropkey-v2').'</a></td></tr>';
+		echo '</tbody></table>';
+		$rows=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d OR subscription_id=%d OR parent_order_id=%d ORDER BY id ASC",(int)$sub->order_id,(int)$sub->id,(int)$sub->order_id));
+		echo '<h2>'.esc_html__('Order and renewal history','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>'.esc_html__('Order','dropkey-v2').'</th><th>'.esc_html__('Type','dropkey-v2').'</th><th>'.esc_html__('Date','dropkey-v2').'</th><th>'.esc_html__('Amount','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($rows as $row) echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-orders&view_order='.(int)$row->id)).'">#'.(int)$row->id.' · '.esc_html(substr($row->public_id,0,8)).'…</a></td><td>'.esc_html('renewal'===$row->order_type?__('Renewal','dropkey-v2'):__('Initial purchase','dropkey-v2')).'</td><td>'.esc_html($row->created_at).'</td><td>'.esc_html($row->currency.' '.number_format((float)$row->amount,2)).'</td><td>'.esc_html($row->status).'</td></tr>';
+		if (!$rows) echo '<tr><td colspan="5">'.esc_html__('No order history is linked to this subscription yet.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		if (in_array($sub->status,array('active','past_due'),true)&&!empty($sub->current_period_end)&&empty($sub->cancel_at_period_end)) { $this->form_start('subscription_cancel'); echo '<input type="hidden" name="subscription_id" value="'.(int)$sub->id.'"><button class="button button-secondary" onclick="return confirm(\''.esc_js(__('Schedule cancellation at the end of the current paid period?','dropkey-v2')).'\')">'.esc_html__('Cancel at period end','dropkey-v2').'</button></form>'; }
+		$this->footer();
+	}
+
+	private function license_detail($id) {
+		global $wpdb;
+		$licenses=Database::table('licenses'); $products=Database::table('products'); $tiers=Database::table('tiers'); $orders=Database::table('orders');
+		$license=$wpdb->get_row($wpdb->prepare("SELECT l.*,p.name AS product_name,t.name AS tier_name FROM {$licenses} l LEFT JOIN {$products} p ON p.id=l.product_id LEFT JOIN {$tiers} t ON t.id=l.tier_id WHERE l.id=%d",$id));
+		if (!$license) { $this->header(__('License not found','dropkey-v2'),__('This license may have been removed or the link is invalid.','dropkey-v2')); echo '<p><a href="'.esc_url(admin_url('admin.php?page=dk2-licenses')).'">'.esc_html__('Back to licenses','dropkey-v2').'</a></p>'; $this->footer(); return; }
+		$this->header(sprintf(__('License #%d','dropkey-v2'),(int)$license->id),__('License status, expiration, original purchase, subscription, and activations in one place.','dropkey-v2'));
+		echo '<p>'.esc_html__('Customer:','dropkey-v2').' <a href="'.esc_url(add_query_arg(array('page'=>'dk2-customers','customer_email'=>$license->customer_email),admin_url('admin.php'))).'">'.esc_html($license->customer_email).'</a></p>';
+		echo '<p><a href="'.esc_url(admin_url('admin.php?page=dk2-licenses')).'">← '.esc_html__('All licenses','dropkey-v2').'</a></p>';
+		echo '<div class="dk2-dashboard-stats"><div class="dk2-stat-card"><span>'.esc_html__('Status','dropkey-v2').'</span><strong>'.esc_html($license->status).'</strong></div><div class="dk2-stat-card"><span>'.esc_html__('Expires','dropkey-v2').'</span><strong>'.esc_html($license->expires_at?:__('Never','dropkey-v2')).'</strong></div><div class="dk2-stat-card"><span>'.esc_html__('Key prefix','dropkey-v2').'</span><strong>'.esc_html($license->key_prefix).'…</strong></div></div>';
+		echo '<table class="widefat striped"><tbody>';
+		$details=array(__('Customer','dropkey-v2')=>$license->customer_email,__('Product / tier','dropkey-v2')=>$license->product_name.' / '.$license->tier_name,__('Created','dropkey-v2')=>$license->created_at,__('Updated','dropkey-v2')=>$license->updated_at);
+		foreach($details as $label=>$value) echo '<tr><th style="width:220px">'.esc_html($label).'</th><td>'.esc_html((string)$value).'</td></tr>';
+		echo '</tbody></table>';
+		$sub=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".Database::table('subscriptions')." WHERE license_id=%d ORDER BY id DESC LIMIT 1",(int)$license->id));
+		if ($sub) echo '<h2>'.esc_html__('Subscription','dropkey-v2').'</h2><p><a href="'.esc_url(admin_url('admin.php?page=dk2-subscriptions&view_subscription='.(int)$sub->id)).'">#'.(int)$sub->id.' · '.esc_html($sub->status).' · '.esc_html__('Paid through','dropkey-v2').' '.esc_html($sub->current_period_end?:__('Not reported','dropkey-v2')).'</a></p>';
+		$related=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$orders} WHERE license_id=%d ORDER BY id ASC",(int)$license->id));
+		echo '<h2>'.esc_html__('Related orders','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Type','dropkey-v2').'</th><th>'.esc_html__('Date','dropkey-v2').'</th><th>'.esc_html__('Amount','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($related as $row) echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-orders&view_order='.(int)$row->id)).'">#'.(int)$row->id.'</a></td><td>'.esc_html('renewal'===$row->order_type?__('Renewal','dropkey-v2'):__('Initial purchase','dropkey-v2')).'</td><td>'.esc_html($row->created_at).'</td><td>'.esc_html($row->currency.' '.number_format((float)$row->amount,2)).'</td><td>'.esc_html($row->status).'</td></tr>';
+		if (!$related) echo '<tr><td colspan="5">'.esc_html__('No linked orders were found.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		$acts=Database::table('activations'); $activations=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$acts} WHERE license_id=%d ORDER BY id DESC",(int)$license->id));
+		echo '<h2>'.esc_html__('Website activations','dropkey-v2').'</h2><table class="widefat striped"><thead><tr><th>ID</th><th>'.esc_html__('Site','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Activated','dropkey-v2').'</th><th>'.esc_html__('Last seen','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($activations as $act) echo '<tr><td>'.(int)$act->id.'</td><td>'.esc_html($act->site_url).'</td><td>'.esc_html($act->status).'</td><td>'.esc_html($act->activated_at).'</td><td>'.esc_html($act->last_seen_at?:'—').'</td></tr>';
+		if (!$activations) echo '<tr><td colspan="5">'.esc_html__('No website activations.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>'; $this->footer();
+	}
+
 	public function orders() {
 		if (!current_user_can('manage_options')) return;
 		global $wpdb; $orders=Database::table('orders'); $products=Database::table('products'); $tiers=Database::table('tiers'); $emails=Database::table('email_queue');
+		if (isset($_GET['view_order'])) { $this->order_detail(absint($_GET['view_order'])); return; }
 		$this->header(__('Orders','dropkey-v2'),__('Review checkout orders and transactional email delivery. Payment-provider events are processed idempotently; a browser return alone does not grant paid access.','dropkey-v2'));
 		$rows=$wpdb->get_results("SELECT o.*,p.name AS product_name,t.name AS tier_name FROM {$orders} o LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id ORDER BY o.id DESC LIMIT 200");
 		echo '<table class="widefat striped"><thead><tr><th>'.esc_html__('Order','dropkey-v2').'</th><th>'.esc_html__('Customer','dropkey-v2').'</th><th>'.esc_html__('Product / tier','dropkey-v2').'</th><th>'.esc_html__('Amount','dropkey-v2').'</th><th>'.esc_html__('Gateway','dropkey-v2').'</th><th>'.esc_html__('Order status','dropkey-v2').'</th><th>'.esc_html__('Email delivery','dropkey-v2').'</th></tr></thead><tbody>';
 		foreach($rows as $row) {
 			$mail=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$emails} WHERE order_id=%d ORDER BY id DESC LIMIT 1",$row->id));
-			echo '<tr><td><code>'.esc_html(substr($row->public_id,0,8)).'…</code><br><small>'.esc_html($row->created_at).'</small></td><td>'.esc_html($row->customer_email).'</td><td>'.esc_html($row->product_name.' / '.$row->tier_name).'</td><td>'.esc_html($row->currency.' '.number_format((float)$row->amount,2)).'</td><td>'.esc_html($row->gateway).'</td><td><span class="dk2-status dk2-status-'.esc_attr(sanitize_html_class($row->status)).'">'.esc_html($row->status).'</span></td><td>';
+			echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-orders&view_order='.(int)$row->id)).'"><code>'.esc_html(substr($row->public_id,0,8)).'…</code></a><br><small>'.esc_html($row->created_at).'</small><br><small>'.esc_html('renewal'===$row->order_type?__('Renewal','dropkey-v2'):__('Initial','dropkey-v2')).'</small></td><td><a href="'.esc_url(add_query_arg(array('page'=>'dk2-customers','customer_email'=>$row->customer_email),admin_url('admin.php'))).'">'.esc_html($row->customer_email).'</a></td><td>'.esc_html($row->product_name.' / '.$row->tier_name).'</td><td>'.esc_html($row->currency.' '.number_format((float)$row->amount,2)).'</td><td>'.esc_html($row->gateway).'</td><td><span class="dk2-status dk2-status-'.esc_attr(sanitize_html_class($row->status)).'">'.esc_html($row->status).'</span></td><td>';
 			if (!$mail) echo esc_html__('Not queued','dropkey-v2');
 			else { echo '<span class="dk2-status dk2-status-'.esc_attr(sanitize_html_class($mail->status)).'">'.esc_html($mail->status).'</span>'; if ('failed'===$mail->status) { $this->form_start('email_resend'); echo '<input type="hidden" name="email_id" value="'.(int)$mail->id.'"><button class="button button-small">'.esc_html__('Retry email','dropkey-v2').'</button></form>'; } }
 			echo '</td></tr>';
@@ -198,6 +360,45 @@ final class Admin {
 			echo '</td></tr>';
 		}
 		if (!$subscription_rows) echo '<tr><td colspan="6">'.esc_html__('No subscriptions yet.','dropkey-v2').'</td></tr>';
+		echo '</tbody></table>';
+		$this->footer();
+	}
+
+
+	public function subscriptions() {
+		if (!current_user_can('manage_options')) return;
+		global $wpdb;
+		$subs=Database::table('subscriptions'); $orders=Database::table('orders'); $products=Database::table('products'); $tiers=Database::table('tiers'); $licenses=Database::table('licenses');
+		if (isset($_GET['view_subscription'])) { $this->subscription_detail(absint($_GET['view_subscription'])); return; }
+		$this->header(__('Subscriptions','dropkey-v2'),__('Manage recurring customer subscriptions. Payment status is synchronized from verified provider webhooks; cancellation requests are sent to the payment provider and take effect at the end of the paid period.','dropkey-v2'));
+		$counts=$wpdb->get_results("SELECT status,COUNT(*) AS total FROM {$subs} GROUP BY status");
+		echo '<div class="dk2-dashboard-stats">';
+		foreach(array('active'=>__('Active','dropkey-v2'),'past_due'=>__('Past due','dropkey-v2'),'cancel_pending'=>__('Cancel scheduled','dropkey-v2'),'cancelled'=>__('Cancelled','dropkey-v2')) as $key=>$label) {
+			$total=0; foreach($counts as $count) if ($key===$count->status) $total=(int)$count->total;
+			echo '<div class="dk2-stat-card"><span>'.esc_html($label).'</span><strong>'.number_format_i18n($total).'</strong></div>';
+		}
+		echo '</div>';
+		$rows=$wpdb->get_results("SELECT s.*,o.public_id,o.customer_email,o.amount,o.currency,o.status AS order_status,o.created_at AS order_created,p.name AS product_name,t.name AS tier_name,l.status AS license_status,l.expires_at FROM {$subs} s LEFT JOIN {$orders} o ON o.id=s.order_id LEFT JOIN {$products} p ON p.id=o.product_id LEFT JOIN {$tiers} t ON t.id=o.tier_id LEFT JOIN {$licenses} l ON l.id=s.license_id ORDER BY s.id DESC LIMIT 500");
+		echo '<p>'.esc_html__('Latest 500 subscription records. Change payment status in the provider dashboard and let its verified webhook update DropKey.','dropkey-v2').'</p>';
+		echo '<table class="widefat striped"><thead><tr><th>'.esc_html__('ID / customer','dropkey-v2').'</th><th>'.esc_html__('Product / tier','dropkey-v2').'</th><th>'.esc_html__('Billing','dropkey-v2').'</th><th>'.esc_html__('Provider subscription','dropkey-v2').'</th><th>'.esc_html__('Status','dropkey-v2').'</th><th>'.esc_html__('Paid through','dropkey-v2').'</th><th>'.esc_html__('License','dropkey-v2').'</th><th>'.esc_html__('Actions','dropkey-v2').'</th></tr></thead><tbody>';
+		foreach($rows as $sub) {
+			$cancel_scheduled=!empty($sub->cancel_at_period_end)||'cancel_pending'===$sub->status;
+			echo '<tr><td><a href="'.esc_url(admin_url('admin.php?page=dk2-subscriptions&view_subscription='.(int)$sub->id)).'"><strong>#'.(int)$sub->id.'</strong></a><br><a href="'.esc_url(add_query_arg(array('page'=>'dk2-customers','customer_email'=>$sub->customer_email),admin_url('admin.php'))).'">'.esc_html($sub->customer_email?$sub->customer_email:__('Customer unavailable','dropkey-v2')).'</a><br><small>'.esc_html($sub->order_created?$sub->order_created:'').'</small></td>';
+			echo '<td>'.esc_html(($sub->product_name?$sub->product_name:'—').' / '.($sub->tier_name?$sub->tier_name:'—')).'<br><small>'.esc_html__('Order:','dropkey-v2').' '.esc_html(substr((string)$sub->public_id,0,8)).'…</small></td>';
+			echo '<td>'.esc_html(strtoupper((string)$sub->currency).' '.number_format((float)$sub->amount,2)).'</td>';
+			echo '<td>'.esc_html($sub->gateway).'<br><code>'.esc_html($sub->gateway_subscription_id).'</code></td>';
+			echo '<td><span class="dk2-status dk2-status-'.esc_attr(sanitize_html_class($sub->status)).'">'.esc_html($sub->status).'</span><br><small>'.esc_html__('Order:','dropkey-v2').' '.esc_html($sub->order_status?$sub->order_status:'—').'</small></td>';
+			echo '<td>'.esc_html($sub->current_period_end?$sub->current_period_end:__('Not reported','dropkey-v2'));
+			if (!empty($sub->grace_until)) echo '<br><small>'.esc_html__('Grace until','dropkey-v2').': '.esc_html($sub->grace_until).'</small>';
+			echo '<br><small>'.($cancel_scheduled?esc_html__('Cancellation scheduled','dropkey-v2'):esc_html__('No scheduled cancellation','dropkey-v2')).'</small></td>';
+			echo '<td>'.esc_html($sub->license_status?$sub->license_status:'—').'<br><small>'.esc_html($sub->expires_at?$sub->expires_at:__('No expiry date','dropkey-v2')).'</small></td><td>';
+			if (in_array($sub->status,array('active','past_due'),true)&&!empty($sub->current_period_end)&&empty($sub->cancel_at_period_end)) {
+				$this->form_start('subscription_cancel'); echo '<input type="hidden" name="subscription_id" value="'.(int)$sub->id.'"><button class="button button-small" onclick="return confirm(\''.esc_js(__('Schedule cancellation at the end of the current paid period?','dropkey-v2')).'\')">'.esc_html__('Cancel at period end','dropkey-v2').'</button></form>';
+			} elseif ($cancel_scheduled) echo esc_html__('Cancellation scheduled','dropkey-v2');
+			else echo '—';
+			echo '</td></tr>';
+		}
+		if (!$rows) echo '<tr><td colspan="8">'.esc_html__('No subscriptions yet. Recurring subscriptions will appear here after a verified checkout webhook.','dropkey-v2').'</td></tr>';
 		echo '</tbody></table>';
 		$this->footer();
 	}
@@ -257,7 +458,7 @@ final class Admin {
 			Logger::info('admin','logs_cleared','Administrator cleared the DropKey log history');
 			wp_safe_redirect(add_query_arg(array('page'=>'dk2-logs','dk2_notice'=>'logs_cleared'),admin_url('admin.php'))); exit;
 		} elseif ('dk2_subscription_cancel'===$action) {
-			$page='dk2-orders'; $result=(new Commerce_Service())->request_cancel_subscription(absint($_POST['subscription_id']??0)); if (!is_wp_error($result)) { Logger::info('admin','admin_action_completed','Admin action completed',array('action'=>$action,'record_id'=>$id)); $this->redirect($page,'saved'); }
+			$page='dk2-subscriptions'; $subscription_id=absint($_POST['subscription_id']??0); $result=(new Commerce_Service())->request_cancel_subscription($subscription_id); if (!is_wp_error($result)) { Logger::info('admin','admin_action_completed','Admin action completed',array('action'=>$action,'record_id'=>$subscription_id)); $this->redirect($page,'saved'); }
 		} elseif ('dk2_gateway_settings'===$action) {
 			$page='dk2-settings'; $all=get_option('dk2_payment_settings',array()); $all=is_array($all)?$all:array();
 			$stripe=isset($all['stripe'])?$all['stripe']:array(); $paypal=isset($all['paypal'])?$all['paypal']:array();

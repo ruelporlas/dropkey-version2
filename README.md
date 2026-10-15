@@ -19,10 +19,12 @@ DropKey V2 manages digital products, tiered licensing, private versioned ZIP rel
 4. Under **DropKey → Billing Options**, create and publish free, one-time, monthly, or yearly options.
 5. Under **DropKey → ZIP Releases**, upload and publish a versioned ZIP. Paid and free checkout is blocked unless the product has a published release.
 6. Under **DropKey → Payment Settings**, configure test/sandbox credentials and webhook identifiers. Do not enable live payments until the complete checkout and webhook path has been tested.
-7. Create a WordPress page and place the shortcode `[dropkey_store]` in its content.
-8. Create a customer account page and place `[dropkey_account]` in its content. Customers must sign in to view account-linked records. Guest purchases are not automatically claimed by email; secure account linking remains pending.
+7. Create a WordPress page and place the shortcode `[dropkey_store]` in its content. The store lists each published plugin once; customers choose a plan and billing cycle on checkout.
+8. Create a customer account page and place `[dropkey_account]` in its content. Customers must sign in to view their account-linked orders, subscriptions, and licenses.
+9. Configure reliable outgoing WordPress email delivery (preferably through a transactional SMTP provider). DropKey queues purchase confirmations and retries failed sends, but actual inbox delivery depends on the site's mail configuration and cron execution.
+10. Test the full purchase flow using sandbox payments: plan selection and total, account creation/sign-in and account ownership, order confirmation details, purchase email, license activation, and recurring subscription webhooks.
 
-The public storefront lists published product tiers and billing options. Customers enter their email and continue to the provider-hosted payment page. DropKey does not store payment-card data.
+The public storefront lists published product tiers and billing options. **Guest checkout is disabled.** New customers must create a DropKey customer account before checkout; returning customers must sign in. Checkout is bound to the signed-in account email, and the order/license is linked to that account. Paid checkout continues to the provider-hosted payment page. DropKey does not store payment-card data.
 
 ### Stripe
 
@@ -71,7 +73,7 @@ Subscribe to the applicable events:
 
 DropKey asks PayPal to verify webhook signatures through PayPal's verification API. One-time checkout is captured server-side after the customer returns from PayPal, with the order reference, amount, and currency checked before fulfillment.
 
-**PayPal recurring plans:** create the product/plan in PayPal first, then paste the PayPal subscription Plan ID into the corresponding billing option. DropKey does not currently create PayPal catalog products or billing plans for you.
+**PayPal recurring plans:** DropKey automatically creates the PayPal catalog product and monthly/yearly billing plan the first time a recurring billing option is used, then saves the resulting Plan ID on that billing option. If the billing type, price, or currency changes, DropKey clears the stored Plan ID so the next checkout can provision a plan matching the updated terms. Test this provisioning in PayPal Sandbox before enabling live payments.
 
 ## Checkout and order lifecycle
 

@@ -128,4 +128,19 @@ $GLOBALS['dk2_mock_api_response']=array('response'=>array('code'=>200),'body'=>j
 $paypal_bad=$paypal_gateway->verify_webhook(new DropKey_Test_Request($paypal_raw,''));
 check_case($paypal_bad instanceof WP_Error&&'dk2_paypal_signature_invalid'===$paypal_bad->get_error_code(),'rejects PayPal webhook when provider verification fails');
 
+require_once dirname(__DIR__).'/includes/class-commerce-service.php';
+$commerce=new \DropKey\V2\Commerce_Service();
+$renewal_amount_check=new ReflectionMethod('DropKey'.chr(92).'V2'.chr(92).'Commerce_Service','validate_renewal_payment_amount');
+$renewal_amount_check->setAccessible(true);
+$renewal_base=(object)array('amount'=>12.50,'currency'=>'USD');
+$renewal_valid=$renewal_amount_check->invoke($commerce,$renewal_base,array('amount'=>12.50,'currency'=>'USD'));
+check_case(true===$renewal_valid,'accepts a renewal matching the original subscription amount and currency');
+$renewal_mismatch=$renewal_amount_check->invoke($commerce,$renewal_base,array('amount'=>0.01,'currency'=>'USD'));
+check_case($renewal_mismatch instanceof WP_Error&&'dk2_renewal_amount_mismatch'===$renewal_mismatch->get_error_code(),'rejects an underpaid recurring renewal');
+$renewal_zero=$renewal_amount_check->invoke($commerce,$renewal_base,array('amount'=>0,'currency'=>'USD'));
+check_case($renewal_zero instanceof WP_Error&&'dk2_renewal_amount_invalid'===$renewal_zero->get_error_code(),'rejects a zero-value recurring renewal');
+$renewal_currency=$renewal_amount_check->invoke($commerce,$renewal_base,array('amount'=>12.50,'currency'=>'EUR'));
+check_case($renewal_currency instanceof WP_Error&&'dk2_renewal_currency_mismatch'===$renewal_currency->get_error_code(),'rejects a renewal with a different currency');
+
 echo "All webhook and PHP client contract tests passed.\n";
+require_once __DIR__.'/customer-checkout-contract.php';
