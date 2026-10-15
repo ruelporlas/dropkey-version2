@@ -44,7 +44,8 @@ final class Customer_Account {
 			if ($key) echo '<code>'.esc_html($key).'</code><button type="button" class="dk2-account-copy" data-copy="'.esc_attr($key).'">'.esc_html__('Copy key','dropkey-v2').'</button>';
 			else echo '<code>'.esc_html($license->key_prefix).'…</code><p class="dk2-account-muted">'.esc_html__('This older key cannot be recovered from its stored hash. Contact the site administrator if you need a replacement.','dropkey-v2').'</p>';
 			echo '</div><div class="dk2-account-meta"><span>'.esc_html__('Issued','dropkey-v2').' '.esc_html(mysql2date(get_option('date_format'),$license->created_at)).'</span>';
-			if ($license->expires_at) echo '<span>'.esc_html__('Expires','dropkey-v2').' '.esc_html(mysql2date(get_option('date_format'),$license->expires_at)).'</span>';
+			$expiry=$license->expires_at?mysql2date(get_option('date_format'),$license->expires_at):__('Never (lifetime license)','dropkey-v2');
+			echo '<span>'.esc_html__('Expires','dropkey-v2').' '.esc_html($expiry).'</span>';
 			$active=count(array_filter($sites,function($site){return 'active'===$site->status;})); echo '<span>'.sprintf(esc_html__('%d active website(s)','dropkey-v2'),$active).'</span></div>';
 			if ($sites) { echo '<div class="dk2-account-sites"><h4>'.esc_html__('Activated websites','dropkey-v2').'</h4>'; foreach($sites as $site) { echo '<div class="dk2-account-site"><div><strong>'.esc_html($site->site_url).'</strong><span>'.esc_html(ucfirst($site->status)).'</span></div>'; if ('active'===$site->status) $this->form('deactivate_site',(int)$site->id,__('Deactivate','dropkey-v2')); echo '</div>'; } echo '</div>'; }
 			if ('active'===$license->status) $this->form('download',(int)$license->id,__('Generate fresh download link','dropkey-v2'));
