@@ -155,3 +155,10 @@ STRUCTURED DEBUG LOGGING — 2026-10-15
 - Sensitive fields are redacted from structured context; raw payment payloads, credentials, license keys, full checkout URLs, and customer email addresses are not intentionally recorded. Existing PHP error_log diagnostics remain available separately.
 - CI passed for latest source commit `a2e5dd36eb058366c53cb5b656feadb273065a4d`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38663539112. This verifies the configured automated checks, not WordPress runtime behavior.
 - NOT YET VERIFIED: database migration on the user's WordPress site, log insertion/display, log toggle, retention cleanup, and clear action. Install/update to 0.3.7 and test these before treating the feature as runtime-verified.
+
+PAYPAL WEBHOOK VERIFICATION DIAGNOSTICS — 2026-10-15
+- Source change committed: `includes/class-paypal-gateway.php` now emits a privacy-safe `webhook_verification_attempt` info log before calling PayPal's verification endpoint.
+- Captures presence/absence only for the five required PayPal transmission headers, plus sanitized event type, event-ID presence, payload byte count, and whether the configured webhook ID is non-empty.
+- Does not log header values, signature, webhook ID value, access token, or full payload.
+- Plugin version bumped to 0.3.8 in `dropkey-v2.php`.
+- Runtime result remains unverified until 0.3.8 is installed on the WordPress site and a fresh PayPal Sandbox webhook is observed.
