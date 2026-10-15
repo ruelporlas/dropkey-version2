@@ -33,6 +33,10 @@ KEY FILES
 - includes/class-plugin.php — plugin lifecycle, schema-version upgrade check, admin and REST route registration.
 - includes/class-database.php — schema version 6 and dbDelta() tables for products, tiers, billing options, releases, licenses, activations, download tokens, orders, subscriptions, payment events, email queue, and payment history.
 - includes/abstract-repository.php — shared CRUD operations and error handling.
+- `includes/abstract-repository.php` now logs failed repository insert/update/delete operations with the operation, table, database error, and column names; submitted field values are not logged.
+
+DATABASE DIAGNOSTIC NOTE — 2026-10-15
+- Repository CRUD database failures are sent to the PHP error log through `error_log()` with the `[DropKey V2]` prefix. The host's PHP log or WordPress debug log must be accessible to inspect the message.
 - includes/class-product-repository.php — product data validation and access.
 - includes/class-tier-repository.php — tier data validation, activation limits, product relation, and child-delete guard.
 - includes/class-billing-option-repository.php — billing option validation and tier relation.
