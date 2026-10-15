@@ -283,3 +283,12 @@ VERIFICATION UPDATE — 2026-10-15 (feature branch only)
 
 FINAL CI RESULT — 2026-10-15
 - Follow-up to the initial queued status above: GitHub Actions run 38700730891 completed SUCCESS on commit ebd3f4245296125c250616d63b1cbb5067410fa5. PHP 7.4, 8.0, and 8.3 all passed. PR #1 remains draft/unmerged and staging/runtime remains unverified.
+
+
+
+
+FEATURE BRANCH HARDENING UPDATE — 2026-10-15
+- Pending on draft PR #1 / `feature/complete-customer-checkout`, not yet on main: public customer registration now rate-limits by hashed remote IP (10 attempts per 15 minutes) and hashed normalized email (5 attempts per hour). Raw IP/email values are not placed in transient keys.
+- Registration now normalizes email to lowercase and enforces first/last name limits (100 characters each) and a maximum password size (1024 bytes), in addition to the existing 12-character minimum and confirmation check.
+- Added network-free contract cases for per-email and per-IP registration throttling. Fresh GitHub Actions run 38701738674 passed PHP lint plus webhook/client/checkout contract tests on PHP 7.4, 8.0, and 8.3: https://github.com/ruelporlas/dropkey-version2/actions/runs/38701738674.
+- This verifies source syntax and mocked contract behavior only. WordPress runtime, transient behavior under concurrent traffic, account-registration UX, and staging checkout remain unverified. PR remains draft/unmerged; no deployment or purchase was made.
