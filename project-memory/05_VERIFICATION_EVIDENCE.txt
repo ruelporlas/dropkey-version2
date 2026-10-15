@@ -95,3 +95,9 @@ PAYPAL PLAN PROVISIONING AND ADMIN INPUT STYLING — 2026-10-15
 - GitHub Actions PHP syntax check for commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d`: PASS on PHP 7.4, 8.0, and 8.3. Run: https://github.com/ruelporlas/dropkey-version2/actions/runs/38658721423.
 - WordPress admin visual review, billing option save in TasteWP, PayPal Sandbox plan creation, subscription approval, and persistence/retry behavior: NOT RUN.
 - The prior generic tier database-save failure remains unresolved; this task does not establish its cause.
+
+STOREFRONT PAYPAL VISIBILITY FIX — 2026-10-15
+- Source commit: `4ae978906cc9bd2d7f81340a899bea2241806a4d`.
+- Static readback verified that the old recurring-plan-ID condition was removed and the storefront now renders PayPal whenever `$settings['paypal']` is true.
+- GitHub Actions PHP syntax workflow: queued at the time of this entry: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659803790.
+- TasteWP storefront display and end-to-end PayPal Sandbox subscription checkout: NOT RUN.
