@@ -204,3 +204,11 @@ User-provided staging Order #19 screen shows the PayPal order and payment marked
 2026-10-15 — Corrected PayPal recurring-plan setup docs on PR branch
 - Updated the feature-branch README to explain that DropKey provisions the PayPal catalog product and recurring plan automatically on first recurring checkout, and clears the stored plan ID when billing terms change.
 - This resolves the PayPal-provisioning documentation mismatch in the PR branch only. Main remains unchanged; the customer account-linking behavior still requires a security fix and matching documentation before merge.
+
+
+2026-10-15 — Mandatory account creation before checkout
+- User explicitly changed the checkout policy: account creation is required and guest checkout is not permitted, superseding the previous MVP decision allowing guests.
+- Added registration/sign-in gate in `includes/class-storefront.php`; account creation occurs before any order/checkout session is created. New accounts receive a subscriber role and are signed in, then redirected back to the chosen product/billing option. Checkout uses the authenticated account email.
+- Added authentication/email-match checks in `includes/class-commerce-service.php` so REST and storefront paths reject guest checkout and mismatched email. Fulfillment now requires a valid matching customer_user_id rather than linking users by email alone.
+- Added `tests/customer-checkout-contract.php` for guest/mismatched-email rejection and included it in the existing contract suite. Updated README to document no guest checkout.
+- Initial CI attempt found an over-escaped PHP namespace syntax error in the new fulfillment error paths. The source was corrected, but a post-correction CI result has not yet been observed. Staging is not yet tested; existing pending guest orders may need a safe support path.
