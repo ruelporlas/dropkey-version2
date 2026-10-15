@@ -79,3 +79,12 @@ Customer account portal verification record — 2026-10-15
 - WordPress activation/dbDelta migration, login/ownership tests, activation deactivation, download-token generation, password changes, key display in-browser, and responsive visual review: NOT RUN.
 - Guest-purchase account linking: NOT IMPLEMENTED. Legacy license keys created before encrypted storage cannot be recovered from hashes. Encrypted key display depends on stable WordPress auth salts.
 - Result: static/contract CI PASS; runtime integration and security behavior NOT VERIFIED.
+
+
+Repository database-failure logging — 2026-10-15
+- Change: `includes/abstract-repository.php` now logs failed repository insert, update, and delete operations with operation name, table name, `$wpdb->last_error`, and submitted column names. Field values and full SQL queries are not logged.
+- Logging destination: PHP error log via `error_log()`; WordPress debug.log can receive it when WordPress debug logging is enabled and configured.
+- Source write: GitHub update succeeded in commit 28b6501088dae8ab8d818c17e162a04393170e4f.
+- Static syntax check after this change: NOT YET RUN at the time of this record.
+- WordPress runtime reproduction and error-log inspection: NOT RUN. The installed TasteWP plugin must be updated with this source before the new logging can execute.
+- Result: diagnostic instrumentation implemented in source; actual database failure cause remains unknown pending runtime evidence.
