@@ -196,4 +196,4 @@ PAYPAL WEBHOOK DEBUGGING UPDATE — 2026-10-15
 
 CI FOLLOW-UP — 2026-10-15
 - The first run for the new header tests (38666594617) failed after PHP lint passed: the contract test's missing-header case called Logger although the standalone test harness had not loaded that class. The warning call is now guarded in commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542.
-- Follow-up GitHub Actions run 38666693429 was in progress at last inspection. Do not treat the PayPal fix as CI-verified until that run completes successfully.
+- Follow-up GitHub Actions run 38666693429 PASSED on commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542: PHP lint passed on PHP 7.4, 8.0, and 8.3 and the network-free contract test step succeeded. Live WordPress/PayPal Sandbox verification remains NOT RUN.
