@@ -1,0 +1,198 @@
+PROJECT REQUIREMENTS AND RULES
+Project: DropKey Version 2
+Last updated: 2026-10-14
+Decision update: User-confirmed MVP choices recorded 2026-10-14
+
+STATUS
+Initial product requirements were provided by the user on 2026-10-14. On 2026-10-14, the user also explicitly selected the MVP policies recorded below and in 03_ARCHITECTURE_AND_DECISIONS.txt. These are approved product decisions, not evidence of implementation. Technical architecture and code-level choices remain unapproved unless recorded separately.
+
+CONFIRMED INITIAL REQUIREMENTS
+
+DK-001 — Digital product management
+Requirement: Admin can create digital products to sell and associate each product with the downloadable ZIP file for the WordPress plugin being sold.
+Acceptance criteria:
+- An authorized administrator can create and manage a digital product.
+- A product can be associated with its intended plugin ZIP package.
+- Product and file associations are managed by DropKey, not by a specific payment gateway.
+Status: product/tier admin and versioned ZIP releases are implemented in source; the storefront checkout now associates published billing options with orders and fulfillment. WordPress runtime remains unverified.
+
+DK-002 — Checkout and purchase records
+Requirement: DropKey provides the customer checkout/purchase flow and records the result of each purchase.
+Acceptance criteria:
+- Customers can complete a purchase through DropKey checkout.
+- Paid-product access is not granted solely because a browser returns to a success page; payment must be confirmed through a trusted gateway result.
+- A free product/plan can be obtained without charging a payment method.
+Status: public storefront shortcode, hosted checkout creation, free acquisition, order recording, and provider-confirmed paid fulfillment are implemented in source; browser/runtime testing remains outstanding.
+
+DK-003 — Payment gateways
+Requirement: MVP supports PayPal and Stripe. DropKey should allow additional payment gateways to be added later.
+Acceptance criteria:
+- PayPal and Stripe are supported in the MVP, subject to required account credentials and provider capabilities.
+- Gateway-specific code is separated behind an extensible integration boundary rather than scattered through core product, order, subscription, download, and license logic.
+Status: Stripe and PayPal hosted-checkout adapters, settings, webhook verification, order matching, and payment lifecycle handlers are implemented in source; provider sandbox testing remains outstanding.
+
+DK-004 — Protected downloads
+Requirement: After the customer completes the required purchase flow, DropKey provides a secure download link for the product ZIP that expires after 48 hours.
+Acceptance criteria:
+- Download access is checked by DropKey, not granted merely by exposing a permanent public file URL.
+- The download link has a verifiable expiration of 48 hours.
+- Expired or invalid links cannot download the file.
+- Download delivery is restricted to an eligible purchase/entitlement.
+Status: private storage, hashed 48-hour tokens, five-download cap, integrity checks, and checkout fulfillment download-token issuance exist in source; storage and download runtime checks remain outstanding.
+
+DK-005 — Purchase email
+Requirement: Email the customer the download link and license key after purchase.
+Acceptance criteria:
+- For an eligible paid purchase, the customer receives an email containing the download link and generated license key.
+- The message is sent only after the relevant payment is confirmed; free-plan delivery follows the defined free acquisition flow.
+- Email failures should be observable and should not silently erase the purchase or license record.
+Status: encrypted email queue, bounded WP-Cron retries, admin retry action, and purchase fulfillment email creation are implemented in source; actual email delivery remains unverified.
+
+DK-006 — License key generation and management
+Requirement: DropKey generates a license key for an eligible purchase and provides tools to manage it.
+Acceptance criteria:
+- Keys are generated uniquely and are associated with the relevant customer, product, and purchase/plan.
+- Administrators can inspect and manage license records and statuses.
+- Licensing behavior can reflect the associated plan/subscription entitlement.
+Status: manual license administration and purchase-linked license issuance are implemented in source; keys remain hashed at rest and checkout fulfillment is transactional. WordPress runtime remains unverified.
+
+DK-007 — Client-plugin license integration
+Requirement: It should be straightforward to add license activation support to the WordPress plugins sold through DropKey, ideally by adding a reusable file to each client plugin.
+Acceptance criteria:
+- A documented, reusable PHP integration component can be added to a sold plugin.
+- The sold plugin can communicate with DropKey to activate, deactivate, and validate a license, once those API behaviors are specified.
+- The licensing API authenticates requests and validates product/license relationships.
+Status: versioned REST routes and reusable PHP client exist; network-free contract tests cover Stripe webhook verification, PayPal verification-result handling, and client HTTPS/request/error behavior. Public checkout rate limiting is implemented. Full WordPress/API integration tests, production security review, and activation URL runtime validation remain outstanding.
+
+DK-008 — Plan and subscription types
+Requirement: DropKey supports free, monthly, and yearly offerings, as well as one-time purchases.
+Acceptance criteria:
+- Product offerings can represent free access, monthly subscriptions, yearly subscriptions, and one-time purchases.
+- One product can have multiple tiers; each tier can offer any applicable combination of free, one-time, monthly, and yearly billing options.
+- Tier settings, including activation limits, belong to the tier; billing options define payment amount and cadence.
+- Prices and billing terms are configurable, not globally hardcoded.
+- Trials are deferred; failed-payment grace period is initially 3 days; cancellation is admin-managed and effective at the end of the paid period. Proration behavior remains open.
+- Subscription status and payment events determine the applicable product/license entitlement.
+Status: Product → Tier → Billing Options plus free, one-time, monthly, and yearly configuration exists. Hosted Stripe checkout and PayPal one-time/recurring paths, order/subscription records, payment webhooks, three-day grace handling, and admin-managed end-of-period cancellation exist in source; provider sandbox/runtime behavior remains unverified.
+
+DK-009 — Extensibility
+Requirement: DropKey exposes WordPress action hooks so future functionality can be added without rewriting core behavior.
+Acceptance criteria:
+- Important lifecycle events have documented, consistently named action hooks.
+- Hook names and payloads are documented and covered by relevant tests when implemented.
+Status: confirmed; exact hook inventory to design.
+
+DK-010 — Configurable activation limit per tier
+Requirement: Each product tier can define how many website activations a license permits. Example tier names include Basic, Plus, and Pro; these names are illustrative and are not mandated defaults.
+Acceptance criteria:
+- The administrator can configure the maximum allowed active website activations for each tier.
+- The activation limit is associated with the relevant product tier and enforced by DropKey's licensing service.
+- Different products can define different limits; limits must not be globally hardcoded across all products.
+- The admin UI explains the activation limit clearly when creating or editing a tier.
+Status: confirmed requirement; actual activation counts remain undecided.
+
+DK-011 — Customer frontend account management
+Requirement: Customers need a frontend account-management area to manage their licenses and subscriptions.
+Acceptance criteria:
+- Customers can access their own account area from the frontend, separate from WordPress admin.
+- Customers can view their licenses and relevant license details/status.
+- Customers can view their subscriptions and relevant status/billing information.
+- Customers must not be able to view or manage another customer's licenses, subscriptions, or purchases.
+- Customer actions such as cancellation, activation management, or license transfer must follow separately defined business rules and permissions.
+Status: confirmed requirement; exact pages, customer account/checkout flow, and available self-service actions remain to be designed.
+
+
+USER-CONFIRMED MVP DECISIONS — 2026-10-14
+These choices were explicitly submitted by the user. They supersede the corresponding open questions below, but do not imply implementation.
+
+DKD-001 — Compatibility baseline: choose the broader compatibility option, WordPress 6.4+ and PHP 7.4+. Confirm exact support/testing matrix before release.
+DKD-002 — Checkout accounts: guest checkout is allowed alongside account-based checkout; guest purchases must be linkable to a customer account. Exact account creation/linking and verification flow remains to design.
+DKD-003 — Website activation identity: use the exact site URL as the activation identity. URL normalization, trailing slash, scheme, and URL-change behavior still need specification.
+DKD-004 — Example tiers/activation counts: use Basic (1 activation), Plus (3), and Pro (10) as initial editable examples, not hardcoded or mandatory global limits. Admin must be able to configure tier limits.
+DKD-005 — Activation management: customers and administrators can deactivate activations. Transfer behavior and any confirmation/cooldown rules remain open.
+DKD-006 — Subscription cancellation: cancellation is admin-managed and takes effect at the end of the paid period; the customer retains eligible access through the paid-through date. Do not offer customer self-service cancellation in the initial account workflow unless later approved. Admin override/exception behavior and customer messaging remain to be defined.
+DKD-007 — Failed payment: use a 3-day grace period as the initial policy. Exact status transitions, retry timing, timezone/boundary behavior, and entitlement behavior need specification.
+DKD-008 — Refunds/chargebacks: use payment-provider state as the baseline policy, with a separate chargeback policy rather than treating every case as automatically identical. Exact events and entitlement outcomes remain open.
+DKD-009 — Updates: include versioned ZIP releases and an update API/integration in the MVP, rather than deferring updates to a later release. Version retention and update compatibility rules remain open.
+DKD-010 — ZIP storage: store ZIP files privately on the hosting server, outside direct public web access. Exact filesystem location, web-server safeguards, and delivery mechanism remain technical design decisions.
+DKD-011 — Downloads: permit reissuing a fresh 48-hour download link; use a starting limit of 5 downloads per link. Whether the limit is configurable and how link reissue is rate-limited remain open.
+DKD-012 — Taxes/coupons/invoices/trials: defer these from the initial MVP. Refund handling still needs the provider-state policy above and must not be interpreted as a commitment to a full refund-management UI.
+DKD-013 — Email failures: implement observable transactional email failures, retry behavior, and administrator resend capability. Exact retry schedule, queue mechanism, and sender configuration remain open.
+DKD-014 — Customer account pages: full account area in MVP, covering dashboard, licenses, activations, subscriptions, purchases/downloads, and profile/password management, subject to the detailed actions below.
+DKD-015 — Customer self-service: customers can view/copy license keys, view activation sites, deactivate a site, manage profile/password, and access eligible downloads. Subscription cancellation remains admin-managed. Payment-method changes should use provider-supported billing portals where available; license transfer is not approved as a customer self-service action yet.
+DKD-016 — Billing/payment records: use hosted PayPal/Stripe payment flows; store provider references and payment status, never card details. Use provider billing portals for payment-method changes where supported. Receipt/invoice display beyond provider-provided records remains undecided and invoices are deferred.
+DKD-017 — Implementation approach: build a small secure MVP in milestones, prioritizing products/tiers, checkout, licenses, protected downloads, and then customer account/refinement work. This is a delivery approach, not permission to begin implementation without the user's request.
+
+NONFUNCTIONAL AND SECURITY REQUIREMENTS
+- Protect download delivery and license API operations against unauthorized use.
+- Customer account pages and actions must enforce customer ownership/authorization.
+- Do not store payment-card details in DropKey; use the payment providers' supported checkout/payment mechanisms.
+- Verify payment events using provider-supported trusted mechanisms and handle duplicate/retried events safely.
+- Do not store secrets, credentials, or API keys in project-memory files or source control.
+- Keep gateway-specific behavior separated from core commerce and licensing logic.
+Status: security goals confirmed at a high level; detailed threat model and implementation acceptance criteria remain to be defined.
+
+OPEN QUESTIONS — DO NOT GUESS
+- Basic (1 activation), Plus (3), and Pro (10) are confirmed as initial editable examples; administrators can change them and they are not hardcoded global limits.
+- How activations identify a website (domain, site URL, or another rule), and how administrators/customers deactivate or transfer activations.
+- Exact license and subscription statuses and how they affect activation after cancellation, failed renewal, refund, or chargeback; cancellation status transitions, customer notices, and whether/how admins can override a scheduled end-of-period cancellation.
+- Versioned ZIP releases and an update API are included in the MVP; version retention and compatibility rules remain open.
+- Download links can be reissued as fresh 48-hour links with a starting limit of 5 downloads per link; configurability and reissue-abuse controls remain open.
+- ZIP files are to be stored privately on the hosting server outside direct public access; exact filesystem location, safeguards, and delivery mechanism remain open.
+- Guest and account checkout are both allowed; guest purchase verification and account-linking flow remain open.
+- Taxes, coupons, invoices, and trials are deferred. Provider-state refund handling and a separate chargeback policy are selected at a high level, but exact events and entitlement outcomes remain open.
+- Payment provider account readiness, webhook setup, and credentials; no credentials should be shared in chat or committed.
+- Email template, retry behavior, and sender configuration.
+- Specific public REST API routes, authentication/request-signing details, and the precise reusable PHP client contract; the approved planning approach is to design these together and verify them with integration tests.
+- The full customer account area and the specified self-service actions are confirmed; detailed UX and activation-transfer behavior remain open.
+
+GENERAL RULES
+- Actual repository files determine what is implemented.
+- Distinguish confirmed user requirements from proposals and unresolved questions.
+- Do not claim a requirement is implemented merely because it is documented.
+- Do not import architecture or requirements from another project or earlier version without user confirmation.
+- When requirements conflict or an essential detail is unclear, ask before making a consequential decision.
+
+IMPLEMENTATION STATUS SUPPLEMENT — 2026-10-14
+This supplement updates implementation status only; it does not change the confirmed product requirements or imply runtime acceptance.
+- DK-001: product admin, published ZIP releases, storefront listing, and checkout/order association exist in source.
+- DK-002: [dropkey_store] storefront, public checkout route/handler, free acquisition, hosted paid checkout, and order recording exist in source; runtime tests remain outstanding.
+- DK-003: Stripe and PayPal adapters, provider settings, signed/provider-verified webhooks, and payment event processing exist in source; real sandbox flows remain unverified.
+- DK-004: hashed expiring download tokens, protected streaming, and purchase fulfillment token issuance exist in source; storage and download runtime tests remain outstanding.
+- DK-005: authenticated-encrypted email queue, bounded retries, and administrator retry action exist in source; real mail delivery is not verified.
+- DK-006: manual license administration and transactional purchase-linked license issuance exist in source; WordPress runtime remains unverified.
+- DK-007: versioned REST routes and PHP client exist; network-free Stripe/PayPal/client contract tests pass in CI. Full WordPress API integration tests and production security review remain outstanding.
+- DK-008: hosted checkout, order/subscription records, provider event handling, three-day grace, and end-of-period admin cancellation exist in source; sandbox behavior remains unverified.
+- DK-010: per-tier activation limit is exposed in admin and enforced by the activation service in source.
+- No payment is verified by this code. Manual license issuance is an administrator-granted license only, not a completed purchase.
+
+CUSTOMER ACCOUNT PORTAL IMPLEMENTATION UPDATE — 2026-10-15
+- `[dropkey_account]` source now implements account-linked licenses, key copy for newly issued keys, activation-site display/deactivation, subscription status and paid-through details, purchase history, fresh protected download links, profile updates, and password changes with current-password verification.
+- New account-associated orders/licenses use WordPress user IDs. The frontend does not use email alone to grant record access. Matching signed-in checkout email is required before an order is linked to that user.
+- Subscription cancellation remains administrator-managed. Payment-method portal actions are not yet implemented.
+- Guest-purchase linking and identity verification remain unimplemented and require a verified claim flow. Existing keys issued before encrypted storage cannot be recovered from hashes.
+- Schema version 7 adds `customer_user_id` and `key_encrypted` to licenses. New key copies use AES-256-GCM while SHA-256 remains the validation source.
+- Status: source implemented; PHP CI passed; WordPress runtime, ownership/action testing, and visual review NOT RUN.
+
+IMPLEMENTATION STATUS UPDATE — PAYPAL PLAN PROVISIONING — 2026-10-15
+- DK-003 / DK-008: Monthly/yearly billing options no longer require an administrator-entered PayPal plan ID to save. The PayPal gateway provisions a provider product and fixed-price recurring plan on first PayPal checkout and stores the plan ID. Provider Sandbox/Live runtime behavior remains unverified.
+- Admin styling: the DropKey admin stylesheet now covers inputs without an explicit type attribute, plus checkbox/radio accents. This is a UI consistency fix, not a change to payment or product requirements.
+
+
+DK-OPS-001 — Operational debug logging (user-confirmed, 2026-10-15)
+Requirement: DropKey must provide diagnostic logging for actions, activity, and errors to make troubleshooting easier.
+Acceptance criteria:
+- Authorized administrators can review logs from WordPress Admin.
+- Logs capture key admin actions, checkout flow, payment-provider errors, REST/webhook processing, email delivery outcomes, and database write failures.
+- Entries identify timestamp, severity, source/event, request correlation ID, and safe diagnostic context.
+- The administrator can enable/disable structured logging and clear stored entries; old entries are pruned after 30 days when the logger runs.
+- Structured logs must exclude credentials, authorization headers, passwords, license keys, raw payment payloads, customer email addresses, and full checkout URLs.
+Status: implemented in source, plugin version 0.3.7, automated CI passed. WordPress migration and UI/runtime verification not yet run.
+
+
+REQUIREMENT TRACEABILITY CLARIFICATION — 2026-10-15
+- No new product requirement was approved or added during the checkout-log review.
+- Existing DK-002 already requires that paid access not be granted solely because the browser returns to a success page; payment must be confirmed through a trusted gateway result.
+- Existing DK-005 already requires purchase email delivery and observable email failures that do not erase purchase/license records.
+- The reported `return_url_fallback_used` warning is an implementation/runtime finding, not proof by itself that payment confirmation, fulfillment, or email delivery failed. Track the technical behavior in `03_ARCHITECTURE_AND_DECISIONS.txt` and record any reproduced test results in `05_VERIFICATION_EVIDENCE.txt`.
+- Requirement status remains: checkout runtime, staging payment flow, and actual email delivery require end-to-end verification. Do not mark these acceptance criteria passed until evidence exists.
