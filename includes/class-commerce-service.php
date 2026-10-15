@@ -225,7 +225,7 @@ final class Commerce_Service {
 			}
 		}
 		$status_raw=isset($event['status'])?sanitize_key($event['status']):'';
-		if (isset($event['type'])&&'payment_succeeded'===$event['type']&&!in_array($status_raw,array('active','approved','trialing','past_due','suspended','unpaid','cancelled','canceled','expired','cancel_pending'),true)) $status_raw=$existing?$existing->status:'active';
+		if (isset($event['type'])&&'payment_succeeded'===$event['type']&&!in_array($status_raw,array('active','approved','trialing','past_due','suspended','unpaid','cancelled','canceled','expired','cancel_pending'),true)) $status_raw='active';
 		$data=array(
 			'order_id'=>$existing?(int)$existing->order_id:(int)$order->id,
 			'license_id'=>(int)$license_id,
