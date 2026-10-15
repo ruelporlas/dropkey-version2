@@ -131,11 +131,15 @@ final class Commerce_Service {
 		if (!empty($event['gateway_payment_id'])) $wpdb->update($orders,array('gateway_payment_id'=>$event['gateway_payment_id']),array('id'=>$locked->id));
 		if (!empty($event['gateway_payment_id'])) { $payment_record=$this->record_payment_reference($locked,$event); if (is_wp_error($payment_record)) { $wpdb->query('ROLLBACK'); Logger::error('commerce','payment_record_failed','Payment was verified but its local payment record could not be saved',array('order_id'=>(int)$locked->id,'error_code'=>$payment_record->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250))); return $payment_record; } }
 		if (!empty($event['subscription_id'])) $this->save_subscription($locked,$license['id'],$event);
-		$queued=$this->queue_fulfillment_email($locked,$license['id'],$license['license_key']);
-		if (is_wp_error($queued)) { $wpdb->query('ROLLBACK'); Logger::error('commerce','fulfillment_email_queue_failed','Order fulfillment rolled back because delivery email could not be queued',array('order_id'=>(int)$locked->id,'error_code'=>$queued->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250))); return $queued; }
 		$wpdb->query('COMMIT');
 		Logger::info('commerce','order_fulfilled','Order payment confirmed and license issued',array('order_id'=>(int)$locked->id,'license_id'=>(int)$license['id'],'gateway'=>$locked->gateway));
 		do_action('dk2_order_paid',(int)$locked->id,(int)$license['id'],$locked->gateway);
+		// Email delivery is post-commit: a queue failure must not undo verified payment or license issuance.
+		$queued=$this->queue_fulfillment_email($locked,$license['id'],$license['license_key']);
+		if (is_wp_error($queued)) {
+			Logger::error('commerce','fulfillment_email_queue_failed','Order is paid and licensed, but the delivery email could not be queued',array('order_id'=>(int)$locked->id,'license_id'=>(int)$license['id'],'error_code'=>$queued->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250)));
+			do_action('dk2_fulfillment_email_queue_error',(int)$locked->id,$queued->get_error_code());
+		}
 		return $locked;
 	}
 	private function save_subscription($order,$license_id,$event) {
