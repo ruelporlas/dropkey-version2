@@ -12,7 +12,19 @@ final class PayPal_Gateway extends Payment_Gateway {
 		$id=$this->config('client_id'); $secret=$this->config('secret');
 		if (''===$id||''===$secret||'1'!==$this->config('enabled')) return new \WP_Error('dk2_paypal_not_configured',__('PayPal is not enabled or credentials are missing.','dropkey-v2'),array('status'=>503));
 		$response=wp_remote_post($this->api_base().'/v1/oauth2/token',array('timeout'=>20,'redirection'=>0,'sslverify'=>true,'headers'=>array('Authorization'=>'Basic '.base64_encode($id.':'.$secret),'Accept'=>'application/json','Content-Type'=>'application/x-www-form-urlencoded'),'body'=>'grant_type=client_credentials'));
-		if (is_wp_error($response)||(int)wp_remote_retrieve_response_code($response)<200||(int)wp_remote_retrieve_response_code($response)>=300) return new \WP_Error('dk2_paypal_auth_failed',__('PayPal authentication failed. Check the selected environment and credentials.','dropkey-v2'),array('status'=>502));
+		if (is_wp_error($response)) {
+			error_log('[DropKey V2] PayPal OAuth transport failed: '.sanitize_key($response->get_error_code()));
+			return new \\WP_Error('dk2_paypal_auth_failed',__('PayPal authentication failed. Check the selected environment and credentials.','dropkey-v2'),array('status'=>502));
+		}
+		$status=(int)wp_remote_retrieve_response_code($response);
+		if ($status<200||$status>=300) {
+			$failure=json_decode(wp_remote_retrieve_body($response),true);
+			$diagnostic=array('status'=>$status);
+			foreach(array('name','debug_id') as $key) if (!empty($failure[$key])&&is_scalar($failure[$key])) $diagnostic[$key]=sanitize_text_field((string)$failure[$key]);
+			if (!empty($failure['error'])&&is_scalar($failure['error'])) $diagnostic['error']=sanitize_key((string)$failure['error']);
+			error_log('[DropKey V2] PayPal OAuth rejected: '.wp_json_encode($diagnostic));
+			return new \\WP_Error('dk2_paypal_auth_failed',__('PayPal authentication failed. Check the selected environment and credentials.','dropkey-v2'),array('status'=>502));
+		}
 		$data=json_decode(wp_remote_retrieve_body($response),true);
 		return !empty($data['access_token'])?$data['access_token']:new \WP_Error('dk2_paypal_auth_failed',__('PayPal did not return an access token.','dropkey-v2'),array('status'=>502));
 	}
@@ -21,11 +33,27 @@ final class PayPal_Gateway extends Payment_Gateway {
 		if (''!==$request_id) $args['headers']['PayPal-Request-Id']=$request_id;
 		if (null!==$body) $args['body']=wp_json_encode($body);
 		$response=wp_remote_request($this->api_base().$path,array_merge($args,array('method'=>$method)));
-		if (is_wp_error($response)) return new \WP_Error('dk2_paypal_transport',__('PayPal could not be reached. Please try again.','dropkey-v2'),array('status'=>502));
+		if (is_wp_error($response)) {
+			error_log('[DropKey V2] PayPal API transport failed: '.sanitize_key($response->get_error_code()));
+			return new \\WP_Error('dk2_paypal_transport',__('PayPal could not be reached. Please try again.','dropkey-v2'),array('status'=>502));
+		}
 		$status=(int)wp_remote_retrieve_response_code($response); $data=json_decode(wp_remote_retrieve_body($response),true);
 		if ($status<200||$status>=300||!is_array($data)) {
+			$diagnostic=array('status'=>$status,'response_format'=>is_array($data)?'json':'non_json');
+			foreach(array('name','debug_id') as $key) if (!empty($data[$key])&&is_scalar($data[$key])) $diagnostic[$key]=sanitize_text_field((string)$data[$key]);
+			if (!empty($data['details'])&&is_array($data['details'])) {
+				$issues=array();
+				foreach($data['details'] as $detail) {
+					if (!is_array($detail)) continue;
+					$item=array();
+					foreach(array('issue','field') as $key) if (!empty($detail[$key])&&is_scalar($detail[$key])) $item[$key]=sanitize_text_field((string)$detail[$key]);
+					if ($item) $issues[]=$item;
+				}
+				if ($issues) $diagnostic['issues']=$issues;
+			}
+			error_log('[DropKey V2] PayPal API request rejected: '.wp_json_encode($diagnostic));
 			do_action('dk2_gateway_request_failed','paypal',$status,isset($data['name'])?$data['name']:'provider_error');
-			return new \WP_Error('dk2_paypal_request_failed',__('PayPal rejected the request. Check gateway settings and provider logs.','dropkey-v2'),array('status'=>502,'provider_status'=>$status));
+			return new \\WP_Error('dk2_paypal_request_failed',__('PayPal rejected the request. Check gateway settings and provider logs.','dropkey-v2'),array('status'=>502,'provider_status'=>$status));
 		}
 		return $data;
 	}
