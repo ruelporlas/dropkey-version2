@@ -137,6 +137,9 @@ final class Database {
 			tier_id bigint(20) unsigned NOT NULL,
 			billing_option_id bigint(20) unsigned NOT NULL,
 			license_id bigint(20) unsigned DEFAULT NULL,
+			parent_order_id bigint(20) unsigned DEFAULT NULL,
+			subscription_id bigint(20) unsigned DEFAULT NULL,
+			order_type varchar(20) NOT NULL DEFAULT 'initial',
 			customer_email varchar(191) NOT NULL,
 			customer_user_id bigint(20) unsigned DEFAULT NULL,
 			customer_first_name varchar(100) NOT NULL DEFAULT '',
@@ -163,6 +166,9 @@ final class Database {
 			KEY gateway_order_id (gateway,gateway_order_id),
 			KEY gateway_session_id (gateway,gateway_session_id),
 			KEY gateway_payment_id (gateway,gateway_payment_id),
+			KEY parent_order_id (parent_order_id),
+			KEY subscription_id (subscription_id),
+			KEY order_type (order_type),
 			KEY status (status)
 		) {$c};");
 		dbDelta("CREATE TABLE {$s} (
