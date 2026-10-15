@@ -123,3 +123,11 @@ PAYPAL CHECKOUT ERROR DIAGNOSTICS — 2026-10-15
 - Added PHP error-log diagnostics for OAuth transport/rejection and PayPal API transport/rejection. API rejection diagnostics include HTTP status, provider error name/debug ID, and safe issue/field identifiers when present. No secrets, authorization headers, or request bodies are logged.
 - Plugin version bumped from 0.3.2 to 0.3.3 to identify the diagnostic build. Commits: `eb3976d0915f2ccc26ae62f56d57eb554f95843f` (diagnostics), `874d9b8a359392014838c5600385c9c3551e14f8` (correct PHP namespaced error references), `846775707d8755dd8c31fe04b19b59c075d6b3f1` (version bump).
 - Status: source committed; GitHub PHP syntax CI is queued as of latest check. Not installed or tested on TasteWP, and the specific PayPal rejection cause remains unknown until the user updates to 0.3.3 and reproduces the error.
+
+
+PAYPAL RETURN/CANCEL URL SYNTAX FIX — 2026-10-15
+- User confirmed the affected WordPress site is https://driftbyte.sellersage.shop.
+- Source change committed to main: includes/class-commerce-service.php now sanitizes the success URL after adding the order query parameter and sanitizes the cancel URL, then rejects empty or non-HTTP(S)-valid URLs before calling the gateway.
+- Plugin version bumped to 0.3.4 in dropkey-v2.php.
+- Commit: bc61fe72fa7a63ab7f9e35a2709c3f7fa976d484; version bump: 76e5568d91ec07f8b0bcd2f5ef1b60f4450e3411.
+- PHP syntax CI is queued at https://github.com/ruelporlas/dropkey-version2/actions/runs/38661205529. Runtime PayPal Sandbox verification has not been performed. Do not treat this as confirmed fixed until the updated plugin is installed and checkout is retested.
