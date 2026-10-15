@@ -242,3 +242,13 @@ FINAL RESULT — 2026-10-15
 - Each job linted all PHP files and ran tests/payment-webhook-contract.php, which also requires tests/customer-checkout-contract.php. Logs confirm the existing webhook/client contracts and all four customer-checkout rejection cases passed.
 - Evidence: https://github.com/ruelporlas/dropkey-version2/actions/runs/38700730891
 - This is CI evidence only; WordPress runtime, storefront browser flow, provider sandbox, and staging behavior remain unverified.
+
+
+
+
+2026-10-15 — Customer registration hardening contract verification
+- Source branch: `feature/complete-customer-checkout`; tested commit: `359568626c15ccfe9347270a9595facf90042673`.
+- Workflow: https://github.com/ruelporlas/dropkey-version2/actions/runs/38701738674.
+- Result: PASSED on PHP 7.4, 8.0, and 8.3. Each job linted all PHP files and ran `tests/payment-webhook-contract.php`, which includes checkout and registration-rate-limit contract tests.
+- New contract coverage passed: five account-registration attempts for one email are allowed and the sixth is throttled; ten attempts from one IP are allowed and the eleventh is throttled. Existing webhook/client, renewal amount/currency, and authenticated-checkout cases also passed.
+- Limitation: this is network-free contract and syntax CI, not WordPress runtime, browser UX, race/concurrency, or staging verification. An intermediate commit (888aa62ba22c1e412485e0898703332cc1a89c9b) failed all PHP lint jobs due to doubled namespace separators in the new test; corrected in 359568626c15ccfe9347270a9595facf90042673 and the fresh run passed.
