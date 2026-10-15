@@ -109,3 +109,10 @@ SOURCE MAP UPDATE — MANDATORY CUSTOMER ACCOUNTS — 2026-10-15
 - `includes/class-commerce-service.php` on the feature branch enforces authentication and account-email matching for checkout, and fulfillment requires a matching order `customer_user_id` rather than account creation/linking by email alone.
 - `tests/customer-checkout-contract.php` adds network-free assertions that unauthenticated checkout and mismatched account email are rejected; `tests/payment-webhook-contract.php` includes this contract test. `README.md` on the feature branch documents that guest checkout is disabled.
 - These changes are pending PR review and have not been verified on WordPress staging. The final feature-branch CI result has not yet been observed after the last syntax corrections.
+
+
+SOURCE MAP UPDATE — ACCOUNT-REQUIRED CHECKOUT — 2026-10-15
+- `includes/class-storefront.php` now contains the pre-checkout registration/sign-in gate and registration handler.
+- `includes/class-commerce-service.php` enforces authentication/account email matching for checkout and requires a matching account ID at fulfillment.
+- `tests/customer-checkout-contract.php` contains network-free tests for guest checkout and email-mismatch rejection; `tests/payment-webhook-contract.php` includes it in the contract suite.
+- These feature-branch changes are pending verification; no post-correction CI or staging result is yet available.
