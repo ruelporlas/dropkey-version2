@@ -161,6 +161,19 @@ final class PayPal_Gateway extends Payment_Gateway {
 			'transmission_id'=>$get('paypal-transmission-id'),'transmission_sig'=>$get('paypal-transmission-sig'),
 			'transmission_time'=>$get('paypal-transmission-time'),'webhook_id'=>$webhook_id,'webhook_event'=>$event
 		);
+		// Record only presence flags and non-sensitive metadata; never log signature/header values or the event payload.
+		$header_presence=array();
+		foreach(array('paypal-auth-algo','paypal-cert-url','paypal-transmission-id','paypal-transmission-sig','paypal-transmission-time') as $header_name) {
+			$header_value=$get($header_name);
+			$header_presence[str_replace('paypal-','',$header_name)]=is_scalar($header_value)&&''!==trim((string)$header_value);
+		}
+		Logger::info('paypal','webhook_verification_attempt','Checking PayPal webhook signature',array(
+			'header_presence'=>$header_presence,
+			'event_type'=>sanitize_text_field((string)$event['event_type']),
+			'event_id_present'=>!empty($event['id']),
+			'payload_bytes'=>strlen($raw),
+			'webhook_id_configured'=>true
+		));
 		$verified=$this->paypal_request('POST','/v1/notifications/verify-webhook-signature',$token,$verification);
 		if (is_wp_error($verified)) return $verified;
 		if (empty($verified['verification_status'])||'SUCCESS'!==$verified['verification_status']) return new \WP_Error('dk2_paypal_signature_invalid',__('PayPal webhook signature verification failed.','dropkey-v2'),array('status'=>400));
