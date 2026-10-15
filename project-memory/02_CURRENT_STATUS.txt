@@ -110,3 +110,9 @@ STOREFRONT PAYPAL METHOD VISIBILITY — 2026-10-15
 - Confirmed source bug: storefront only displayed PayPal for monthly/yearly billing options if a PayPal plan ID was already saved. That contradicted the new automatic plan creation at first PayPal checkout.
 - Fixed in `includes/class-storefront.php`, commit `4ae978906cc9bd2d7f81340a899bea2241806a4d`: when PayPal is enabled and its required settings are populated, the PayPal method is now listed even if a recurring option has no stored plan ID.
 - PHP syntax CI was queued when recorded. TasteWP runtime verification remains pending; GitHub changes do not update the installed plugin automatically.
+
+FOLLOW-UP — STOREFRONT FIX VERSION BUMP — 2026-10-15
+- Plugin version bumped to 0.3.2 in `dropkey-v2.php` so the storefront fix can be distinguished from the earlier 0.3.1 build.
+- PHP syntax CI passed for storefront logic commit `4ae978906cc9bd2d7f81340a899bea2241806a4d`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659803790.
+- The latest version-bump commit `9e20e29055e9aef2a54d38831fec43242340da35` had its CI run queued when this note was written: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659918482.
+- TasteWP runtime testing remains pending.
