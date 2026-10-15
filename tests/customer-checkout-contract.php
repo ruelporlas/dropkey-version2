@@ -5,15 +5,15 @@
  */
 namespace {
 	if (!defined('ABSPATH')) define('ABSPATH',__DIR__.'/');
-	function __($text,$domain=null) { return $text; }
-	function sanitize_email($value) { return filter_var((string)$value,FILTER_SANITIZE_EMAIL); }
-	function sanitize_key($value) { return preg_replace('/[^a-z0-9_\\-]/','',strtolower((string)$value)); }
-	function is_email($value) { return false!==filter_var((string)$value,FILTER_VALIDATE_EMAIL); }
-	function is_user_logged_in() { return !empty($GLOBALS['dk2_test_logged_in']); }
-	function wp_get_current_user() { return isset($GLOBALS['dk2_test_user'])?$GLOBALS['dk2_test_user']:(object)array('ID'=>0,'user_email'=>''); }
-	function absint($value) { return abs((int)$value); }
-	function is_wp_error($value) { return $value instanceof \WP_Error; }
-	class WP_Error {
+	if (!function_exists('__')) { function __($text,$domain=null) { return $text; } }
+	if (!function_exists('sanitize_email')) { function sanitize_email($value) { return filter_var((string)$value,FILTER_SANITIZE_EMAIL); } }
+	if (!function_exists('sanitize_key')) { function sanitize_key($value) { return preg_replace('/[^a-z0-9_\\-]/','',strtolower((string)$value)); } }
+	if (!function_exists('is_email')) { function is_email($value) { return false!==filter_var((string)$value,FILTER_VALIDATE_EMAIL); } }
+	if (!function_exists('is_user_logged_in')) { function is_user_logged_in() { return !empty($GLOBALS['dk2_test_logged_in']); } }
+	if (!function_exists('wp_get_current_user')) { function wp_get_current_user() { return isset($GLOBALS['dk2_test_user'])?$GLOBALS['dk2_test_user']:(object)array('ID'=>0,'user_email'=>''); } }
+	if (!function_exists('absint')) { function absint($value) { return abs((int)$value); } }
+	if (!function_exists('is_wp_error')) { function is_wp_error($value) { return $value instanceof \WP_Error; } }
+	if (!class_exists('WP_Error')) { class WP_Error {
 		private $code;
 		private $message;
 		private $data;
@@ -22,8 +22,10 @@ namespace {
 		public function get_error_message() { return $this->message; }
 		public function get_error_data() { return $this->data; }
 	}
+	}
 }
 namespace DropKey\V2 {
+	if (!class_exists(__NAMESPACE__.'\\Logger')) { final class Logger { public static function info($category,$event,$message,$context=array()) {} } }
 	final class Logger {
 		public static function info($category,$event,$message,$context=array()) {}
 	}
