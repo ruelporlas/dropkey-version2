@@ -70,9 +70,10 @@ final class PayPal_Gateway extends Payment_Gateway {
 	public function create_checkout($order,$billing,$product,$tier,$success_url,$cancel_url) {
 		$token=$this->access_token(); if (is_wp_error($token)) return $token;
 		if (in_array($billing->billing_type,array('monthly','yearly'),true)) {
-			if (empty($billing->paypal_plan_id)) return new \WP_Error('dk2_paypal_plan_missing',__('Set a PayPal subscription plan ID on this billing option before enabling checkout.','dropkey-v2'),array('status'=>400));
+			$plan_id=$this->ensure_subscription_plan($billing,$product,$tier,$token);
+			if (is_wp_error($plan_id)) return $plan_id;
 			$data=$this->paypal_request('POST','/v1/billing/subscriptions',$token,array(
-				'plan_id'=>$billing->paypal_plan_id,'custom_id'=>$order->public_id,
+				'plan_id'=>$plan_id,'custom_id'=>$order->public_id,
 				'application_context'=>array('brand_name'=>get_bloginfo('name'),'user_action'=>'SUBSCRIBE_NOW','return_url'=>$success_url,'cancel_url'=>$cancel_url)
 			));
 		} else {
