@@ -129,7 +129,7 @@ $paypal_bad=$paypal_gateway->verify_webhook(new DropKey_Test_Request($paypal_raw
 check_case($paypal_bad instanceof WP_Error&&'dk2_paypal_signature_invalid'===$paypal_bad->get_error_code(),'rejects PayPal webhook when provider verification fails');
 
 require_once dirname(__DIR__).'/includes/class-commerce-service.php';
-$commerce=new \\DropKey\\V2\\Commerce_Service();
+$commerce=new \DropKey\V2\Commerce_Service();
 $renewal_amount_check=new ReflectionMethod('DropKey\\\\V2\\\\Commerce_Service','validate_renewal_payment_amount');
 $renewal_amount_check->setAccessible(true);
 $renewal_base=(object)array('amount'=>12.50,'currency'=>'USD');
