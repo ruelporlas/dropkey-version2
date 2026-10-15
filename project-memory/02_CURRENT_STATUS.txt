@@ -166,3 +166,7 @@ PAYPAL WEBHOOK VERIFICATION DIAGNOSTICS — 2026-10-15
 CI FOLLOW-UP — 2026-10-15
 - The first 0.3.8 diagnostic commits failed the existing contract-test workflow because the test harness does not load `Logger` and the new instrumentation called it unconditionally.
 - Corrective commit `d0420a3d096603fd36a0855c558c95a13da6b186` guards the diagnostic call with `class_exists`; latest CI run is queued at the time of this note. Do not install until CI passes.
+
+CI RESULT UPDATE — 2026-10-15
+- Corrective commit `d0420a3d096603fd36a0855c558c95a13da6b186` passed GitHub Actions PHP syntax and contract checks: https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061.
+- Version 0.3.8 source is CI-passed, but still requires installation and a real Sandbox webhook to collect diagnostic evidence.
