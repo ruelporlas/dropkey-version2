@@ -42,7 +42,10 @@ final class Storefront {
 		if (!$order) return '<div class="dk2-store-notice dk2-store-error">'.esc_html__('We could not find that checkout. Please contact the site administrator if you were charged.','dropkey-v2').'</div>';
 		if ('paypal'===$order->gateway&&!empty($_GET['token'])&&'pending'===$order->status) {
 			$captured=(new Commerce_Service())->capture_paypal($public_id,sanitize_text_field(wp_unslash($_GET['token'])));
-			if (is_wp_error($captured)) do_action('dk2_paypal_capture_return_error',(int)$order->id,$captured->get_error_code());
+			if (is_wp_error($captured)) {
+				Logger::error('paypal','capture_return_failed','PayPal return could not complete order fulfillment',array('order_id'=>(int)$order->id,'error_code'=>$captured->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250)));
+				do_action('dk2_paypal_capture_return_error',(int)$order->id,$captured->get_error_code());
+			}
 			$order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE id=%d',$order->id));
 		}
 		if ('paid'===$order->status) return '<div class="dk2-store-notice dk2-store-success"><strong>'.esc_html__('Order confirmed','dropkey-v2').'</strong><span>'.esc_html__('Payment is confirmed. Your license key and protected download link will be sent to your email address.','dropkey-v2').'</span></div>';
