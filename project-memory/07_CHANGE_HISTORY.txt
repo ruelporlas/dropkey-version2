@@ -111,3 +111,9 @@ Newest entries first.
 - Commit: https://github.com/ruelporlas/dropkey-version2/commit/bc61fe72fa7a63ab7f9e35a2709c3f7fa976d484.
 - Bumped plugin header and DK2_VERSION from 0.3.3 to 0.3.4 in commit https://github.com/ruelporlas/dropkey-version2/commit/76e5568d91ec07f8b0bcd2f5ef1b60f4450e3411.
 - CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38661205529 was queued when recorded. This is a code-hardening hypothesis based on the rejected fields; actual malformed URL values have not been captured and live WordPress/PayPal Sandbox retest is still required.
+
+2026-10-15 — Follow-up PHP syntax correction for PayPal URL validation
+- First CI run after URL sanitization failed on all PHP versions because the new error return contained an extra backslash in the namespaced `WP_Error` class reference.
+- Corrected the token in `includes/class-commerce-service.php`.
+- Commit: https://github.com/ruelporlas/dropkey-version2/commit/4bbc12465abb95396669987a61e06412ff966731.
+- Follow-up CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119 was queued at last check; do not claim it passed until confirmed.
