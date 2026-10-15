@@ -114,7 +114,7 @@ final class Commerce_Service {
 		}
 		$billing_label=$billing?('monthly'===$billing->billing_type?'Monthly':('yearly'===$billing->billing_type?'Yearly':('free'===$billing->billing_type?'Free':'One-time'))):'—';
 		$amount=$billing&&'free'===$billing->billing_type?'Free':strtoupper((string)$order->currency).' '.number_format((float)$order->amount,2);
-		$body="Thank you for your purchase.\n\nOrder: ".substr((string)$order->public_id,0,8)."\nStatus: Paid\nProduct: ".$product_name."\nPlan: ".$tier_name."\nBilling: ".$billing_label."\nTotal: ".$amount."\nLicense key: ".$license_key."\n".$download_line."\nManage your account: ".wp_login_url()."\nIf you have not set a password yet, use the password reset link on the sign-in page to set one.\n";
+		$body="Thank you for your purchase.\n\nOrder: ".(string)$order->public_id."\nStatus: Paid\nProduct: ".$product_name."\nPlan: ".$tier_name."\nBilling: ".$billing_label."\nTotal: ".$amount."\nLicense key: ".$license_key."\n".$download_line."\nManage your account: ".wp_login_url()."\nIf you have not set a password yet, use the password reset link on the sign-in page to set one.\n";
 		$queued=(new Email_Service())->enqueue($order->id,$order->customer_email,'Your DropKey order confirmation',$body);
 		if (is_wp_error($queued)) { do_action('dk2_fulfillment_email_queue_error',(int)$order->id,$queued->get_error_code()); return $queued; }
 		// Attempt delivery immediately; scheduled retries remain available if wp_mail fails.
