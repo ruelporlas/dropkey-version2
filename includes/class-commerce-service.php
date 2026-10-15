@@ -225,7 +225,7 @@ final class Commerce_Service {
 			}
 		}
 		$data=array(
-			'order_id'=>(int)$order->id,
+			'order_id'=>$existing?(int)$existing->order_id:(int)$order->id,
 			'license_id'=>(int)$license_id,
 			'gateway'=>$order->gateway,
 			'gateway_subscription_id'=>$sub_id,
@@ -269,6 +269,49 @@ final class Commerce_Service {
 		if (!$order&&!empty($event['subscription_id'])) $order=$wpdb->get_row($wpdb->prepare("SELECT o.* FROM {$table} o INNER JOIN ".Database::table('subscriptions')." s ON s.order_id=o.id WHERE s.gateway=%s AND s.gateway_subscription_id=%s",$gateway,$event['subscription_id']));
 		return $order;
 	}
+
+	/**
+	 * Create or recover one order for a verified recurring payment.
+	 * Renewals reuse the original license and subscription; they never issue another license.
+	 */
+	private function create_renewal_order($subscription,$event) {
+		global $wpdb;
+		if (empty($event['gateway_payment_id'])||!isset($event['amount'])||null===$event['amount']||empty($event['currency'])) return new \\WP_Error('dk2_renewal_payment_reference_missing',__('The recurring payment is verified but lacks a payment ID, amount, or currency required to record a renewal safely.','dropkey-v2'));
+		$gateway=sanitize_key($subscription->gateway); $payment_id=sanitize_text_field($event['gateway_payment_id']);
+		$orders=Database::table('orders'); $payments=Database::table('payments');
+		$known_payment=$wpdb->get_row($wpdb->prepare("SELECT order_id FROM {$payments} WHERE gateway=%s AND gateway_payment_id=%s",$gateway,$payment_id));
+		if ($known_payment) {
+			$known_order=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$known_payment->order_id));
+			if ($known_order && 'renewal'===$known_order->order_type && (int)$known_order->subscription_id===(int)$subscription->id) return $known_order;
+			return new \\WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey order.','dropkey-v2'));
+		}
+		$existing=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE gateway=%s AND gateway_payment_id=%s AND order_type='renewal'",$gateway,$payment_id));
+		if ($existing) return (int)$existing->subscription_id===(int)$subscription->id?$existing:new \\WP_Error('dk2_renewal_payment_already_linked',__('This provider payment is already linked to a different DropKey renewal.','dropkey-v2'));
+		$base=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$subscription->order_id));
+		if (!$base || empty($subscription->license_id) || 'paid'!==$base->status) return new \\WP_Error('dk2_renewal_parent_order_invalid',__('The original paid order or its license could not be found for this renewal.','dropkey-v2'));
+		$currency=strtoupper(sanitize_text_field($event['currency'])); $amount=(float)$event['amount'];
+		if (!preg_match('/^[A-Z]{3}$/',$currency)||$amount<0) return new \\WP_Error('dk2_renewal_amount_invalid',__('The recurring payment amount or currency is invalid.','dropkey-v2'));
+		$now=current_time('mysql',true);
+		$data=array(
+			'public_id'=>wp_generate_uuid4(),'product_id'=>(int)$base->product_id,'tier_id'=>(int)$base->tier_id,'billing_option_id'=>(int)$base->billing_option_id,
+			'license_id'=>(int)$subscription->license_id,'parent_order_id'=>(int)$base->id,'subscription_id'=>(int)$subscription->id,'order_type'=>'renewal',
+			'customer_email'=>$base->customer_email,'customer_user_id'=>$base->customer_user_id,'customer_first_name'=>$base->customer_first_name,'customer_last_name'=>$base->customer_last_name,
+			'customer_phone'=>$base->customer_phone,'billing_address_1'=>$base->billing_address_1,'billing_address_2'=>$base->billing_address_2,'billing_city'=>$base->billing_city,
+			'billing_state'=>$base->billing_state,'billing_postcode'=>$base->billing_postcode,'billing_country'=>$base->billing_country,'gateway'=>$gateway,
+			'gateway_order_id'=>isset($event['gateway_order_id'])?sanitize_text_field($event['gateway_order_id']):'',
+			'gateway_session_id'=>isset($event['gateway_session_id'])?sanitize_text_field($event['gateway_session_id']):'',
+			'gateway_payment_id'=>$payment_id,'status'=>'paid','amount'=>$amount,'currency'=>$currency,'created_at'=>$now,'updated_at'=>$now
+		);
+		if (!$wpdb->insert($orders,$data)) {
+			$retry=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE gateway=%s AND gateway_payment_id=%s AND order_type='renewal'",$gateway,$payment_id));
+			if ($retry && (int)$retry->subscription_id===(int)$subscription->id) return $retry;
+			Logger::error('commerce','renewal_order_insert_failed','Could not create a renewal order for a verified provider payment',array('subscription_id'=>(int)$subscription->id,'gateway'=>$gateway,'db_error'=>substr((string)$wpdb->last_error,0,250)));
+			return new \\WP_Error('dk2_renewal_order_failed',__('The recurring payment could not be recorded as a renewal order.','dropkey-v2'));
+		}
+		$renewal=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d",(int)$wpdb->insert_id));
+		Logger::info('commerce','renewal_order_created','A verified recurring payment was recorded as a renewal order',array('order_id'=>(int)$renewal->id,'parent_order_id'=>(int)$base->id,'subscription_id'=>(int)$subscription->id,'license_id'=>(int)$subscription->license_id,'gateway'=>$gateway,'amount'=>$amount,'currency'=>$currency));
+		return $renewal;
+	}
 	public function process_webhook($gateway,$event) {
 		global $wpdb;
 		$events=Database::table('payment_events'); $event_id=sanitize_text_field($event['event_id']); $hash=isset($event['payload_hash'])?$event['payload_hash']:hash('sha256',wp_json_encode($event));
@@ -294,15 +337,20 @@ final class Commerce_Service {
 				if (!is_wp_error($details)) foreach($details as $key=>$value) if (''!==$value&&null!==$value) $event[$key]=$value;
 			}
 		}
-		$result=true; $order=$this->find_order($gateway,$event);
-		if ('payment_succeeded'===$event['type']&&$order&&isset($event['amount'])&&null!==$event['amount']&&abs((float)$event['amount']-(float)$order->amount)>0.009) $result=new \WP_Error('dk2_payment_amount_mismatch',__('The payment amount does not match the checkout order.','dropkey-v2'));
-		if ('payment_succeeded'===$event['type']&&$order&&!empty($event['currency'])&&strtoupper($event['currency'])!==strtoupper($order->currency)) $result=new \WP_Error('dk2_payment_currency_mismatch',__('The payment currency does not match the checkout order.','dropkey-v2'));
+		$result=true; $order=$this->find_order($gateway,$event); $is_renewal=false;
+		if ('payment_succeeded'===$event['type']&&!empty($event['subscription_id'])) {
+			$subscription=$wpdb->get_row($wpdb->prepare("SELECT * FROM ".Database::table('subscriptions')." WHERE gateway=%s AND gateway_subscription_id=%s",$gateway,$event['subscription_id']));
+			if ($subscription) { $renewal=$this->create_renewal_order($subscription,$event); if (is_wp_error($renewal)) $result=$renewal; else { $order=$renewal; $is_renewal=true; } }
+		}
+		if (!is_wp_error($result)&&'payment_succeeded'===$event['type']&&!$is_renewal&&$order&&isset($event['amount'])&&null!==$event['amount']&&abs((float)$event['amount']-(float)$order->amount)>0.009) $result=new \\WP_Error('dk2_payment_amount_mismatch',__('The payment amount does not match the checkout order.','dropkey-v2'));
+		if (!is_wp_error($result)&&'payment_succeeded'===$event['type']&&!$is_renewal&&$order&&!empty($event['currency'])&&strtoupper($event['currency'])!==strtoupper($order->currency)) $result=new \\WP_Error('dk2_payment_currency_mismatch',__('The payment currency does not match the checkout order.','dropkey-v2'));
 		if (is_wp_error($result)) {
 			// A signed provider event with mismatched money values is retained as a failed event for review.
 		} elseif ('ignored'===$event['type']) {
 			$result=true;
 		} elseif ('payment_succeeded'===$event['type']) {
 			if (!$order) $result=new \WP_Error('dk2_webhook_order_missing',__('The payment event could not be matched to a DropKey order.','dropkey-v2'));
+			elseif ($is_renewal) $result=$order;
 			else $result=$this->complete_order($order,$event);
 			if (!is_wp_error($result)&&$order&&'paid'===$order->status&&!empty($event['subscription_id'])) $this->save_subscription($order,$order->license_id,$event);
 		} elseif ('payment_failed'===$event['type']) {
