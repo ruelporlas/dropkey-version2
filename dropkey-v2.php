@@ -10,7 +10,7 @@
  * @package DropKeyV2
  */
 defined('ABSPATH') || exit;
-define('DK2_VERSION','0.3.0');
+define('DK2_VERSION','0.3.1');
 define('DK2_FILE',__FILE__);
 define('DK2_PATH',plugin_dir_path(__FILE__));
 define('DK2_URL',plugin_dir_url(__FILE__));
