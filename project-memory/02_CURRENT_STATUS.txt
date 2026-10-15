@@ -140,3 +140,9 @@ CHECKOUT URL VALIDATION FOLLOW-UP — 2026-10-15
 - Bumped plugin version to 0.3.5 in commit `abe1b8dc94ea2669df03f44035f1efb190120557`.
 - CI runs `38662089337` and `38662107088` were in progress/queued when recorded. Must confirm CI and retest live Sandbox checkout; original PayPal invalid-parameter root cause is not yet runtime-confirmed.
 - CI follow-up completed successfully for URL validation commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc` and version 0.3.5 commit `abe1b8dc94ea2669df03f44035f1efb190120557`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38662089337 and https://github.com/ruelporlas/dropkey-version2/actions/runs/38662107088. Live Sandbox retest still pending.
+
+CHECKOUT URL FALLBACK FOLLOW-UP — 2026-10-15
+- User tested version 0.3.5 and still received the plugin-generated “The checkout return URL is invalid” message. This means the current code path is still rejecting its URL inputs before PayPal; the exact generated URL is not yet known.
+- Changed includes/class-commerce-service.php to validate only parsed HTTP(S) scheme and host after sanitization. If the referer-derived URLs fail, it now falls back to the sanitized canonical home URL (success URL includes dk2_order). It logs a safe diagnostic when fallback is used, and logs only canonical URL scheme, host-presence, and length if even the fallback is invalid. It does not log the full URL or query values.
+- Source commit: f931a0a20080b193c46de43c9c1915da5f7791bb. Plugin version bumped to 0.3.6 in commit 1cf3130d3544e82d345f77cbdb8b85c847de3313.
+- Status: source committed; CI status has not yet been confirmed. WordPress/PayPal Sandbox runtime verification remains pending.
