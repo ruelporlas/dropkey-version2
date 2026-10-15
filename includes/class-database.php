@@ -7,7 +7,7 @@ namespace DropKey\V2;
 defined( 'ABSPATH' ) || exit;
 final class Database {
 	const VERSION_OPTION = 'dk2_db_version';
-	const SCHEMA_VERSION = '12';
+	const SCHEMA_VERSION = '13';
 	public static function table( $table ) {
 		global $wpdb;
 		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue', 'payments', 'logs' );
@@ -140,6 +140,7 @@ final class Database {
 			parent_order_id bigint(20) unsigned DEFAULT NULL,
 			subscription_id bigint(20) unsigned DEFAULT NULL,
 			order_type varchar(20) NOT NULL DEFAULT 'initial',
+			renewal_key char(64) DEFAULT NULL,
 			customer_email varchar(191) NOT NULL,
 			customer_user_id bigint(20) unsigned DEFAULT NULL,
 			customer_first_name varchar(100) NOT NULL DEFAULT '',
@@ -169,6 +170,7 @@ final class Database {
 			KEY parent_order_id (parent_order_id),
 			KEY subscription_id (subscription_id),
 			KEY order_type (order_type),
+			UNIQUE KEY renewal_key (renewal_key),
 			KEY status (status)
 		) {$c};");
 		dbDelta("CREATE TABLE {$s} (
