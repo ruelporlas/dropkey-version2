@@ -29,6 +29,44 @@ final class PayPal_Gateway extends Payment_Gateway {
 		}
 		return $data;
 	}
+	/** Create and persist a PayPal plan when a recurring billing option is first used. */
+	private function ensure_subscription_plan($billing,$product,$tier,$token) {
+		if (!empty($billing->paypal_plan_id)) return $billing->paypal_plan_id;
+		if (!in_array($billing->billing_type,array('monthly','yearly'),true)) return new \\WP_Error('dk2_paypal_plan_type_invalid',__('A PayPal plan can only be created for monthly or yearly billing.','dropkey-v2'));
+		$site=home_url('/');
+		$product_request_id=substr(hash('sha256',$site.'|dk2-product|'.(int)$billing->id.'|'.$product->name.'|'.$tier->name),0,32);
+		$paypal_product=$this->paypal_request('POST','/v1/catalogs/products',$token,array(
+			'name'=>substr($product->name.' — '.$tier->name,0,127),
+			'description'=>substr('DropKey subscription for '.$product->name.' — '.$tier->name,0,256),
+			'type'=>'DIGITAL'
+		),$product_request_id);
+		if (is_wp_error($paypal_product)) return $paypal_product;
+		if (empty($paypal_product['id'])) return new \\WP_Error('dk2_paypal_product_invalid',__('PayPal did not return a product ID for the subscription plan.','dropkey-v2'),array('status'=>502));
+		$interval='monthly'===$billing->billing_type?'MONTH':'YEAR';
+		$currency=strtoupper((string)$billing->currency);
+		$price=number_format((float)$billing->price,2,'.','');
+		$plan_request_id=substr(hash('sha256',$site.'|dk2-plan|'.(int)$billing->id.'|'.$billing->billing_type.'|'.$price.'|'.$currency),0,32);
+		$plan=$this->paypal_request('POST','/v1/billing/plans',$token,array(
+			'product_id'=>sanitize_text_field($paypal_product['id']),
+			'name'=>substr($product->name.' — '.$tier->name.' — '.ucfirst($billing->billing_type),0,127),
+			'description'=>substr('Automatically managed by DropKey for '.$product->name.' — '.$tier->name,0,256),
+			'status'=>'ACTIVE',
+			'billing_cycles'=>array(array(
+				'frequency'=>array('interval_unit'=>$interval,'interval_count'=>1),
+				'tenure_type'=>'REGULAR','sequence'=>1,'total_cycles'=>0,
+				'pricing_scheme'=>array('fixed_price'=>array('value'=>$price,'currency_code'=>$currency))
+			)),
+			'payment_preferences'=>array('auto_bill_outstanding'=>true,'payment_failure_threshold'=>1)
+		),$plan_request_id);
+		if (is_wp_error($plan)) return $plan;
+		if (empty($plan['id'])) return new \\WP_Error('dk2_paypal_plan_invalid',__('PayPal did not return a subscription plan ID.','dropkey-v2'),array('status'=>502));
+		global $wpdb;
+		$plan_id=sanitize_text_field($plan['id']);
+		$saved=$wpdb->update(Database::table('billing_options'),array('paypal_plan_id'=>$plan_id,'updated_at'=>current_time('mysql',true)),array('id'=>(int)$billing->id));
+		if (false===$saved) return new \\WP_Error('dk2_paypal_plan_save_failed',__('PayPal created a subscription plan, but DropKey could not save its reference. Check the WordPress database log before retrying.','dropkey-v2'),array('status'=>500));
+		$billing->paypal_plan_id=$plan_id;
+		return $plan_id;
+	}
 	public function create_checkout($order,$billing,$product,$tier,$success_url,$cancel_url) {
 		$token=$this->access_token(); if (is_wp_error($token)) return $token;
 		if (in_array($billing->billing_type,array('monthly','yearly'),true)) {
