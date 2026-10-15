@@ -211,7 +211,7 @@ final class Admin {
 			$data=array('product_id'=>absint($_POST['product_id']??0),'name'=>sanitize_text_field(wp_unslash($_POST['name']??'')),'slug'=>sanitize_title(wp_unslash($_POST['slug']??'')),'description'=>wp_kses_post(wp_unslash($_POST['description']??'')),'activation_limit'=>absint($_POST['activation_limit']??0),'status'=>sanitize_key($_POST['status']??'draft'));
 			$repo=new Tier_Repository(); $result=$id?$repo->update($id,$data):$repo->create($data); $page='dk2-tiers';
 		} elseif ('dk2_billing'===$action) {
-			$data=array('tier_id'=>absint($_POST['tier_id']??0),'billing_type'=>sanitize_key($_POST['billing_type']??''),'price'=>sanitize_text_field(wp_unslash($_POST['price']??'')),'currency'=>sanitize_text_field(wp_unslash($_POST['currency']??'')),'paypal_plan_id'=>sanitize_text_field(wp_unslash($_POST['paypal_plan_id']??'')),'status'=>sanitize_key($_POST['status']??'draft'));
+			$data=array('tier_id'=>absint($_POST['tier_id']??0),'billing_type'=>sanitize_key($_POST['billing_type']??''),'price'=>sanitize_text_field(wp_unslash($_POST['price']??'')),'currency'=>sanitize_text_field(wp_unslash($_POST['currency']??'')),'status'=>sanitize_key($_POST['status']??'draft'));
 			$repo=new Billing_Option_Repository(); $result=$id?$repo->update($id,$data):$repo->create($data); $page='dk2-billing';
 		} elseif ('dk2_release'===$action) {
 			$page='dk2-releases'; $pid=absint($_POST['product_id']??0); $version=sanitize_text_field(wp_unslash($_POST['version']??'')); $status=sanitize_key($_POST['status']??'draft'); $notes=wp_kses_post(wp_unslash($_POST['release_notes']??''));
