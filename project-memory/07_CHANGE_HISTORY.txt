@@ -234,3 +234,12 @@ User-provided staging Order #19 screen shows the PayPal order and payment marked
 - Intermediate test commit `888aa62ba22c1e412485e0898703332cc1a89c9b` failed PHP lint because of doubled namespace separators in the test; fixed in `359568626c15ccfe9347270a9595facf90042673`.
 - CI run 38701738674 passed PHP 7.4, 8.0, and 8.3 lint and all network-free contract tests. No WordPress runtime, staging deployment, merge, or payment attempt was performed.
 - PR #1 remains draft/unmerged. Remaining pre-merge risks include safe handling of legacy guest orders and full WordPress/provider end-to-end verification.
+
+
+
+2026-10-15 — Read-only checkout return URL investigation
+- User confirmed the task is to trace the checkout return URL issue and requested findings before any implementation; no application changes are authorized until the user agrees on a fix.
+- Re-read the mandatory protocol and all eight official memory files. Inspected current main and feature-branch storefront/commerce implementations plus the main REST checkout entry point and feature PHP CI workflow.
+- Found the current storefront uses a hidden posted `return_url` sourced from the checkout permalink, sanitizes/validates it in `submit_checkout()`, and passes it as both success and cancel URL. The commerce service has a second URL-validation stage and canonical-home fallback. REST checkout is a separate entry point with caller-supplied success/cancel URLs defaulting to home URL.
+- The fallback warning says “Referer-derived” despite the inspected storefront path using the posted hidden field. This is a diagnostic wording/source-path mismatch, not proof of the root cause. The installed staging plugin revision and exact runtime URL values remain unknown.
+- No source implementation, CI run, staging/browser test, or payment attempt was performed. Root cause remains unconfirmed. Next action: verify deployed plugin revision and safe URL/configuration diagnostics, then present a narrow fix proposal for user approval.
