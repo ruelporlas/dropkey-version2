@@ -162,14 +162,37 @@ final class PayPal_Gateway extends Payment_Gateway {
 			'transmission_time'=>$get('paypal-transmission-time'),'webhook_id'=>$webhook_id,'webhook_event'=>$event
 		);
 		// Record only presence flags and non-sensitive metadata; never log signature/header values or the event payload.
-		$header_presence=array();
-		foreach(array('paypal-auth-algo','paypal-cert-url','paypal-transmission-id','paypal-transmission-sig','paypal-transmission-time') as $header_name) {
+		$header_names=array(
+			'auth_algo'=>'paypal-auth-algo',
+			'cert_url'=>'paypal-cert-url',
+			'transmission_id'=>'paypal-transmission-id',
+			'transmission_sig'=>'paypal-transmission-sig',
+			'transmission_time'=>'paypal-transmission-time'
+		);
+		$rest_header_presence=array();
+		$server_header_presence=array();
+		$redirect_server_header_presence=array();
+		foreach($header_names as $label=>$header_name) {
 			$header_value=$get($header_name);
-			$header_presence[str_replace('paypal-','',$header_name)]=is_scalar($header_value)&&''!==trim((string)$header_value);
+			$rest_header_presence[$label]=is_scalar($header_value)&&''!==trim((string)$header_value);
+			$server_key='HTTP_'.strtoupper(str_replace('-','_',$header_name));
+			$server_value=isset($_SERVER[$server_key])?$_SERVER[$server_key]:'';
+			$server_header_presence[$label]=is_scalar($server_value)&&''!==trim((string)$server_value);
+			$redirect_key='REDIRECT_'.$server_key;
+			$redirect_value=isset($_SERVER[$redirect_key])?$_SERVER[$redirect_key]:'';
+			$redirect_server_header_presence[$label]=is_scalar($redirect_value)&&''!==trim((string)$redirect_value);
+		}
+		$paypal_header_names=array();
+		foreach(array_keys($headers) as $header_key) {
+			$normalized=strtolower(str_replace('_','-',(string)$header_key));
+			if (0===strpos($normalized,'paypal-')) $paypal_header_names[]=$normalized;
 		}
 		if (class_exists(__NAMESPACE__.'\\Logger')) {
 			Logger::info('paypal','webhook_verification_attempt','Checking PayPal webhook signature',array(
-				'header_presence'=>$header_presence,
+				'rest_header_presence'=>$rest_header_presence,
+				'server_header_presence'=>$server_header_presence,
+				'redirect_server_header_presence'=>$redirect_server_header_presence,
+				'paypal_header_names'=>$paypal_header_names,
 				'event_type'=>sanitize_text_field((string)$event['event_type']),
 				'event_id_present'=>!empty($event['id']),
 				'payload_bytes'=>strlen($raw),
