@@ -39,25 +39,35 @@ final class Storefront {
 		if (empty($_GET['dk2_order'])) return '';
 		$public_id=sanitize_text_field(wp_unslash($_GET['dk2_order']));
 		$order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE public_id=%s',$public_id));
-		if (!$order) return '<div class="dk2-store-notice dk2-store-error">'.esc_html__('We could not find that checkout. Please contact the site administrator if you were charged.','dropkey-v2').'</div>';
+		if (!$order) return '<div class="dk2-store-notice dk2-store-error">'.esc_html__('We could not find that checkout. Please contact support if you were charged.','dropkey-v2').'</div>';
 		if ('paypal'===$order->gateway&&'pending'===$order->status) {
 			$billing_type=$wpdb->get_var($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',(int)$order->billing_option_id));
 			if (in_array($billing_type,array('monthly','yearly'),true)) {
-				// PayPal subscription approval is not a one-time order capture. Wait for a verified
-				// subscription payment webhook before granting the license.
 				Logger::info('paypal','subscription_return_waiting_for_webhook','PayPal subscription return received; waiting for verified payment webhook',array('order_id'=>(int)$order->id,'billing_type'=>$billing_type));
 			} elseif (!empty($_GET['token'])) {
 				$captured=(new Commerce_Service())->capture_paypal($public_id,sanitize_text_field(wp_unslash($_GET['token'])));
-				if (is_wp_error($captured)) {
-					Logger::error('paypal','capture_return_failed','PayPal return could not complete order fulfillment',array('order_id'=>(int)$order->id,'error_code'=>$captured->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250)));
-					do_action('dk2_paypal_capture_return_error',(int)$order->id,$captured->get_error_code());
-				}
+				if (is_wp_error($captured)) Logger::error('paypal','capture_return_failed','PayPal return could not complete order fulfillment',array('order_id'=>(int)$order->id,'error_code'=>$captured->get_error_code()));
 			}
 			$order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE id=%d',$order->id));
 		}
-		if ('paid'===$order->status) return '<div class="dk2-store-notice dk2-store-success"><strong>'.esc_html__('Order confirmed','dropkey-v2').'</strong><span>'.esc_html__('Payment is confirmed. Your license key and protected download link will be sent to your email address.','dropkey-v2').'</span></div>';
-		if ('pending'===$order->status) return '<div class="dk2-store-notice"><strong>'.esc_html__('Payment confirmation pending','dropkey-v2').'</strong><span>'.esc_html__('The payment provider has not confirmed this order yet. Your license will be issued only after confirmation. Reload this page in a moment.','dropkey-v2').'</span></div>';
-		return '<div class="dk2-store-notice dk2-store-error"><strong>'.esc_html__('Checkout not completed','dropkey-v2').'</strong><span>'.esc_html__('No active license was issued for this order. You can try checkout again or contact support if you believe you were charged.','dropkey-v2').'</span></div>';
+		$product=$wpdb->get_var($wpdb->prepare('SELECT name FROM '.Database::table('products').' WHERE id=%d',(int)$order->product_id));
+		$tier=$wpdb->get_var($wpdb->prepare('SELECT name FROM '.Database::table('tiers').' WHERE id=%d',(int)$order->tier_id));
+		$billing=$wpdb->get_row($wpdb->prepare('SELECT billing_type,price,currency FROM '.Database::table('billing_options').' WHERE id=%d',(int)$order->billing_option_id));
+		$status_labels=array('paid'=>__('Paid','dropkey-v2'),'pending'=>__('Awaiting payment confirmation','dropkey-v2'),'processing'=>__('Processing','dropkey-v2'),'failed'=>__('Payment failed','dropkey-v2'),'cancelled'=>__('Cancelled','dropkey-v2'));
+		$status=isset($status_labels[$order->status])?$status_labels[$order->status]:ucfirst(str_replace('_',' ',$order->status));
+		$cadence=$billing?('monthly'===$billing->billing_type?__('Monthly','dropkey-v2'):('yearly'===$billing->billing_type?__('Yearly','dropkey-v2'):('free'===$billing->billing_type?__('Free','dropkey-v2'):__('One-time','dropkey-v2')))):'—';
+		$amount=('free'===$billing->billing_type)?__('Free','dropkey-v2'):strtoupper((string)$order->currency).' '.number_format((float)$order->amount,2);
+		$html='<section class="dk2-order-confirmation"><div class="dk2-store-notice '.('paid'===$order->status?'dk2-store-success':('failed'===$order->status?'dk2-store-error':'')).'"><strong>'.esc_html('paid'===$order->status?__('Order confirmed','dropkey-v2'):$status).'</strong><span>'.esc_html('paid'===$order->status?__('Your payment is confirmed. Order details are below.','dropkey-v2'):('pending'===$order->status?__('We have recorded your order, but payment is not yet confirmed. Your license will be issued after payment verification.','dropkey-v2'):__('This order has not been completed. If you believe you were charged, please contact support.','dropkey-v2'))).'</span></div>';
+		$html.='<h2>'.esc_html__('Order details','dropkey-v2').'</h2><dl class="dk2-order-details">';
+		$rows=array(__('Order number','dropkey-v2')=>substr((string)$order->public_id,0,8),__('Status','dropkey-v2')=>$status,__('Plugin','dropkey-v2')=>$product?:__('Plugin','dropkey-v2'),__('Plan','dropkey-v2')=>$tier?:'—',__('Billing','dropkey-v2')=>$cadence,__('Total','dropkey-v2')=>$amount,__('Payment method','dropkey-v2')=>ucfirst((string)$order->gateway),__('Customer','dropkey-v2')=>trim($order->customer_first_name.' '.$order->customer_last_name),__('Email','dropkey-v2')=>$order->customer_email,__('Order date','dropkey-v2')=>get_date_from_gmt($order->created_at,get_option('date_format').' '.get_option('time_format')));
+		foreach($rows as $label=>$value) $html.='<div><dt>'.esc_html($label).'</dt><dd>'.esc_html($value!==''?$value:'—').'</dd></div>';
+		$html.='</dl>';
+		if ('paid'===$order->status&&$order->license_id) {
+			$license=$wpdb->get_row($wpdb->prepare('SELECT license_key,status,expires_at FROM '.Database::table('licenses').' WHERE id=%d',(int)$order->license_id));
+			if ($license) $html.='<h3>'.esc_html__('License information','dropkey-v2').'</h3><dl class="dk2-order-details"><div><dt>'.esc_html__('License key','dropkey-v2').'</dt><dd><code>'.esc_html($license->license_key).'</code></dd></div><div><dt>'.esc_html__('License status','dropkey-v2').'</dt><dd>'.esc_html(ucfirst($license->status)).'</dd></div></dl>';
+			$html.='<p>'.esc_html__('A receipt and account setup instructions will be sent to the email address above.','dropkey-v2').'</p>';
+		}
+		return $html.'</section>';
 	}
 	public function render() {
 		global $wpdb;
