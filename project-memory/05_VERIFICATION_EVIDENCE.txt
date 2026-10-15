@@ -115,3 +115,11 @@ PAYPAL CHECKOUT DIAGNOSTIC LOGGING — 2026-10-15
 - Plugin version changed to 0.3.3 in both header and `DK2_VERSION`.
 - GitHub Actions PHP syntax workflow for latest code/version commits: queued when checked; not yet passed. Workflow: https://github.com/ruelporlas/dropkey-version2/actions/runs/38660336643 (this run is for the diagnostic code commit before the subsequent version bump).
 - TasteWP install/reproduction and PHP error-log review: NOT RUN. No PayPal Sandbox request has been tested by the assistant. Actual provider rejection cause remains unknown.
+
+
+PAYPAL RETURN/CANCEL URL SANITIZATION — 2026-10-15
+- User supplied PayPal API rejection: HTTP 400 INVALID_REQUEST, with INVALID_PARAMETER_SYNTAX for /application_context/return_url and /application_context/cancel_url.
+- Source inspection showed both values came from wp_get_referer() and were passed through wp_validate_redirect(); the order ID was then added to success URL without final URL sanitization.
+- Updated includes/class-commerce-service.php to sanitize both URLs with wp_sanitize_redirect() and esc_url_raw() restricted to HTTP/HTTPS, and validate both with wp_http_validate_url() before gateway request.
+- Commit bc61fe72fa7a63ab7f9e35a2709c3f7fa976d484; plugin version 0.3.4 commit 76e5568d91ec07f8b0bcd2f5ef1b60f4450e3411.
+- CI run 38661205529 is queued at the time of this record. PayPal Sandbox/WordPress runtime verification: NOT RUN. The exact malformed URL value has not been captured, so the source hardening is a targeted fix hypothesis, not yet a runtime-confirmed root cause.
