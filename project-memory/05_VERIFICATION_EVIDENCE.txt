@@ -186,4 +186,6 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - Checkout return URL fallback warning: still reported by the user's latest log and not changed in this task.
 
 - Follow-up verification on 2026-10-15: GitHub Actions run 38666594617 FAILED. PHP syntax checks passed, but the contract test hit a fatal `DropKey\\V2\\Logger` class-not-found error while testing missing-header rejection. This was a test-harness compatibility issue in the new warning path, not a PHP syntax error.
-- Corrective source commit: fce2fa7ee2c3d08e2532dc4688d9c52a21970542 guards the warning logger call when the Logger class is not loaded. New CI run 38666693429 was in progress at last inspection; outcome pending.
+- Corrective source commit: fce2fa7ee2c3d08e2532dc4688d9c52a21970542 guards the warning logger call when the Logger class is not loaded. Follow-up CI run 38666693429 completed successfully on commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542. All three PHP lint jobs (7.4, 8.0, 8.3) passed, and the workflow's contract test step completed successfully.
+
+- Final verification for this patch: GitHub Actions run 38666693429 PASSED on PHP 7.4, 8.0, and 8.3; the network-free webhook/client contract test command passed as part of the workflow. Live WordPress/PayPal Sandbox behavior remains NOT RUN.
