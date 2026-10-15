@@ -139,3 +139,7 @@ IMMEDIATE NEXT ACTION — VERIFY PAYPAL WEBHOOK DIAGNOSTICS v0.3.8 — 2026-10-1
 4. Inspect DropKey → Debug Logs for `paypal / webhook_verification_attempt`; share only the five header-presence booleans, event type, event-ID presence, payload byte count, and the corresponding `api_request_rejected` status/name/debug_id/issues. Do not share header values, tokens, webhook ID, or raw payload.
 5. If one or more required headers are absent, investigate the inbound request/proxy path before changing verification logic. If all are present, use the provider error details and verification request construction to narrow the cause.
 6. Do not claim live payment/license fulfillment works until end-to-end WordPress Sandbox checkout and webhook tests pass.
+
+CI CORRECTION — 2026-10-15
+- Do not install 0.3.8 until run https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061 completes successfully for commit `d0420a3d096603fd36a0855c558c95a13da6b186`.
+- If it fails, inspect the exact failed test and correct it before any installation. The version bump to 0.3.8 is already on main; the latest source correction is also on main.
