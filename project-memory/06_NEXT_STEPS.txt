@@ -99,3 +99,10 @@ IMMEDIATE NEXT STEPS — PAYPAL CHECKOUT REJECTION — 2026-10-15
 3. Reproduce the PayPal Sandbox checkout once.
 4. Inspect the site's PHP error log (or `wp-content/debug.log` if `WP_DEBUG_LOG` is enabled and configured) for `[DropKey V2] PayPal OAuth rejected:` or `[DropKey V2] PayPal API request rejected:`. Share the status, `name`, `debug_id`, and `issues` fields only; never share client secret, access token, authorization headers, or raw request/response bodies.
 5. Use those diagnostics to identify the actual rejection before changing checkout logic. Confirm the PayPal Client ID/Secret are both Sandbox credentials when Live mode is unchecked, and that the Webhook ID belongs to the same environment, but do not assume credentials are the cause without evidence.
+
+
+IMMEDIATE NEXT STEPS — PAYPAL URL SYNTAX — 2026-10-15
+1. Wait for PHP syntax CI for commit 76e5568d91ec07f8b0bcd2f5ef1b60f4450e3411: https://github.com/ruelporlas/dropkey-version2/actions/runs/38661205529.
+2. Update the installed plugin on https://driftbyte.sellersage.shop to version 0.3.4; a GitHub commit does not update the installed WordPress plugin.
+3. Retry the same PayPal Sandbox checkout once.
+4. If it still fails, share the new `[DropKey V2] PayPal API request rejected:` line with status, name, debug_id, and issue/field entries. Do not share credentials or raw request bodies. If the same URL fields fail, add safe diagnostics of URL scheme/host/path and validation result without logging sensitive query values, then isolate the exact generated URLs on staging.
