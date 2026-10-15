@@ -38,10 +38,10 @@ namespace {
 	$GLOBALS['dk2_test_logged_in']=false;
 	$GLOBALS['dk2_test_user']=(object)array('ID'=>0,'user_email'=>'');
 	$guest=$service->start_checkout(1,'buyer@example.test','stripe','https://example.test/success','https://example.test/cancel');
-	check_checkout_case($guest instanceof \\WP_Error&&'dk2_checkout_account_required'===$guest->get_error_code(),'rejects checkout without an authenticated customer account');
+	check_checkout_case($guest instanceof \WP_Error&&'dk2_checkout_account_required'===$guest->get_error_code(),'rejects checkout without an authenticated customer account');
 	$GLOBALS['dk2_test_logged_in']=true;
 	$GLOBALS['dk2_test_user']=(object)array('ID'=>42,'user_email'=>'owner@example.test');
 	$mismatch=$service->start_checkout(1,'buyer@example.test','stripe','https://example.test/success','https://example.test/cancel');
-	check_checkout_case($mismatch instanceof \\WP_Error&&'dk2_checkout_account_email_mismatch'===$mismatch->get_error_code(),'rejects checkout using an email different from the signed-in account');
+	check_checkout_case($mismatch instanceof \WP_Error&&'dk2_checkout_account_email_mismatch'===$mismatch->get_error_code(),'rejects checkout using an email different from the signed-in account');
 	echo "All customer checkout contract tests passed.\\n";
 }
