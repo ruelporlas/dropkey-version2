@@ -11,14 +11,14 @@ final class Admin {
 		add_submenu_page('dk2-dashboard',__('Dashboard','dropkey-v2'),__('Dashboard','dropkey-v2'),'manage_options','dk2-dashboard',array($this,'dashboard'));
 		add_submenu_page('dk2-dashboard',__('Customers','dropkey-v2'),__('Customers','dropkey-v2'),'manage_options','dk2-customers',array($this,'customers'));
 		add_submenu_page('dk2-dashboard',__('Products','dropkey-v2'),__('Products','dropkey-v2'),'manage_options','dk2-products',array($this,'products'));
-		add_submenu_page('dk2-products',__('Tiers','dropkey-v2'),__('Tiers','dropkey-v2'),'manage_options','dk2-tiers',array($this,'tiers'));
-		add_submenu_page('dk2-products',__('Billing Options','dropkey-v2'),__('Billing Options','dropkey-v2'),'manage_options','dk2-billing',array($this,'billing'));
-		add_submenu_page('dk2-products',__('ZIP Releases','dropkey-v2'),__('ZIP Releases','dropkey-v2'),'manage_options','dk2-releases',array($this,'releases'));
-		add_submenu_page('dk2-products',__('Licenses','dropkey-v2'),__('Licenses','dropkey-v2'),'manage_options','dk2-licenses',array($this,'licenses'));
-		add_submenu_page('dk2-products',__('Orders','dropkey-v2'),__('Orders','dropkey-v2'),'manage_options','dk2-orders',array($this,'orders'));
-		add_submenu_page('dk2-products',__('Subscriptions','dropkey-v2'),__('Subscriptions','dropkey-v2'),'manage_options','dk2-subscriptions',array($this,'subscriptions'));
-		add_submenu_page('dk2-products',__('Payment Settings','dropkey-v2'),__('Payment Settings','dropkey-v2'),'manage_options','dk2-settings',array($this,'settings'));
-		add_submenu_page('dk2-products',__('Debug Logs','dropkey-v2'),__('Debug Logs','dropkey-v2'),'manage_options','dk2-logs',array($this,'logs'));
+		add_submenu_page('dk2-dashboard',__('Tiers','dropkey-v2'),__('Tiers','dropkey-v2'),'manage_options','dk2-tiers',array($this,'tiers'));
+		add_submenu_page('dk2-dashboard',__('Billing Options','dropkey-v2'),__('Billing Options','dropkey-v2'),'manage_options','dk2-billing',array($this,'billing'));
+		add_submenu_page('dk2-dashboard',__('ZIP Releases','dropkey-v2'),__('ZIP Releases','dropkey-v2'),'manage_options','dk2-releases',array($this,'releases'));
+		add_submenu_page('dk2-dashboard',__('Licenses','dropkey-v2'),__('Licenses','dropkey-v2'),'manage_options','dk2-licenses',array($this,'licenses'));
+		add_submenu_page('dk2-dashboard',__('Orders','dropkey-v2'),__('Orders','dropkey-v2'),'manage_options','dk2-orders',array($this,'orders'));
+		add_submenu_page('dk2-dashboard',__('Subscriptions','dropkey-v2'),__('Subscriptions','dropkey-v2'),'manage_options','dk2-subscriptions',array($this,'subscriptions'));
+		add_submenu_page('dk2-dashboard',__('Payment Settings','dropkey-v2'),__('Payment Settings','dropkey-v2'),'manage_options','dk2-settings',array($this,'settings'));
+		add_submenu_page('dk2-dashboard',__('Debug Logs','dropkey-v2'),__('Debug Logs','dropkey-v2'),'manage_options','dk2-logs',array($this,'logs'));
 	}
 	public function register_handlers() {
 		foreach(array('product','tier','billing','release','license','license_status','download_link','activation_status','gateway_settings','email_resend','subscription_cancel','logs_clear','logs_settings') as $action) add_action('admin_post_dk2_'.$action,array($this,'handle'));
