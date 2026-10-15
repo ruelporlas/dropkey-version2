@@ -93,4 +93,4 @@ STRUCTURED DEBUG LOGGING — 2026-10-15
 PAYPAL WEBHOOK DEBUGGING NOTE — 2026-10-15
 - includes/class-paypal-gateway.php: PayPal webhook signature verification reads required transmission headers from the REST request header collection with normalized header-name matching and a matching $_SERVER fallback; missing required headers fail closed before provider verification.
 - tests/payment-webhook-contract.php: network-free PayPal provider-verification contract coverage includes underscore-form header names and missing-header rejection.
-- Latest relevant source commit: ff57c180e2caf1331ab3a7241b308ffb65ec728d. GitHub Actions run 38666594617 was queued at last inspection; see verification evidence before assuming it passed.
+- Latest relevant source commit: fce2fa7ee2c3d08e2532dc4688d9c52a21970542 (includes the guarded Logger warning path). Follow-up GitHub Actions run 38666693429 passed PHP lint on PHP 7.4, 8.0, and 8.3 plus the network-free contract test. Live WordPress/PayPal Sandbox verification remains NOT RUN.
