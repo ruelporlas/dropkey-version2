@@ -1,0 +1,235 @@
+NEXT STEPS
+Project: DropKey Version 2
+Last updated: 2026-10-14
+
+CURRENT STATUS
+- Milestones 1–4 source is committed to main: admin data management, private versioned ZIP releases, licensing/downloads, hosted checkout, Stripe/PayPal adapters, orders/subscriptions, webhook processing, encrypted email queue, and the public storefront shortcode.
+- Milestone 5 network-free contract tests cover Stripe webhook signatures, PayPal provider-verification handling, and the reusable PHP licensing client.
+- Plugin version: 0.3.1. Database schema version: 7.
+- Latest CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895 passed PHP syntax checks and contract tests on PHP 7.4, 8.0, and 8.3.
+- WordPress runtime, actual provider sandbox checkout/webhooks, real email delivery, and live admin/storefront visual review have NOT been run in this work session.
+
+IMMEDIATE NEXT ACTION
+Update the plugin installed on the user's WordPress test site with the latest source from the main branch, then run the WordPress integration checklist below. GitHub commits do not update an already installed plugin automatically. Do not use live payment credentials yet.
+
+TEST ORDER AFTER INSTALLING THE UPDATED SOURCE
+1. Back up the WordPress database and current plugin folder; prefer staging.
+2. Replace the installed plugin files with the latest repository source (plugin version 0.3.1). Keep a rollback copy.
+3. Activate/reload WordPress and confirm no fatal error. Confirm the DropKey admin menu, dashboard counts/shortcuts, payment settings, orders, and subscriptions screens render.
+4. Confirm schema version 6 and all 12 prefixed tables exist: products, tiers, billing_options, releases, licenses, activations, download_tokens, orders, subscriptions, payment_events, email_queue, payments.
+5. Check the admin layout at desktop and mobile widths; inspect product/tier/billing/release/license/order/subscription tables and all form validation/notice states.
+6. Confirm the private package path is writable and outside both ABSPATH and the public document root; verify the web server cannot serve it directly before uploading packages.
+7. Configure Stripe test credentials and webhook signing secret. Register the required Stripe events from README. Never use live keys for this pass.
+8. Configure PayPal Sandbox Client ID/Secret and webhook ID. For monthly/yearly options, no manual plan creation is needed; DropKey provisions and stores the plan on the first PayPal checkout.
+9. Add [dropkey_store] to a test WordPress page. Confirm published products, tiers, billing options, activation limits, prices, email field, and available payment methods render correctly.
+10. Test free acquisition end to end: order record, license issuance, protected download token, queued customer email, and eventual email delivery.
+11. Test Stripe sandbox one-time checkout: approval/return, signed webhook, amount/currency validation, paid order, license, download, email, and duplicate webhook idempotency.
+12. Test PayPal sandbox one-time checkout: approval, server-side capture, amount/currency validation, webhook verification, paid order, license, download, and email.
+13. Test Stripe and PayPal subscriptions: initial paid fulfillment, period-end data, renewal success, payment failure, three-day grace, successful recovery, admin cancellation at period end, and access suspension after the paid-through date.
+14. Test refund and dispute events; confirm payment history matching and expected order/license state changes.
+15. Test bad signatures, expired Stripe signature timestamps, unknown event IDs, mismatched order amount/currency, invalid checkout input, and checkout rate limits.
+16. Confirm email retries, failed-email display, and administrator retry action; verify cron executes in the host's environment.
+17. Record exact pass/fail/blocked outcomes and errors in 05_VERIFICATION_EVIDENCE.txt. Do not label the milestones runtime-verified until these checks actually run.
+
+IMPLEMENTED SCOPE BOUNDARIES
+- Milestones 2–4 provide admin data management, protected releases, licensing, checkout, Stripe/PayPal integration code, payment webhook processing, subscription lifecycle, encrypted email queue, and storefront shortcode.
+- Milestone 5 adds network-free contract tests for payment webhook and client boundaries; it is not a full WordPress integration test suite.
+- Customer-facing account pages, guest-purchase account linking, and full WordPress Plugins-screen updater integration remain unimplemented.
+- Taxes, coupons, invoices, and trials remain deferred.
+- Manual license issuance remains an administrator grant, not evidence of payment.
+- PayPal recurring billing provisions a provider product and plan automatically on first checkout when credentials are configured; administrators do not manually enter the plan ID.
+- Private storage must be confirmed outside the public web root before real product ZIPs are stored.
+
+ADMIN UX REQUIREMENT
+Product setup must keep product details distinct from tier/pricing setup and expose next-step links. Tier creation/editing must clearly explain the configurable activation limit and examples.
+
+CUSTOMER ACCOUNT UX REQUIREMENT
+A future frontend account area must show only the authenticated customer's own licenses and subscriptions and enforce ownership checks for every action. Do not expose one customer's records to another customer.
+
+WORKING RULES
+- Actual repository files and latest verification results are the source of truth.
+- Read AI_PROJECT_PROTOCOL.txt before meaningful project work and inspect relevant source files.
+- Ask when scope is unclear; do not get ahead or expand scope without authorization.
+- Keep implemented source, static tests, runtime verification, and production readiness distinct.
+- Update relevant memory files after substantial changes and verify each memory write by fetching the file again.
+
+
+CUSTOMER PORTAL — IMMEDIATE VERIFICATION TASK — 2026-10-15
+1. Install the latest main-branch source on a backed-up WordPress staging site; GitHub commits do not update an installed copy automatically.
+2. Confirm schema version 7 and all 12 tables; verify the licenses table has `customer_user_id` and `key_encrypted` columns and existing records remain intact.
+3. Create a page containing `[dropkey_account]`. Test logged-out sign-in prompt and logged-in dashboard.
+4. Use two separate WordPress accounts to verify no cross-account access to licenses, activations, subscriptions, orders, or download actions, including forged record IDs in POST requests.
+5. Test activation deactivation, fresh download-token creation, key display/copy for newly issued licenses, profile edits, correct/wrong current-password handling, and mobile layout.
+6. Confirm signed-in checkout links an order only when the submitted email matches the logged-in account. Guest purchases remain unlinked until a verified claim flow is implemented.
+7. Keep WordPress auth salts stable while encrypted license-key copies are stored. Do not call the portal production-ready until WordPress runtime/security checks pass.
+
+
+IMMEDIATE DEBUGGING NEXT STEP — 2026-10-15
+1. Update the TasteWP test site's installed DropKey V2 plugin to the latest `main` source containing the repository database-failure logger. A GitHub commit does not update the installed plugin automatically.
+2. Reproduce the tier creation failure once.
+3. Inspect the PHP error log (or WordPress `wp-content/debug.log` if `WP_DEBUG_LOG` is enabled) for a line beginning `[DropKey V2] Database operation failed:`.
+4. Share the logged operation, table, database_error, and columns fields. Redact anything sensitive before sharing.
+5. Use the actual database error to choose the fix; do not alter the database schema or guess at a duplicate slug before seeing the evidence.
+6. Run the repository's PHP syntax/contract CI and record the actual result. Then update verification evidence and status with the reproduced cause and outcome.
+
+IMMEDIATE NEXT STEPS — PAYPAL PLAN AND ADMIN FORM FIX — 2026-10-15
+1. PHP syntax CI passed on PHP 7.4, 8.0, and 8.3 for source commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d`; continue with the TasteWP install and runtime checks below.
+2. Update the TasteWP site's installed plugin from `main` (plugin version 0.3.1); GitHub source changes do not update the installed copy automatically.
+3. Create and save a monthly or yearly billing option without entering any PayPal plan ID. Confirm the admin inputs now have consistent styling.
+4. Configure PayPal Sandbox credentials and perform a test checkout. Confirm DropKey creates a PayPal product and plan, stores the plan ID, and creates a subscription approval URL.
+5. Change that billing option's price/currency/interval and verify the local plan ID is cleared; on the next PayPal checkout, a matching plan should be provisioned. Existing subscriptions are not migrated.
+6. Separately continue the pending tier database-save diagnosis by reproducing it with the logging-enabled plugin and reading the PHP error log; do not conflate that issue with the billing-option UX fix.
+
+IMMEDIATE NEXT STEPS — STOREFRONT PAYPAL VISIBILITY — 2026-10-15
+1. Wait for PHP syntax CI for commit `4ae978906cc9bd2d7f81340a899bea2241806a4d`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659803790.
+2. Update the installed TasteWP plugin with the latest `main` source; repository changes do not update the site automatically.
+3. Reload the storefront and check a published monthly/yearly paid option. PayPal should appear when PayPal is enabled and Client ID, Secret, and Webhook ID are saved.
+4. Test the Sandbox checkout. Verify that the first recurring checkout creates a PayPal product/plan and stores the plan ID.
+5. If PayPal remains missing after installing the latest source, confirm the PayPal settings have Enabled checked and Client ID, Secret, and Webhook ID populated; report which of those fields is blank without sharing secrets.
+
+FOLLOW-UP — INSTALL STOREFRONT FIX VERSION 0.3.2 — 2026-10-15
+1. Latest plugin source version is 0.3.2; use this version when replacing the installed TasteWP plugin.
+2. PHP syntax CI passed for the storefront logic commit; check the version-bump commit run here before deployment: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659918482.
+3. Reload the public storefront and test a published recurring billing option. If PayPal is still absent, confirm the PayPal gateway is enabled and Client ID, Secret, and Webhook ID are all saved; never share the Secret.
+4. Run a PayPal Sandbox subscription checkout and confirm the plan is created and saved automatically.
+
+IMMEDIATE NEXT STEPS — PAYPAL CHECKOUT REJECTION — 2026-10-15
+1. Wait for PHP syntax CI for diagnostic commit `874d9b8a359392014838c5600385c9c3551e14f8` and version bump `846775707d8755dd8c31fe04b19b59c075d6b3f1` to finish; verify latest run status before declaring the source verified.
+2. Install/update TasteWP to DropKey V2 version 0.3.3 from `main`; GitHub changes do not update the site automatically.
+3. Reproduce the PayPal Sandbox checkout once.
+4. Inspect the site's PHP error log (or `wp-content/debug.log` if `WP_DEBUG_LOG` is enabled and configured) for `[DropKey V2] PayPal OAuth rejected:` or `[DropKey V2] PayPal API request rejected:`. Share the status, `name`, `debug_id`, and `issues` fields only; never share client secret, access token, authorization headers, or raw request/response bodies.
+5. Use those diagnostics to identify the actual rejection before changing checkout logic. Confirm the PayPal Client ID/Secret are both Sandbox credentials when Live mode is unchecked, and that the Webhook ID belongs to the same environment, but do not assume credentials are the cause without evidence.
+
+
+IMMEDIATE NEXT STEPS — PAYPAL URL SYNTAX — 2026-10-15
+1. Wait for PHP syntax CI for commit 76e5568d91ec07f8b0bcd2f5ef1b60f4450e3411: https://github.com/ruelporlas/dropkey-version2/actions/runs/38661205529.
+2. Update the installed plugin on https://driftbyte.sellersage.shop to version 0.3.4; a GitHub commit does not update the installed WordPress plugin.
+3. Retry the same PayPal Sandbox checkout once.
+4. If it still fails, share the new `[DropKey V2] PayPal API request rejected:` line with status, name, debug_id, and issue/field entries. Do not share credentials or raw request bodies. If the same URL fields fail, add safe diagnostics of URL scheme/host/path and validation result without logging sensitive query values, then isolate the exact generated URLs on staging.
+
+FOLLOW-UP — URL VALIDATION PHP SYNTAX CORRECTION — 2026-10-15
+1. Check CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119 for commit `4bbc12465abb95396669987a61e06412ff966731`; the preceding run failed due to an extra backslash before `WP_Error`, now corrected.
+2. Only after CI passes, install/update DropKey V2 0.3.4 on https://driftbyte.sellersage.shop and retry PayPal Sandbox checkout.
+3. If PayPal still rejects return/cancel URLs, capture safe URL diagnostics (scheme, host, path, validation result; do not log sensitive query values) before another code change.
+- Follow-up PHP syntax CI now PASSES for commit `4bbc12465abb95396669987a61e06412ff966731` on PHP 7.4, 8.0, and 8.3: https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119. Next action is installing 0.3.4 on driftbyte.sellersage.shop and testing Sandbox checkout.
+
+IMMEDIATE — checkout URL validator follow-up (2026-10-15)
+1. Check CI runs https://github.com/ruelporlas/dropkey-version2/actions/runs/38662089337 and https://github.com/ruelporlas/dropkey-version2/actions/runs/38662107088 for URL-validation change/version 0.3.5.
+2. If CI passes, update DropKey V2 on https://driftbyte.sellersage.shop to version 0.3.5 and retry PayPal Sandbox checkout.
+3. If the same plugin-generated invalid-URL message appears, instrument safe diagnostics (only URL scheme, host presence, parse result, and character-check result; do not log query values or credentials) before another validation change. If PayPal again returns INVALID_PARAMETER_SYNTAX, use safe diagnostics to identify which URL component is malformed.
+- CI PASSED for URL validation commit `274c88b50f4d9d0ce3a29891d301cf87610a0abc` and plugin version 0.3.5 commit `abe1b8dc94ea2669df03f44035f1efb190120557` (runs 38662089337 and 38662107088). Next: update the installed plugin to 0.3.5 on driftbyte.sellersage.shop and retry Sandbox checkout.
+
+IMMEDIATE — checkout URL fallback v0.3.6 (2026-10-15)
+1. Confirm GitHub Actions status for source commit f931a0a20080b193c46de43c9c1915da5f7791bb and version commit 1cf3130d3544e82d345f77cbdb8b85c847de3313. Do not claim CI passed until confirmed.
+2. Update the installed plugin on https://driftbyte.sellersage.shop to 0.3.6 and retry the same PayPal Sandbox checkout.
+3. If checkout proceeds to PayPal but PayPal rejects return_url/cancel_url, inspect the new safe DropKey log and PayPal issue fields. If the plugin still emits the local invalid-URL message, capture the new safe “Checkout canonical URL invalid” diagnostic and inspect WordPress home/site URL configuration. Do not log or share full query strings or credentials.
+
+IMMEDIATE — Verify structured logging v0.3.7 (2026-10-15)
+1. Update the installed DropKey V2 plugin on `https://driftbyte.sellersage.shop` to 0.3.7. Back up the site/database first because schema version 8 creates the new `dk2_logs` table through the normal plugin upgrade check.
+2. Open WordPress Admin → DropKey → Debug Logs. Confirm the page renders and shows entries after admin activity or a checkout attempt.
+3. Reproduce the current PayPal checkout issue and inspect the new `checkout` and `paypal` log events. Share only relevant log rows/context; do not share credentials or secrets.
+4. Test level filtering, enable/disable, and clear-all in a safe/staging environment. Confirm the clear operation removes prior entries and may record its own event after clearing.
+5. If the log table is empty or page errors, inspect the hosting PHP error log for the generic `[DropKey V2] Diagnostic log write failed.` fallback and confirm the plugin upgrade ran.
+Acceptance criteria: schema migration succeeds, structured rows are inserted/displayed, privacy redaction works, and admin controls operate correctly. Automated CI passed; WordPress runtime is still unverified.
+
+IMMEDIATE NEXT ACTION — VERIFY PAYPAL WEBHOOK DIAGNOSTICS v0.3.8 — 2026-10-15
+1. Check GitHub Actions for source commit `b10df25e173b6e1f8bdb30d1815113674871d255` and version commit `0f8185e48f44e88853d18fa2d1b1e8769cac10c3`; record actual CI status before calling source verified.
+2. Back up the WordPress site/database and update the installed plugin on `https://driftbyte.sellersage.shop` to version 0.3.8.
+3. Trigger one fresh PayPal Sandbox webhook using the actual provider flow.
+4. Inspect DropKey → Debug Logs for `paypal / webhook_verification_attempt`; share only the five header-presence booleans, event type, event-ID presence, payload byte count, and the corresponding `api_request_rejected` status/name/debug_id/issues. Do not share header values, tokens, webhook ID, or raw payload.
+5. If one or more required headers are absent, investigate the inbound request/proxy path before changing verification logic. If all are present, use the provider error details and verification request construction to narrow the cause.
+6. Do not claim live payment/license fulfillment works until end-to-end WordPress Sandbox checkout and webhook tests pass.
+
+CI CORRECTION — 2026-10-15
+- Do not install 0.3.8 until run https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061 completes successfully for commit `d0420a3d096603fd36a0855c558c95a13da6b186`.
+- If it fails, inspect the exact failed test and correct it before any installation. The version bump to 0.3.8 is already on main; the latest source correction is also on main.
+
+CI RESULT — 2026-10-15
+Corrective source commit d0420a3d096603fd36a0855c558c95a13da6b186 passed PHP syntax and contract checks in run 38664933061: https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061. Next action: back up the WordPress site/database, install version 0.3.8, trigger one fresh PayPal Sandbox webhook, then inspect the safe header-presence diagnostics and provider rejection entry. Never share header values or raw payload.
+
+
+IMMEDIATE NEXT ACTION — VERIFY DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
+1. Check GitHub Actions for the latest commit(s) and confirm PHP syntax/contract tests pass before installing.
+2. Back up the WordPress site and database, then update `https://driftbyte.sellersage.shop` to plugin version 0.3.9.
+3. Run one fresh PayPal Sandbox checkout that produces a webhook.
+4. Inspect `paypal / webhook_verification_attempt`: compare the five booleans under `rest_header_presence`, `server_header_presence`, and `redirect_server_header_presence`. The `paypal_header_names` list contains names only. Also inspect the matching PayPal API rejection status/name/debug ID/issues.
+5. Inspect `checkout / checkout_urls_validated` for `return_url_valid`, `cancel_url_valid`, and `return_url_fallback_used`. These flags are safe to share; do not share full URLs, query strings, credentials, signatures, tokens, webhook ID values, or raw event payloads.
+6. Interpret the result before changing behavior: if PHP server variables have headers but REST headers do not, inspect WordPress request/header normalization; if both are absent, inspect hosting/proxy/WAF forwarding; if all header layers show presence, investigate the verification API request and exact provider response.
+7. Keep this as diagnostic-only until evidence identifies a specific cause. Do not claim checkout, webhook processing, or license fulfillment works until the end-to-end Sandbox flow is confirmed.
+
+
+CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
+- PASSED: PayPal header-layer diagnostics commit `4dd6c6cf54fe0859e72616af06c0dadd53122922`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665818464.
+- PASSED: checkout URL outcome logging commit `e6c3c3e5d857385e4cb66e12761321fdb77290c5`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665842694.
+- PASSED: plugin version 0.3.9 commit `5a92775c8b06614de5c926f728a8f3c87c724508`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665864865.
+- These are GitHub Actions PHP syntax/contract checks, not WordPress runtime or PayPal Sandbox verification. The live root cause is still unknown; install 0.3.9 on the test site, run a fresh Sandbox checkout, then inspect only the safe diagnostic fields.
+
+
+CURRENT DEBUGGING TASK UPDATE — 2026-10-15
+Immediate next action: Check GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38666594617 for PHP syntax and contract-test results on commit ff57c180e2caf1331ab3a7241b308ffb65ec728d.
+If CI passes: update the installed WordPress test site with the latest main-branch plugin, then trigger a PayPal Sandbox webhook and confirm required verification headers are detected and PayPal returns verification_status=SUCCESS. Confirm BILLING.SUBSCRIPTION.CREATED is acknowledged without being treated as a payment-success event.
+If CI fails: inspect the failing job output and fix only the failing PayPal header/test issue, then re-check CI.
+Acceptance criteria: PHP syntax and contract tests pass; missing headers fail closed; underscore/hyphen header key variants are handled; sandbox verification is confirmed by a fresh runtime log.
+Separate unresolved issue: checkout_urls_validated still reports return_url_fallback_used=true; investigate the referer URL construction/WordPress request context separately.
+
+CI FOLLOW-UP — 2026-10-15
+- First regression run 38666594617 failed in the missing-header contract assertion because the test harness does not load Logger; PHP syntax checks passed. Source was guarded in commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542.
+- CI run 38666693429 has PASSED on commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542 (PHP 7.4, 8.0, 8.3 lint plus network-free contract test). Immediate next action: deploy the latest plugin to the WordPress test site and verify a fresh PayPal Sandbox webhook, including signature verification and correct handling of BILLING.SUBSCRIPTION.CREATED.
+
+
+IMMEDIATE NEXT ACTION — RETURN URL FIX — 2026-10-15
+1. Confirm GitHub Actions passes for commit `3e4d1213da58b172ca9c3a9611ae5dcc2f1818da`.
+2. Back up the WordPress test site/database and deploy the latest plugin source to `https://driftbyte.sellersage.shop`.
+3. Start a fresh PayPal Sandbox checkout from the page containing `[dropkey_store]`; confirm `return_url_fallback_used=false` and the return path contains the order notice on the storefront page.
+4. Verify payment event handling end to end: the matching order is `paid`, a license exists, subscription row exists for recurring checkout, and fulfillment email is queued/sent. CREATED/ACTIVATED webhooks alone are not payment confirmation.
+5. If the warning remains, share the safe checkout log fields and relevant event names only; never share credentials, signatures, access tokens, webhook ID values, or raw payloads. Do not run another real-money payment until fulfillment is verified in Sandbox.
+
+
+IMMEDIATE NEXT STEPS — DEDICATED CHECKOUT v0.4.0 — 2026-10-15
+1. Check PHP syntax and contract-test CI for the latest main commit before installing; CI has not yet been confirmed for this checkout change.
+2. Back up WordPress files/database on staging and update the installed plugin to 0.4.0. GitHub source commits do not update the installed site.
+3. Confirm database schema version 9 and verify customer billing columns are on the orders table (not licenses).
+4. Add [dropkey_store] to the product page. Selecting “Order now” should open the dedicated page generated by DropKey with [dropkey_checkout]. Confirm all required contact/address fields, plan summary, and configured payment methods appear responsively.
+5. Submit invalid and valid forms; ensure validation errors keep the selected billing option. Verify name/address details are stored against the order and do not appear in logs or public URLs.
+6. Run free acquisition, Stripe test-mode checkout, PayPal Sandbox one-time checkout, and PayPal Sandbox subscription checkout. Confirm provider return goes to the dedicated confirmation state, orders become paid only after validated confirmation, and licenses/download emails are issued only after payment verification.
+7. Test cancelled payment and delayed/missing webhooks. Pending confirmation must remain clear and must not issue a license. Do not use live payment credentials until Sandbox end-to-end tests pass.
+
+
+CHECKOUT INSERT FAILURE — NEXT ACTIONS — 2026-10-15
+1. Inspect CI for commit 2fb28bf77891868a0d409b60a3ea93b9e676c7c3 (plugin v0.4.2); the GitHub combined-status endpoint returned no checks at the time of the latest update.
+2. Static-review the schema migration and order-insert diagnostics. Do not call the issue fixed merely because code is committed.
+3. The user's WordPress staging install must receive v0.4.2 before its schema v10 migration and diagnostic logging can run; source on GitHub does not update the installed plugin automatically.
+4. If order creation still fails after a successful schema migration, use the new order_insert_failed log's db_error and attempted_columns to fix the actual database failure. Redact customer data and secrets.
+5. Only report checkout as verified after a real WordPress order insert and sandbox provider redirect succeed. Do not ask for a blind retest before CI/source checks are complete.
+IMMEDIATE NEXT ACTION — RECONCILE TEST PURCHASE AND FEATURE PR — 2026-10-15
+1. Re-read current `main` project-memory files and inspect the latest PR #1 head/CI before making implementation claims. PR: https://github.com/ruelporlas/dropkey-version2/pull/1; feature branch: `feature/complete-customer-checkout`; keep it draft/unmerged.
+2. Inspect the actual checkout return URL code on both `main` and the feature branch, especially the hidden `return_url` field in `includes/class-storefront.php`, its sanitization/validation in `submit_checkout()`, and the warning path that reports `return_url_fallback_used`. Establish why the live site still logs the fallback; do not assume the explicit return URL commit fixed staging until verified.
+3. Reconcile the user’s test purchase in staging: order status, payment/provider event records, subscription row if recurring, license row and expiry, and email queue/retry status. Ask for only redacted safe logs or specific IDs if direct staging access is unavailable. Do not ask for another blind payment attempt before checking the current records.
+4. If checkout or email issue needs a code fix, implement it on the appropriate feature branch, add/update regression coverage, and run CI. Keep secrets, raw webhook payloads, signatures, tokens, and customer personal data out of logs and project memory.
+5. Before merge/deploy, staging-test: initial one-time checkout; initial recurring checkout and first-invoice deduplication; unique renewal creates one renewal order; duplicate webhook does not duplicate payment/order/license; paid-through and license expiry extend correctly; failed payment/grace and recovery; cancel-at-period-end; confirmation/return URL; email queue and actual SMTP delivery.
+6. Update the project-memory files on `main` after meaningful work, but record feature-branch work as pending until it is merged. Do not merge the draft PR or deploy the feature branch without staging verification.
+
+
+CURRENT NEXT ACTION — 2026-10-15
+1. Trace main's return URL flow in includes/class-storefront.php and includes/class-commerce-service.php. A hidden posted return_url exists, but the service still contains the fallback warning text; establish the exact path before changing code.
+2. Reconcile the reported staging purchase: order/payment state, subscription if recurring, license and expiry, email queue/retry state, and actual SMTP delivery. Do not ask for another blind payment attempt.
+3. Resolve the README PayPal provisioning inconsistency in a scoped documentation task after confirming current gateway behavior.
+4. Re-fetch PR #1 and latest workflow status before merge. It remains draft/unmerged; end-to-end staging checks are required.
+5. Continue maintaining memory on main. Mandatory end-of-session updates: 02_CURRENT_STATUS.txt, 05_VERIFICATION_EVIDENCE.txt, 06_NEXT_STEPS.txt, 07_CHANGE_HISTORY.txt. Update source map, architecture, requirements, and preferences when their protocol conditions apply.
+
+
+IMMEDIATE NEXT ACTION — STAGING PURCHASE RECONCILIATION (2026-10-15)
+1. Do not repeat the purchase: the user-provided Order #19 screen shows paid order/payment, active subscription #4, and linked license #4.
+2. In staging WordPress admin, open the DropKey email queue/failed-email screen. Find the purchase email for this order/customer by the order reference or timestamp, and report its status, attempt count, last error, and any available sent timestamp. Redact recipient email addresses and message contents; do not share SMTP credentials or API keys. Do not click retry/resend yet because the existing queue/error state should be preserved for diagnosis.
+3. Open linked License #4 and confirm status, expiry, and product/tier association; report only those fields, not the full license key.
+4. If no matching email queue item exists, inspect DropKey logs around the order timestamp for email queueing/fulfillment events and the WordPress/PHP mail log or SMTP plugin's delivery/error log.
+5. After email state is known, trace the `return_url_fallback_used` path separately and test browser return behavior without making another paid order if possible.
+6. Update project memory on `main` with the evidence. Keep PR #1 draft/unmerged and do not deploy/merge until required end-to-end staging checks pass.
+
+IMMEDIATE NEXT ACTION — STAGING PURCHASE RECONCILIATION (2026-10-15)
+1. Do not repeat the purchase: the user-provided Order #19 screen shows paid order/payment, active subscription #4, and linked license #4.
+2. In staging WordPress admin, open the DropKey email queue/failed-email screen. Find the purchase email for this order by order reference or timestamp, and report its status, attempt count, last error, and any available sent timestamp. Redact recipient email addresses and message contents; do not share SMTP credentials or API keys. Do not click retry/resend yet because the existing queue/error state should be preserved for diagnosis.
+3. Open linked License #4 and confirm status, expiry, and product/tier association; report only those fields, not the full license key.
+4. If no matching email queue item exists, inspect DropKey logs around the order timestamp for email queueing/fulfillment events and the WordPress/PHP mail log or SMTP plugin delivery/error log.
+5. After email state is known, trace the `return_url_fallback_used` path separately and test browser return behavior without making another paid order if possible.
+6. Update project memory on `main` with the evidence. Keep PR #1 draft/unmerged and do not deploy/merge until required end-to-end staging checks pass.
