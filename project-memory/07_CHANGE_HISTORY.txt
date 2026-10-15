@@ -166,3 +166,11 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - PASSED: checkout URL outcome logging commit `e6c3c3e5d857385e4cb66e12761321fdb77290c5`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665842694.
 - PASSED: plugin version 0.3.9 commit `5a92775c8b06614de5c926f728a8f3c87c724508`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665864865.
 - These are GitHub Actions PHP syntax/contract checks, not WordPress runtime or PayPal Sandbox verification. The live root cause is still unknown; install 0.3.9 on the test site, run a fresh Sandbox checkout, then inspect only the safe diagnostic fields.
+
+
+2026-10-15 — Fixed PayPal webhook header-name normalization and missing-header handling
+- Trigger: User-provided logs showed PayPal subscription checkout creation succeeded, but PayPal's verify-webhook-signature endpoint returned HTTP 400 INVALID_REQUEST. WordPress server header flags were present while REST request header flags were absent.
+- Changes: includes/class-paypal-gateway.php now matches header keys after normalizing underscores and hyphens, falls back to the matching $_SERVER HTTP header key when needed, and rejects requests missing any required verification header before contacting PayPal. tests/payment-webhook-contract.php now uses underscore-form header keys and checks that missing required headers are rejected.
+- Commits: c253d2b7054ff7a3123812b41a6af2625c5e592c; 7e3da1d3049ec59b809c1960467f4b32ab1e8b64; 21420011f733a821b2fc15a739c3922f4ae5a874; ff57c180e2caf1331ab3a7241b308ffb65ec728d.
+- Verification: GitHub Actions run 38666594617 was queued when checked; no pass/fail result claimed. Live WordPress/PayPal Sandbox behavior is not yet verified.
+- Remaining: checkout return URL fallback warning is still unresolved and separate.
