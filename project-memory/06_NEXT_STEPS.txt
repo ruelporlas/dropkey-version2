@@ -225,3 +225,11 @@ IMMEDIATE NEXT ACTION — STAGING PURCHASE RECONCILIATION (2026-10-15)
 4. If no matching email queue item exists, inspect DropKey logs around the order timestamp for email queueing/fulfillment events and the WordPress/PHP mail log or SMTP plugin's delivery/error log.
 5. After email state is known, trace the `return_url_fallback_used` path separately and test browser return behavior without making another paid order if possible.
 6. Update project memory on `main` with the evidence. Keep PR #1 draft/unmerged and do not deploy/merge until required end-to-end staging checks pass.
+
+IMMEDIATE NEXT ACTION — STAGING PURCHASE RECONCILIATION (2026-10-15)
+1. Do not repeat the purchase: the user-provided Order #19 screen shows paid order/payment, active subscription #4, and linked license #4.
+2. In staging WordPress admin, open the DropKey email queue/failed-email screen. Find the purchase email for this order by order reference or timestamp, and report its status, attempt count, last error, and any available sent timestamp. Redact recipient email addresses and message contents; do not share SMTP credentials or API keys. Do not click retry/resend yet because the existing queue/error state should be preserved for diagnosis.
+3. Open linked License #4 and confirm status, expiry, and product/tier association; report only those fields, not the full license key.
+4. If no matching email queue item exists, inspect DropKey logs around the order timestamp for email queueing/fulfillment events and the WordPress/PHP mail log or SMTP plugin delivery/error log.
+5. After email state is known, trace the `return_url_fallback_used` path separately and test browser return behavior without making another paid order if possible.
+6. Update project memory on `main` with the evidence. Keep PR #1 draft/unmerged and do not deploy/merge until required end-to-end staging checks pass.
