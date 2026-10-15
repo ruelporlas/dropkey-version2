@@ -295,6 +295,7 @@ final class Commerce_Service {
 		if (!$base || empty($subscription->license_id) || 'paid'!==$base->status) return new \WP_Error('dk2_renewal_parent_order_invalid',__('The original paid order or its license could not be found for this renewal.','dropkey-v2'));
 		$currency=strtoupper(sanitize_text_field($event['currency'])); $amount=(float)$event['amount'];
 		if (!preg_match('/^[A-Z]{3}$/',$currency)||$amount<0) return new \WP_Error('dk2_renewal_amount_invalid',__('The recurring payment amount or currency is invalid.','dropkey-v2'));
+		if (strtoupper((string)$base->currency)!==$currency) return new \WP_Error('dk2_renewal_currency_mismatch',__('The recurring payment currency does not match the original subscription currency.','dropkey-v2'));
 		$now=current_time('mysql',true);
 		$data=array(
 			'public_id'=>wp_generate_uuid4(),'product_id'=>(int)$base->product_id,'tier_id'=>(int)$base->tier_id,'billing_option_id'=>(int)$base->billing_option_id,
