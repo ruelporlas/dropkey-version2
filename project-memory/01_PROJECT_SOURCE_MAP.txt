@@ -72,4 +72,4 @@ SOURCE MAP UPDATE — PAYPAL BILLING PROVISIONING — 2026-10-15
 - `includes/class-admin.php` no longer asks administrators to enter a PayPal plan ID manually; it explains automatic provisioning and shows an existing linked ID read-only.
 - `assets/css/admin.css` styles text-like inputs even when their type attribute is omitted and applies the theme accent to checkboxes/radios.
 - `dropkey-v2.php` plugin/style version is 0.3.1 to refresh cached admin CSS.
-- These source changes are committed on `main`; PHP CI is pending at the time of this entry. WordPress/PayPal Sandbox runtime verification has not been performed.
+- These source changes are committed on `main`; PHP syntax CI passed for code commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d`. WordPress/PayPal Sandbox runtime verification has not been performed.
