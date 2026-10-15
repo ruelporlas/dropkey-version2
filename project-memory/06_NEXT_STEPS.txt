@@ -146,3 +146,13 @@ CI CORRECTION — 2026-10-15
 
 CI RESULT — 2026-10-15
 Corrective source commit d0420a3d096603fd36a0855c558c95a13da6b186 passed PHP syntax and contract checks in run 38664933061: https://github.com/ruelporlas/dropkey-version2/actions/runs/38664933061. Next action: back up the WordPress site/database, install version 0.3.8, trigger one fresh PayPal Sandbox webhook, then inspect the safe header-presence diagnostics and provider rejection entry. Never share header values or raw payload.
+
+
+IMMEDIATE NEXT ACTION — VERIFY DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
+1. Check GitHub Actions for the latest commit(s) and confirm PHP syntax/contract tests pass before installing.
+2. Back up the WordPress site and database, then update `https://driftbyte.sellersage.shop` to plugin version 0.3.9.
+3. Run one fresh PayPal Sandbox checkout that produces a webhook.
+4. Inspect `paypal / webhook_verification_attempt`: compare the five booleans under `rest_header_presence`, `server_header_presence`, and `redirect_server_header_presence`. The `paypal_header_names` list contains names only. Also inspect the matching PayPal API rejection status/name/debug ID/issues.
+5. Inspect `checkout / checkout_urls_validated` for `return_url_valid`, `cancel_url_valid`, and `return_url_fallback_used`. These flags are safe to share; do not share full URLs, query strings, credentials, signatures, tokens, webhook ID values, or raw event payloads.
+6. Interpret the result before changing behavior: if PHP server variables have headers but REST headers do not, inspect WordPress request/header normalization; if both are absent, inspect hosting/proxy/WAF forwarding; if all header layers show presence, investigate the verification API request and exact provider response.
+7. Keep this as diagnostic-only until evidence identifies a specific cause. Do not claim checkout, webhook processing, or license fulfillment works until the end-to-end Sandbox flow is confirmed.
