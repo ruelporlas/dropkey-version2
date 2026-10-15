@@ -81,3 +81,11 @@ SOURCE MAP UPDATE — STOREFRONT PAYPAL VISIBILITY — 2026-10-15
 
 PAYPAL DIAGNOSTICS UPDATE — 2026-10-15
 - `includes/class-paypal-gateway.php` now records safe PayPal OAuth/API failure diagnostics in the PHP error log: HTTP status, provider error name/debug ID, and issue/field codes where available. It intentionally does not log credentials, authorization headers, checkout request bodies, or full provider responses.
+
+
+STRUCTURED DEBUG LOGGING — 2026-10-15
+- `includes/class-logger.php` — structured activity/diagnostic logger writing to the `dk2_logs` database table; supports debug/info/warning/error/critical levels, request correlation IDs, safe context redaction, a 30-day retention cleanup, and an enable/disable option.
+- `includes/class-database.php` — schema version 8; adds the `dk2_logs` table and allowlists it in Database::table().
+- `includes/class-admin.php` — adds the DropKey > Debug Logs screen with level filtering, 100-entry pagination, expandable context, enable/disable control, and clear-log action.
+- Logging integrations include admin action handlers, checkout flow/URL diagnostics, PayPal and shared Stripe/provider API failures, REST errors/webhook processing, email delivery failures, and repository database write failures.
+- Plugin version is 0.3.7. GitHub Actions syntax/contract workflow passed for latest source commit `a2e5dd36eb058366c53cb5b656feadb273065a4d`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38663539112. WordPress runtime/UI/database migration tests have not yet been run.
