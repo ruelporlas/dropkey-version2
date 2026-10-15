@@ -20,7 +20,7 @@ TEST ORDER AFTER INSTALLING THE UPDATED SOURCE
 5. Check the admin layout at desktop and mobile widths; inspect product/tier/billing/release/license/order/subscription tables and all form validation/notice states.
 6. Confirm the private package path is writable and outside both ABSPATH and the public document root; verify the web server cannot serve it directly before uploading packages.
 7. Configure Stripe test credentials and webhook signing secret. Register the required Stripe events from README. Never use live keys for this pass.
-8. Configure PayPal sandbox Client ID/Secret and webhook ID. For monthly/yearly options, create the subscription plan in PayPal sandbox and store its Plan ID in the matching billing option.
+8. Configure PayPal Sandbox Client ID/Secret and webhook ID. For monthly/yearly options, no manual plan creation is needed; DropKey provisions and stores the plan on the first PayPal checkout.
 9. Add [dropkey_store] to a test WordPress page. Confirm published products, tiers, billing options, activation limits, prices, email field, and available payment methods render correctly.
 10. Test free acquisition end to end: order record, license issuance, protected download token, queued customer email, and eventual email delivery.
 11. Test Stripe sandbox one-time checkout: approval/return, signed webhook, amount/currency validation, paid order, license, download, email, and duplicate webhook idempotency.
