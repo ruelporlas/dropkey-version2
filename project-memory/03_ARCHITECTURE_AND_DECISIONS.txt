@@ -174,3 +174,7 @@ Decision — Structured operational logging (2026-10-15)
 - Evidence: Source review of `includes/class-storefront.php` and `includes/class-commerce-service.php`; user-reported staging log at 2026-10-15 01:21:51: “Referer-derived checkout URLs failed parsing; canonical home URL used.”
 - Interpretation: This records observed implementation behavior, not an approved change to the checkout design. The exact malformed/empty input and the resulting customer redirect have not yet been reproduced in WordPress runtime. The warning alone does not establish whether payment capture, order fulfillment, or email delivery failed.
 - Status: observed; root cause and runtime impact unverified.
+
+
+2026-10-15 — Account-required checkout policy confirmed by user
+Guest checkout is prohibited. Customers must create an account before checkout or sign in to an existing account; checkout email must match the authenticated account. Fulfillment must never link an order/license to an existing WordPress account based only on email. This supersedes the earlier guest-checkout decision. Implementation and staging verification remain pending.
