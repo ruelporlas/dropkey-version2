@@ -240,3 +240,8 @@ IMMEDIATE NEXT ACTION — PR #1 REVIEW / HARDENING — 2026-10-15
 2. Reconcile README statements with actual code: PayPal recurring product/plan provisioning is automatic in `includes/class-paypal-gateway.php`; document the actual customer account creation/linking policy after it is hardened.
 3. Re-fetch PR #1 head and CI after the next changes. Feature branch had diverged from main (19 commits behind); ensure the PR no longer removes project-memory files and review any source changes from main that have not been incorporated.
 4. Keep PR #1 draft/unmerged and do not deploy. Before merge, complete staging tests for initial one-time and recurring checkout, renewal order/idempotency, renewal amount/currency validation, paid-through/license expiry, failed-payment grace/recovery, cancellation, browser return, and email queue/delivery.
+
+
+PR REVIEW CLARIFICATION — 2026-10-15
+- The feature-branch README now accurately describes automatic PayPal recurring product/plan provisioning. This documentation-only commit does not change main and did not require rerunning PHP CI.
+- Still fix the existing-account ownership check in checkout/fulfillment and then revise the customer-account README paragraph to describe the verified behavior. Do not merge until both code and docs agree.
