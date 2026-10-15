@@ -178,3 +178,10 @@ PAYPAL DIAGNOSTIC FOLLOW-UP — 2026-10-15
 - Plugin version bumped from 0.3.8 to 0.3.9 in `dropkey-v2.php`.
 - Source commits: gateway diagnostics `4dd6c6cf54fe0859e72616af06c0dadd53122922`; checkout URL diagnostics `e6c3c3e5d857385e4cb66e12761321fdb77290c5`; version bump `5a92775c8b06614de5c926f728a8f3c87c724508`.
 - CI and live WordPress/Sandbox verification are pending at the time of this entry. This change is diagnostic only; webhook verification/payment fulfillment has not been fixed or confirmed.
+
+
+CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
+- PASSED: PayPal header-layer diagnostics commit `4dd6c6cf54fe0859e72616af06c0dadd53122922`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665818464.
+- PASSED: checkout URL outcome logging commit `e6c3c3e5d857385e4cb66e12761321fdb77290c5`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665842694.
+- PASSED: plugin version 0.3.9 commit `5a92775c8b06614de5c926f728a8f3c87c724508`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665864865.
+- These are GitHub Actions PHP syntax/contract checks, not WordPress runtime or PayPal Sandbox verification. The live root cause is still unknown; install 0.3.9 on the test site, run a fresh Sandbox checkout, then inspect only the safe diagnostic fields.
