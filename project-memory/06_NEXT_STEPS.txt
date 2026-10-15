@@ -287,3 +287,11 @@ IMMEDIATE NEXT ACTION — CHECKOUT RETURN URL DIAGNOSIS — 2026-10-15
 4. Reproduce with a non-paying checkout/session attempt if the environment permits, or add a focused network-free regression test only after the user approves implementation. Trace both storefront and REST checkout entry points.
 5. Acceptance criteria for a fix: success/cancel URLs are absolute HTTP(S) URLs on an explicitly allowed site origin; success returns to the correct checkout/order confirmation page; cancel returns to the expected checkout page; no Referer-derived fallback is needed for normal storefront submission; malformed/untrusted inputs fail safely; regression coverage proves the behavior.
 6. After the diagnosis is agreed, implement only the approved narrow fix, run PHP lint and contract tests on PHP 7.4/8.0/8.3 via CI, and schedule a WordPress staging/browser verification. Update this memory with actual results only.
+
+
+NEXT ACTION AFTER RETURN URL HARDENING — 2026-10-15
+1. Keep PR #1 draft/unmerged; feature branch head after URL hardening is `a3ed4e920648f53b973675b118ba55d564655a59`; CI run `38722562015` passed PHP 7.4/8.0/8.3.
+2. Before rollout, verify the actual installed plugin revision and effective WordPress Home URL / Site URL against repository source. The exact live cause of the reported fallback warning is still unknown.
+3. On WordPress staging, test authenticated initial checkout for both Stripe and PayPal without creating an unnecessary live payment; inspect that valid success/cancel URLs reach the intended checkout/confirmation route and the success URL retains the order reference.
+4. Confirm expected behavior for rejected malformed/external URLs and inspect only sanitized structured log fields. Do not log complete URLs or sensitive query values.
+5. Do not deploy or merge until the required staging checkout and existing recurring-payment/webhook scenarios are verified.
