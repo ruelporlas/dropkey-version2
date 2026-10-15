@@ -23,6 +23,7 @@ abstract class Abstract_Repository {
 		$normalized['created_at'] = $now;
 		$normalized['updated_at'] = $now;
 		if ( false === $wpdb->insert( $this->table, $normalized ) ) {
+			$this->log_database_failure( 'insert', $normalized );
 			return new \WP_Error( 'dk2_database_insert_failed', __( 'The record could not be saved. Check the supplied values and database configuration.', 'dropkey-v2' ) );
 		}
 		return (int) $wpdb->insert_id;
@@ -45,6 +46,7 @@ abstract class Abstract_Repository {
 		$normalized['updated_at'] = current_time( 'mysql', true );
 		$result = $wpdb->update( $this->table, $normalized, array( 'id' => $id ) );
 		if ( false === $result ) {
+			$this->log_database_failure( 'update', $normalized );
 			return new \WP_Error( 'dk2_database_update_failed', __( 'The record could not be updated. Check the supplied values and database configuration.', 'dropkey-v2' ) );
 		}
 		return true;
@@ -79,9 +81,29 @@ abstract class Abstract_Repository {
 			return $can_delete;
 		}
 		if ( false === $wpdb->delete( $this->table, array( 'id' => $id ), array( '%d' ) ) ) {
+			$this->log_database_failure( 'delete', array( 'id' => $id ) );
 			return new \WP_Error( 'dk2_database_delete_failed', __( 'The record could not be deleted.', 'dropkey-v2' ) );
 		}
 		return true;
+	}
+
+	/**
+	 * Log database failure details without logging submitted field values.
+	 *
+	 * @param string $operation Failed database operation.
+	 * @param array  $data      Data keys associated with the operation.
+	 */
+	protected function log_database_failure( $operation, array $data = array() ) {
+		global $wpdb;
+
+		$details = array(
+			'operation'      => sanitize_key( $operation ),
+			'table'          => $this->table,
+			'database_error' => isset( $wpdb->last_error ) ? (string) $wpdb->last_error : '',
+			'columns'        => array_map( 'sanitize_key', array_keys( $data ) ),
+		);
+
+		error_log( '[DropKey V2] Database operation failed: ' . wp_json_encode( $details ) );
 	}
 
 	abstract protected function normalize( array $data, $creating );
