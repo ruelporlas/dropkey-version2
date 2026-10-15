@@ -180,3 +180,7 @@ Decision — Structured operational logging (2026-10-15)
 Decision: Guest checkout is prohibited. A customer must create a WordPress customer account before a DropKey checkout, or sign in to an existing account. The order email must match the authenticated account email. Fulfillment must not link orders/licenses to existing users by email alone.
 Reason: The user explicitly confirmed that account creation is mandatory and guest checkout must not be allowed, superseding the prior MVP selection that permitted guest checkout with later account linking.
 Implementation on `feature/complete-customer-checkout`: registration gate in `includes/class-storefront.php`; account/email guards in `includes/class-commerce-service.php`; network-free contract tests. Verification and staging acceptance are still pending.
+
+
+2026-10-15 — Security design updates on feature branch
+Order confirmation and PayPal capture require a signed-in WordPress user matching customer_user_id. Confirmation no longer displays license keys or customer contact/billing fields. Orders without a verified owner fail closed. Webhook processing rejects a known provider event ID if the verified payload hash changes. These changes are pending on draft PR #1 and have not been verified in WordPress staging.
