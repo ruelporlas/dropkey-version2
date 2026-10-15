@@ -66,3 +66,23 @@
 .dk2-checkout .dk2-payment-option { display:flex!important; flex-direction:row!important; align-items:flex-start!important; }
 .dk2-checkout .dk2-payment-option input { width:auto!important; min-width:16px; }
 @media(max-width:480px) { .dk2-checkout .dk2-field-grid { grid-template-columns:minmax(0,1fr)!important; } .dk2-checkout .dk2-field-grid .dk2-field-full { grid-column:auto; } }
+
+/* Plan selector, confirmation details, and customer portal */
+.dk2-checkout-form select { width:100%; box-sizing:border-box; min-height:44px; padding:10px 12px; border:1px solid #cbd7d1; border-radius:8px; background:#fff; color:#20342c; font:inherit; }
+.dk2-checkout-form select:focus { outline:2px solid rgba(70,121,105,.2); border-color:#467969; }
+.dk2-order-confirmation { max-width:820px; margin:28px auto; padding:clamp(18px,4vw,32px); border:1px solid #dfe6e2; border-radius:16px; background:#fff; color:#24332f; box-shadow:0 8px 28px rgba(25,50,42,.05); }
+.dk2-order-confirmation h2,.dk2-order-confirmation h3,.dk2-account h2,.dk2-account h3 { color:#1c312b; }
+.dk2-order-details { display:grid; gap:0; margin:18px 0 24px; }
+.dk2-order-details>div { display:grid; grid-template-columns:minmax(130px,.7fr) minmax(0,1.3fr); gap:16px; padding:12px 0; border-bottom:1px solid #edf1ef; }
+.dk2-order-details dt { color:#60716b; font-size:13px; }
+.dk2-order-details dd { margin:0; overflow-wrap:anywhere; font-size:14px; font-weight:600; }
+.dk2-order-details code,.dk2-account-card code { overflow-wrap:anywhere; white-space:normal; }
+.dk2-account { max-width:980px; margin:28px auto; color:#24332f; }
+.dk2-account-card { margin:14px 0; padding:20px; border:1px solid #dfe6e2; border-radius:12px; background:#fff; }
+.dk2-account-card h4 { margin:0 0 12px; color:#1c312b; font-size:17px; }
+.dk2-account-card p { line-height:1.65; overflow-wrap:anywhere; }
+.dk2-account-table { overflow-x:auto; }
+.dk2-account-table table { width:100%; border-collapse:collapse; background:#fff; }
+.dk2-account-table th,.dk2-account-table td { padding:12px; text-align:left; border-bottom:1px solid #edf1ef; font-size:13px; }
+.dk2-account-table th { color:#354941; background:#f7faf8; }
+@media(max-width:520px) { .dk2-order-details>div { grid-template-columns:1fr; gap:5px; } .dk2-account-card { padding:16px; } }
