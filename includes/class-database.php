@@ -7,7 +7,7 @@ namespace DropKey\V2;
 defined( 'ABSPATH' ) || exit;
 final class Database {
 	const VERSION_OPTION = 'dk2_db_version';
-	const SCHEMA_VERSION = '9';
+	const SCHEMA_VERSION = '10';
 	public static function table( $table ) {
 		global $wpdb;
 		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue', 'payments', 'logs' );
@@ -130,6 +130,16 @@ final class Database {
 			request_id varchar(40) NOT NULL DEFAULT '', created_at datetime NOT NULL,
 			PRIMARY KEY  (id), KEY level (level), KEY source (source), KEY event (event), KEY created_at (created_at), KEY request_id (request_id)
 		) {$c};");
+		// Do not mark this migration complete unless the new checkout columns exist.
+		$required_order_columns=array('customer_first_name','customer_last_name','customer_phone','billing_address_1','billing_address_2','billing_city','billing_state','billing_postcode','billing_country');
+		$existing_order_columns=$wpdb->get_col('SHOW COLUMNS FROM '.esc_sql($o),0);
+		$missing_order_columns=array_values(array_diff($required_order_columns,(array)$existing_order_columns));
+		if (!empty($missing_order_columns)) {
+			$error='DropKey checkout schema migration incomplete; missing order columns: '.implode(',',$missing_order_columns);
+			error_log('[DropKey V2] '.$error.'; database error: '.substr((string)$wpdb->last_error,0,300));
+			Logger::error('database','checkout_schema_incomplete',$error,array('missing_columns'=>implode(',',$missing_order_columns),'db_error'=>substr((string)$wpdb->last_error,0,300)));
+			return;
+		}
 		update_option(self::VERSION_OPTION,self::SCHEMA_VERSION,false);
 		do_action('dk2_database_installed',self::SCHEMA_VERSION);
 	}
