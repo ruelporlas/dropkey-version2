@@ -19,6 +19,7 @@ final class REST_API {
 	private function payload($request) { $data=$request->get_json_params(); return is_array($data)?$data:$request->get_params(); }
 	private function error($error) {
 		$data=$error->get_error_data(); $status=is_array($data)&&isset($data['status'])?absint($data['status']):400;
+		Logger::warning('rest','request_failed','A DropKey REST request returned an error',array('error_code'=>$error->get_error_code(),'http_status'=>$status));
 		return new \WP_REST_Response(array('success'=>false,'code'=>$error->get_error_code(),'message'=>$error->get_error_message()),$status);
 	}
 	private function response($data,$status=200) { return new \WP_REST_Response(array_merge(array('success'=>true),$data),$status); }
@@ -76,8 +77,10 @@ final class REST_API {
 		if (is_wp_error($instance)) return $this->error($instance);
 		$event=$instance->verify_webhook($request);
 		if (is_wp_error($event)) return $this->error($event);
+		Logger::info('webhook','verified','Payment webhook signature verified',array('gateway'=>$gateway,'event_type'=>isset($event['event_type'])?$event['event_type']:'unknown'));
 		$result=(new Commerce_Service())->process_webhook($gateway,$event);
 		if (is_wp_error($result)) return $this->error($result);
+		Logger::info('webhook','processed','Payment webhook processed',array('gateway'=>$gateway,'event_type'=>isset($event['event_type'])?$event['event_type']:'unknown','duplicate'=>!empty($result['duplicate'])));
 		return $this->response($result,200);
 	}
 
