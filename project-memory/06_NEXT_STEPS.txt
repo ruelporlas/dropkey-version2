@@ -123,3 +123,11 @@ IMMEDIATE — checkout URL fallback v0.3.6 (2026-10-15)
 1. Confirm GitHub Actions status for source commit f931a0a20080b193c46de43c9c1915da5f7791bb and version commit 1cf3130d3544e82d345f77cbdb8b85c847de3313. Do not claim CI passed until confirmed.
 2. Update the installed plugin on https://driftbyte.sellersage.shop to 0.3.6 and retry the same PayPal Sandbox checkout.
 3. If checkout proceeds to PayPal but PayPal rejects return_url/cancel_url, inspect the new safe DropKey log and PayPal issue fields. If the plugin still emits the local invalid-URL message, capture the new safe “Checkout canonical URL invalid” diagnostic and inspect WordPress home/site URL configuration. Do not log or share full query strings or credentials.
+
+IMMEDIATE — Verify structured logging v0.3.7 (2026-10-15)
+1. Update the installed DropKey V2 plugin on `https://driftbyte.sellersage.shop` to 0.3.7. Back up the site/database first because schema version 8 creates the new `dk2_logs` table through the normal plugin upgrade check.
+2. Open WordPress Admin → DropKey → Debug Logs. Confirm the page renders and shows entries after admin activity or a checkout attempt.
+3. Reproduce the current PayPal checkout issue and inspect the new `checkout` and `paypal` log events. Share only relevant log rows/context; do not share credentials or secrets.
+4. Test level filtering, enable/disable, and clear-all in a safe/staging environment. Confirm the clear operation removes prior entries and may record its own event after clearing.
+5. If the log table is empty or page errors, inspect the hosting PHP error log for the generic `[DropKey V2] Diagnostic log write failed.` fallback and confirm the plugin upgrade ran.
+Acceptance criteria: schema migration succeeds, structured rows are inserted/displayed, privacy redaction works, and admin controls operate correctly. Automated CI passed; WordPress runtime is still unverified.
