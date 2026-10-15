@@ -143,3 +143,4 @@ $renewal_currency=$renewal_amount_check->invoke($commerce,$renewal_base,array('a
 check_case($renewal_currency instanceof WP_Error&&'dk2_renewal_currency_mismatch'===$renewal_currency->get_error_code(),'rejects a renewal with a different currency');
 
 echo "All webhook and PHP client contract tests passed.\n";
+require_once __DIR__.'/customer-checkout-contract.php';
