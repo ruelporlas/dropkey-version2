@@ -65,3 +65,11 @@ SOURCE MAP UPDATE — 2026-10-15
 - `includes/class-customer-account.php` — `[dropkey_account]` frontend portal for customer-owned licenses, activation deactivation, subscription status, purchases/downloads, and profile/password management.
 - `assets/css/account.css` — responsive, scoped customer-account styles.
 - `includes/class-database.php` now defines schema version 7; licenses gain `customer_user_id` and nullable `key_encrypted` columns.
+
+SOURCE MAP UPDATE — PAYPAL BILLING PROVISIONING — 2026-10-15
+- `includes/class-paypal-gateway.php` now provisions a PayPal catalog product and recurring billing plan automatically when a monthly/yearly billing option is first used for PayPal checkout, then saves the resulting plan ID on the billing option. This uses the configured Sandbox or Live API base and PayPal request IDs for retry idempotency.
+- `includes/class-billing-option-repository.php` clears a stored PayPal plan reference when billing type, price, or currency changes, so the next PayPal checkout can provision a plan matching the new terms.
+- `includes/class-admin.php` no longer asks administrators to enter a PayPal plan ID manually; it explains automatic provisioning and shows an existing linked ID read-only.
+- `assets/css/admin.css` styles text-like inputs even when their type attribute is omitted and applies the theme accent to checkboxes/radios.
+- `dropkey-v2.php` plugin/style version is 0.3.1 to refresh cached admin CSS.
+- These source changes are committed on `main`; PHP CI is pending at the time of this entry. WordPress/PayPal Sandbox runtime verification has not been performed.
