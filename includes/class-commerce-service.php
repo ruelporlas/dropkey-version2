@@ -112,8 +112,32 @@ final class Commerce_Service {
 		if (is_wp_error($queued)) { do_action('dk2_fulfillment_email_queue_error',(int)$order->id,$queued->get_error_code()); return $queued; }
 		return $queued;
 	}
+	private function ensure_customer_account($order) {
+		global $wpdb;
+		$email=sanitize_email($order->customer_email);
+		if (!is_email($email)) return new \\WP_Error('dk2_customer_email_invalid',__('A valid customer email is required to create the account.','dropkey-v2'));
+		$user=get_user_by('email',$email);
+		$created=false;
+		if (!$user) {
+			$base=sanitize_user(current(explode('@',$email)),true); if (''===$base) $base='customer';
+			$username=$base; $suffix=1; while (username_exists($username)) { $username=$base.$suffix; $suffix++; }
+			$user_id=wp_insert_user(array('user_login'=>$username,'user_pass'=>wp_generate_password(32,true,true),'user_email'=>$email,'first_name'=>sanitize_text_field($order->customer_first_name),'last_name'=>sanitize_text_field($order->customer_last_name),'display_name'=>trim($order->customer_first_name.' '.$order->customer_last_name)?:$username,'role'=>'subscriber'));
+			if (is_wp_error($user_id)) return $user_id;
+			$user=get_user_by('id',$user_id); $created=true;
+		} else $user_id=(int)$user->ID;
+		$orders=Database::table('orders');
+		$wpdb->update($orders,array('customer_user_id'=>(int)$user_id,'updated_at'=>current_time('mysql',true)),array('id'=>(int)$order->id));
+		$order->customer_user_id=(int)$user_id;
+		if ($created) {
+			if (function_exists('wp_new_user_notification')) wp_new_user_notification((int)$user_id,null,'user');
+			Logger::info('customer','account_created','Customer account created after order fulfillment began',array('order_id'=>(int)$order->id,'user_id'=>(int)$user_id));
+		}
+		return (int)$user_id;
+	}
 	public function complete_order($order,$event=array()) {
 		global $wpdb;
+		$account=$this->ensure_customer_account($order);
+		if (is_wp_error($account)) { Logger::error('customer','account_creation_failed','Could not link customer account to order',array('order_id'=>(int)$order->id,'error_code'=>$account->get_error_code())); return $account; }
 		$orders=Database::table('orders');
 		$wpdb->query('START TRANSACTION');
 		$locked=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d FOR UPDATE",$order->id));
