@@ -211,3 +211,11 @@ CHECKOUT UX UPDATE — 2026-10-15
 - Added payment-method selection for configured PayPal and Stripe, an order summary, responsive styles, and an order-confirmation state on the same dedicated checkout page after provider return.
 - Plugin version bumped to 0.4.0. Main source changes are in commits adc2732, 623f49a, 0093680, 7493ec2, bd87d84, 0ead2d6, and 448d695.
 - Important: CI status and WordPress runtime are not yet verified. Before deployment, inspect PHP syntax and contract CI, install on a backed-up staging site, verify schema v9 migration, test free checkout, Stripe test mode, PayPal Sandbox one-time and subscription flows, and confirm payment/confirmation/fulfillment end to end. Existing installed sites do not update automatically.
+
+
+CHECKOUT RETRY/LAYOUT HOTFIX — 2026-10-15
+- User reported “Too many checkout attempts” and broken-looking first/last/email field layout on the new checkout page.
+- Updated Commerce_Service throttling to use a versioned transient namespace and a 15-minute window, and moved counting later so basic email validation happens first. This resets old transient buckets for the hotfix deployment while retaining a 12-attempt IP/email limit per 15 minutes.
+- Added stronger scoped checkout CSS to isolate labels, inputs, field grids, and payment radio options from theme/page-builder styles.
+- Plugin version bumped to 0.4.1 to invalidate cached assets. Source commits: a6b38bc, 1a94606, 2a9f9c5.
+- CI and WordPress runtime verification remain outstanding; user must update installed plugin to 0.4.1 and hard-refresh/clear cache to see the fix.
