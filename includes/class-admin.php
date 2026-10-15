@@ -132,6 +132,7 @@ final class Admin {
 	}
 	public function licenses() {
 		if (!current_user_can('manage_options')) return;
+		global $wpdb;
 		$this->header(__('Licenses','dropkey-v2'),__('Issue test or manually granted licenses for published products and tiers. The full purchase, subscription, and customer-email lifecycle is not implemented yet.','dropkey-v2'));
 		if (isset($_GET['reveal_license'])) {
 			$reveal_id=absint($_GET['reveal_license']);
