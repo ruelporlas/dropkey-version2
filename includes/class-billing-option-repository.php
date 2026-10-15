@@ -70,7 +70,20 @@ final class Billing_Option_Repository extends Abstract_Repository {
 			}
 			$allowed['currency'] = $currency;
 		}
-		if ( isset( $data['paypal_plan_id'] ) ) {
+		$plan_configuration_changed = false;
+		if ( $current ) {
+			$new_billing_type = isset( $allowed['billing_type'] ) ? $allowed['billing_type'] : $current->billing_type;
+			$new_price        = isset( $allowed['price'] ) ? (float) $allowed['price'] : (float) $current->price;
+			$new_currency     = array_key_exists( 'currency', $allowed ) ? (string) $allowed['currency'] : (string) $current->currency;
+			$plan_configuration_changed = $new_billing_type !== $current->billing_type
+				|| abs( $new_price - (float) $current->price ) > 0.00001
+				|| strtoupper( $new_currency ) !== strtoupper( (string) $current->currency );
+		}
+		if ( $plan_configuration_changed ) {
+			// A plan's amount or interval cannot be changed by editing the local option.
+			// Clear its reference so PayPal provisions a matching plan at the next checkout.
+			$allowed['paypal_plan_id'] = '';
+		} elseif ( isset( $data['paypal_plan_id'] ) ) {
 			$allowed['paypal_plan_id'] = sanitize_text_field( $data['paypal_plan_id'] );
 		} elseif ( $creating ) {
 			$allowed['paypal_plan_id'] = '';
