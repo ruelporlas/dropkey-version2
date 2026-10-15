@@ -5,7 +5,7 @@ Last updated: 2026-10-14
 CURRENT STATUS
 - Milestones 1–4 source is committed to main: admin data management, private versioned ZIP releases, licensing/downloads, hosted checkout, Stripe/PayPal adapters, orders/subscriptions, webhook processing, encrypted email queue, and the public storefront shortcode.
 - Milestone 5 network-free contract tests cover Stripe webhook signatures, PayPal provider-verification handling, and the reusable PHP licensing client.
-- Plugin version: 0.3.0. Database schema version: 6.
+- Plugin version: 0.3.1. Database schema version: 7.
 - Latest CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38593681895 passed PHP syntax checks and contract tests on PHP 7.4, 8.0, and 8.3.
 - WordPress runtime, actual provider sandbox checkout/webhooks, real email delivery, and live admin/storefront visual review have NOT been run in this work session.
 
