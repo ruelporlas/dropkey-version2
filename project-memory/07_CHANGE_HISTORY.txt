@@ -102,3 +102,12 @@ Newest entries first.
 - Follow-up source readback caught and corrected malformed namespaced `WP_Error` references before further verification.
 - Commits: `eb3976d0915f2ccc26ae62f56d57eb554f95843f`, `874d9b8a359392014838c5600385c9c3551e14f8`, `846775707d8755dd8c31fe04b19b59c075d6b3f1`.
 - CI was queued at last check; live Sandbox test and root-cause confirmation remain outstanding.
+
+
+2026-10-15 — Sanitize PayPal return/cancel URLs
+- User confirmed the affected site is https://driftbyte.sellersage.shop and shared a PayPal HTTP 400 rejection identifying INVALID_PARAMETER_SYNTAX for both application_context return_url and cancel_url.
+- Inspected storefront and commerce service: checkout submitted the HTTP referer for both URLs; success URL gained dk2_order via add_query_arg, with no final URL sanitization before PayPal API request.
+- Updated includes/class-commerce-service.php to sanitize success and cancel URLs via wp_sanitize_redirect() and esc_url_raw() restricted to HTTP/HTTPS, and reject empty or invalid HTTP URLs before gateway call.
+- Commit: https://github.com/ruelporlas/dropkey-version2/commit/bc61fe72fa7a63ab7f9e35a2709c3f7fa976d484.
+- Bumped plugin header and DK2_VERSION from 0.3.3 to 0.3.4 in commit https://github.com/ruelporlas/dropkey-version2/commit/76e5568d91ec07f8b0bcd2f5ef1b60f4450e3411.
+- CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38661205529 was queued when recorded. This is a code-hardening hypothesis based on the rejected fields; actual malformed URL values have not been captured and live WordPress/PayPal Sandbox retest is still required.
