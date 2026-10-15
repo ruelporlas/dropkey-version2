@@ -73,7 +73,7 @@ IMMEDIATE DEBUGGING NEXT STEP — 2026-10-15
 6. Run the repository's PHP syntax/contract CI and record the actual result. Then update verification evidence and status with the reproduced cause and outcome.
 
 IMMEDIATE NEXT STEPS — PAYPAL PLAN AND ADMIN FORM FIX — 2026-10-15
-1. Check GitHub Actions run https://github.com/ruelporlas/dropkey-version2/actions/runs/38658721423 and record the final result; fix any syntax failure before installing.
+1. PHP syntax CI passed on PHP 7.4, 8.0, and 8.3 for source commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d`; continue with the TasteWP install and runtime checks below.
 2. Update the TasteWP site's installed plugin from `main` (plugin version 0.3.1); GitHub source changes do not update the installed copy automatically.
 3. Create and save a monthly or yearly billing option without entering any PayPal plan ID. Confirm the admin inputs now have consistent styling.
 4. Configure PayPal Sandbox credentials and perform a test checkout. Confirm DropKey creates a PayPal product and plan, stores the plan ID, and creates a subscription approval URL.
