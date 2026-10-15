@@ -145,3 +145,7 @@ Newest entries first.
 - Bumped plugin version from 0.3.7 to 0.3.8 in `dropkey-v2.php`.
 - Commits: `b10df25e173b6e1f8bdb30d1815113674871d255` (diagnostics), `0f8185e48f44e88853d18fa2d1b1e8769cac10c3` (version bump).
 - No CI result or live WordPress/Sandbox verification recorded yet.
+
+2026-10-15 — CI caught test-harness compatibility issue
+- The initial webhook diagnostics called `Logger::info()` unconditionally. Existing network-free contract tests invoke the gateway without loading the Logger class, so the test failed with `Class "DropKey\V2\Logger" not found` despite PHP syntax passing.
+- Added a `class_exists(__NAMESPACE__.'\\Logger')` guard in commit `d0420a3d096603fd36a0855c558c95a13da6b186`. CI result pending at time of entry.
