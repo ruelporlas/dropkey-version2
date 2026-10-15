@@ -131,3 +131,10 @@ Newest entries first.
 - Updated includes/class-commerce-service.php to remove the extra URL-character regex gate, validate parsed HTTP(S) scheme/host, and fall back to sanitized home_url('/') when referer-derived URLs fail. The code logs only a fallback event or limited canonical URL metadata, not full URLs/query values.
 - Source commit: f931a0a20080b193c46de43c9c1915da5f7791bb. Bumped plugin version to 0.3.6 in dropkey-v2.php, commit 1cf3130d3544e82d345f77cbdb8b85c847de3313.
 - Verification: combined status lookup returned no status entries at check time; CI is not confirmed. WordPress and PayPal Sandbox retest remain pending.
+
+2026-10-15 — Added structured debug logging, plugin version 0.3.7
+- User requested built-in logging for actions, activity, and errors to aid troubleshooting.
+- Added `includes/class-logger.php`; schema version 8 and the `dk2_logs` table; Debug Logs submenu and viewer; severity filtering, pagination, enable/disable, clear-all, and 30-day cleanup. Structured contexts are bounded and sensitive keys redacted.
+- Added logging for admin action starts/completions/failures, checkout attempts and URL fallback, PayPal OAuth/API failures, shared Stripe/payment-provider transport/API failures, REST errors and webhook activity, email delivery/queue failures, and repository write failures. Existing host PHP error logging remains as fallback/secondary diagnostics.
+- Plugin version 0.3.7. Latest source commit `a2e5dd36eb058366c53cb5b656feadb273065a4d`; CI passed: https://github.com/ruelporlas/dropkey-version2/actions/runs/38663539112.
+- Runtime behavior has not been verified on WordPress; next action is install 0.3.7 on a backed-up site and test migration, log viewer, controls, and a real checkout failure.
