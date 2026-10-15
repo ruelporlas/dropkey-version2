@@ -55,10 +55,25 @@ final class Commerce_Service {
 		$success_url=wp_validate_redirect($success_url,home_url('/')); $cancel_url=wp_validate_redirect($cancel_url,home_url('/'));
 		$success_url=esc_url_raw(wp_sanitize_redirect(add_query_arg('dk2_order',$public_id,$success_url)),array('http','https'));
 		$cancel_url=esc_url_raw(wp_sanitize_redirect($cancel_url),array('http','https'));
-		$success_parts=wp_parse_url($success_url); $cancel_parts=wp_parse_url($cancel_url);
-		$valid_success=is_array($success_parts)&&!empty($success_parts['host'])&&isset($success_parts['scheme'])&&in_array(strtolower($success_parts['scheme']),array('http','https'),true)&&false===preg_match('/[\x00-\x20<>"{}|\\\\^`]/',$success_url);
-		$valid_cancel=is_array($cancel_parts)&&!empty($cancel_parts['host'])&&isset($cancel_parts['scheme'])&&in_array(strtolower($cancel_parts['scheme']),array('http','https'),true)&&false===preg_match('/[\x00-\x20<>"{}|\\\\^`]/',$cancel_url);
-		if (!$valid_success||!$valid_cancel) return new \WP_Error('dk2_checkout_return_url_invalid',__('The checkout return URL is invalid. Please contact the site administrator.','dropkey-v2'),array('status'=>500));
+		$valid_url=function($url) {
+			$parts=wp_parse_url($url);
+			return is_array($parts)&&!empty($parts['host'])&&isset($parts['scheme'])&&in_array(strtolower($parts['scheme']),array('http','https'),true);
+		};
+		if (!$valid_url($success_url)||!$valid_url($cancel_url)) {
+			// If the HTTP referer is malformed or proxy-rewritten, use the canonical site URL.
+			$fallback_url=esc_url_raw(home_url('/'),array('http','https'));
+			$fallback_success=esc_url_raw(wp_sanitize_redirect(add_query_arg('dk2_order',$public_id,$fallback_url)),array('http','https'));
+			$fallback_cancel=esc_url_raw(wp_sanitize_redirect($fallback_url),array('http','https'));
+			if ($valid_url($fallback_success)&&$valid_url($fallback_cancel)) {
+				$success_url=$fallback_success;
+				$cancel_url=$fallback_cancel;
+				error_log('[DropKey V2] Checkout return URL fallback used; the referer URL failed URL parsing.');
+			} else {
+				$parts=wp_parse_url($fallback_url);
+				error_log('[DropKey V2] Checkout canonical URL invalid: '.wp_json_encode(array('scheme'=>is_array($parts)&&isset($parts['scheme'])?strtolower($parts['scheme']):'missing','host_present'=>is_array($parts)&&!empty($parts['host']),'url_length'=>strlen($fallback_url))));
+				return new \WP_Error('dk2_checkout_return_url_invalid',__('The checkout return URL is invalid. Please contact the site administrator.','dropkey-v2'),array('status'=>500));
+			}
+		}
 		$session=$instance->create_checkout($order,$billing,$product,$tier,$success_url,$cancel_url);
 		if (is_wp_error($session)) { $wpdb->update(Database::table('orders'),array('status'=>'failed','updated_at'=>current_time('mysql',true)),array('id'=>$order->id)); return $session; }
 		$wpdb->update(Database::table('orders'),array('gateway_order_id'=>$session['order_id'],'gateway_session_id'=>$session['session_id'],'updated_at'=>current_time('mysql',true)),array('id'=>$order->id));
