@@ -258,3 +258,8 @@ PR REVIEW / HARDENING UPDATE — 2026-10-15
 - Added contract coverage for matching amount, underpayment, zero amount, and currency mismatch. GitHub Actions run 38693385142 passed PHP lint and the network-free contract suite on PHP 7.4, 8.0, and 8.3.
 - REVIEW BLOCKER: guest checkout can currently auto-link an order/license to an existing WordPress account based only on the submitted email in ensure_customer_account(), even when checkout was not authenticated as that user. Fix account-ownership verification before merge. README also contradicts current automatic PayPal plan provisioning and account-linking behavior.
 - No staging deployment, merge, or new payment attempt was performed.
+
+
+PR DOCUMENTATION FOLLOW-UP — 2026-10-15
+- Corrected the stale PayPal recurring-plan instructions in the feature-branch README to match `includes/class-paypal-gateway.php` automatic product/plan provisioning. This README change is pending PR review/merge; main was not changed for application/docs.
+- The customer-account paragraph remains inconsistent with actual code and is intentionally left as a review blocker until the account-ownership behavior is resolved. Do not merge while email-only linking to an existing account remains possible.
