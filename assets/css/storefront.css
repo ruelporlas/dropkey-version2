@@ -22,3 +22,36 @@
 .dk2-store-error { background:#fff6f5; border-color:#f0c7c2; color:#8a3029; }
 .dk2-store-unavailable { color:#9b2924!important; font-size:12px!important; }
 @media(max-width:520px) { .dk2-store-card { padding:18px; } .dk2-store-card-top { flex-direction:column; } .dk2-store-price { text-align:left; } }
+
+
+/* Dedicated checkout */
+.dk2-store-order-button { display:flex; align-items:center; justify-content:center; gap:10px; box-sizing:border-box; width:100%; min-height:48px; padding:12px 18px; border:0; border-radius:10px; background:#315e56; color:#fff!important; font-size:15px; font-weight:700; text-decoration:none!important; cursor:pointer; }
+.dk2-store-order-button:hover { background:#244a43; }
+.dk2-store-order-button:disabled { opacity:.5; cursor:not-allowed; }
+.dk2-checkout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(260px,1fr); gap:28px; max-width:1080px; margin:32px auto; color:#24332f; }
+.dk2-checkout-main,.dk2-order-summary { box-sizing:border-box; padding:28px; border:1px solid #dfe6e2; border-radius:16px; background:#fff; box-shadow:0 8px 28px rgba(25,50,42,.05); }
+.dk2-checkout-main h2 { margin:0 0 8px; font-size:30px; color:#1c312b; }
+.dk2-checkout-main h3,.dk2-order-summary h3 { margin:28px 0 14px; font-size:18px; color:#1c312b; }
+.dk2-checkout-subtitle { color:#60716b; margin:0 0 20px; }
+.dk2-checkout-form { display:grid; gap:14px; }
+.dk2-checkout-form h3 { margin:12px 0 0; }
+.dk2-field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.dk2-field-grid label { display:grid; gap:6px; color:#354941; font-size:13px; font-weight:600; }
+.dk2-field-full { grid-column:1/-1; }
+.dk2-field-grid input { width:100%; min-width:0; box-sizing:border-box; min-height:44px; padding:10px 12px; border:1px solid #cbd7d1; border-radius:8px; background:#fff; color:#20342c; font:inherit; font-weight:400; }
+.dk2-field-grid input:focus { outline:2px solid rgba(70,121,105,.2); border-color:#467969; }
+.dk2-payment-options { display:grid; gap:10px; }
+.dk2-payment-option { display:flex; align-items:flex-start; gap:12px; padding:14px; border:1px solid #dfe6e2; border-radius:10px; cursor:pointer; }
+.dk2-payment-option input { margin-top:4px; accent-color:#315e56; }
+.dk2-payment-option span,.dk2-payment-option small { display:block; }
+.dk2-payment-option small { margin-top:4px; color:#60716b; line-height:1.5; }
+.dk2-checkout-secure { color:#60716b; font-size:12px; line-height:1.6; }
+.dk2-order-summary { align-self:start; position:sticky; top:24px; }
+.dk2-order-summary h3 { margin-top:0; }
+.dk2-order-summary p,.dk2-order-summary small { color:#60716b; font-size:13px; line-height:1.6; }
+.dk2-order-summary hr { border:0; border-top:1px solid #edf1ef; margin:20px 0; }
+.dk2-confirmation { max-width:760px; margin:32px auto; padding:32px; border:1px solid #dfe6e2; border-radius:16px; background:#fff; color:#354941; }
+.dk2-confirmation h2 { margin:8px 0 12px; color:#1c312b; }
+.dk2-confirmation p { line-height:1.7; }
+@media(max-width:760px) { .dk2-checkout { grid-template-columns:1fr; gap:16px; } .dk2-checkout-main,.dk2-order-summary { padding:20px; } .dk2-order-summary { position:static; } }
+@media(max-width:480px) { .dk2-field-grid { grid-template-columns:1fr; } .dk2-field-full { grid-column:auto; } }
