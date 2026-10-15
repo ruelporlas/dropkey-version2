@@ -19,8 +19,10 @@ DropKey V2 manages digital products, tiered licensing, private versioned ZIP rel
 4. Under **DropKey → Billing Options**, create and publish free, one-time, monthly, or yearly options.
 5. Under **DropKey → ZIP Releases**, upload and publish a versioned ZIP. Paid and free checkout is blocked unless the product has a published release.
 6. Under **DropKey → Payment Settings**, configure test/sandbox credentials and webhook identifiers. Do not enable live payments until the complete checkout and webhook path has been tested.
-7. Create a WordPress page and place the shortcode `[dropkey_store]` in its content.
-8. Create a customer account page and place `[dropkey_account]` in its content. Customers must sign in to view account-linked records. Guest purchases are not automatically claimed by email; secure account linking remains pending.
+7. Create a WordPress page and place the shortcode `[dropkey_store]` in its content. The store lists each published plugin once; customers choose a plan and billing cycle on checkout.
+8. Create a customer account page and place `[dropkey_account]` in its content. Customers must sign in to view their account-linked orders, subscriptions, and licenses.
+9. Configure reliable outgoing WordPress email delivery (preferably through a transactional SMTP provider). DropKey queues purchase confirmations and retries failed sends, but actual inbox delivery depends on the site's mail configuration and cron execution.
+10. Test the full purchase flow using sandbox payments: plan selection and total, new/existing account association, order confirmation details, purchase email, license activation, and recurring subscription webhooks.; secure account linking remains pending.
 
 The public storefront lists published product tiers and billing options. Customers enter their email and continue to the provider-hosted payment page. DropKey does not store payment-card data.
 
