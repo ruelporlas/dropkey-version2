@@ -22,13 +22,7 @@ body[class*="dk2-"] .wrap form p:last-child { margin-bottom: 0; }
 body[class*="dk2-"] .wrap .form-table { margin-top: 0; }
 body[class*="dk2-"] .wrap .form-table th { width: 210px; padding: 16px 18px 16px 0; color: #334155; font-weight: 600; }
 body[class*="dk2-"] .wrap .form-table td { padding: 12px 0; }
-body[class*="dk2-"] .wrap input[type="text"],
-body[class*="dk2-"] .wrap input[type="email"],
-body[class*="dk2-"] .wrap input[type="number"],
-body[class*="dk2-"] .wrap input[type="date"],
-body[class*="dk2-"] .wrap input[type="password"],
-body[class*="dk2-"] .wrap input[type="url"],
-body[class*="dk2-"] .wrap input[type="file"],
+body[class*="dk2-"] .wrap input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
 body[class*="dk2-"] .wrap select,
 body[class*="dk2-"] .wrap textarea {
   max-width: 100%; min-height: 38px; padding: 8px 11px; border: 1px solid #cbd5df; border-radius: 7px;
