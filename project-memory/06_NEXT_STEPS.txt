@@ -86,3 +86,9 @@ IMMEDIATE NEXT STEPS — STOREFRONT PAYPAL VISIBILITY — 2026-10-15
 3. Reload the storefront and check a published monthly/yearly paid option. PayPal should appear when PayPal is enabled and Client ID, Secret, and Webhook ID are saved.
 4. Test the Sandbox checkout. Verify that the first recurring checkout creates a PayPal product/plan and stores the plan ID.
 5. If PayPal remains missing after installing the latest source, confirm the PayPal settings have Enabled checked and Client ID, Secret, and Webhook ID populated; report which of those fields is blank without sharing secrets.
+
+FOLLOW-UP — INSTALL STOREFRONT FIX VERSION 0.3.2 — 2026-10-15
+1. Latest plugin source version is 0.3.2; use this version when replacing the installed TasteWP plugin.
+2. PHP syntax CI passed for the storefront logic commit; check the version-bump commit run here before deployment: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659918482.
+3. Reload the public storefront and test a published recurring billing option. If PayPal is still absent, confirm the PayPal gateway is enabled and Client ID, Secret, and Webhook ID are all saved; never share the Secret.
+4. Run a PayPal Sandbox subscription checkout and confirm the plan is created and saved automatically.
