@@ -273,3 +273,7 @@ IMMEDIATE NEXT ACTION — POST-REGISTRATION HARDENING CI GREEN — 2026-10-15
 3. Review webhook/renewal idempotency and customer portal ownership paths against current feature source; add focused contract coverage for any new fixes.
 4. Stage-test registration throttling, account login/return URL preservation, free and paid checkout, account/order/license ownership, provider webhook retries, and legacy-order handling. No WordPress runtime or staging test has yet been performed for this branch.
 5. Update project memory on `main` after further meaningful changes. Do not merge or deploy before required staging acceptance.
+
+
+2026-10-15 — Next security checks
+Keep PR #1 draft/unmerged. Add tests for webhook payload-hash conflicts and legacy orders without customer_user_id. Review license API throttling and download-token expiry/count behavior. Verify order ownership and payment retries on WordPress staging before merge or deployment. CI run 38704141899 passed PHP 7.4, 8.0 and 8.3.
