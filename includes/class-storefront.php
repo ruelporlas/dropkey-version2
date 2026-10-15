@@ -64,7 +64,11 @@ final class Storefront {
 		$html.='</dl>';
 		if ('paid'===$order->status&&$order->license_id) {
 			$license=$wpdb->get_row($wpdb->prepare('SELECT key_encrypted,status,expires_at FROM '.Database::table('licenses').' WHERE id=%d',(int)$order->license_id));
-			if ($license) { $license_key=(new License_Service())->reveal_key($license); $html.='<h3>'.esc_html__('License information','dropkey-v2').'</h3><dl class="dk2-order-details"><div><dt>'.esc_html__('License key','dropkey-v2').'</dt><dd><code>'.esc_html($license_key?:__('Check your email for your license key.','dropkey-v2')).'</code></dd></div><div><dt>'.esc_html__('License status','dropkey-v2').'</dt><dd>'.esc_html(ucfirst($license->status)).'</dd></div><div><dt>'.esc_html__('Expires','dropkey-v2').'</dt><dd>'.esc_html($license->expires_at?:__('No expiration date set','dropkey-v2')).'</dd></div></dl>'; }
+			if ($license) {
+				$license_key=(new License_Service())->reveal_key($license);
+				$expiry=$license->expires_at?mysql2date(get_option('date_format'),$license->expires_at):__('Never (lifetime license)','dropkey-v2');
+				$html.='<h3>'.esc_html__('License information','dropkey-v2').'</h3><dl class="dk2-order-details"><div><dt>'.esc_html__('License key','dropkey-v2').'</dt><dd><code>'.esc_html($license_key?:__('Check your email for your license key.','dropkey-v2')).'</code></dd></div><div><dt>'.esc_html__('License status','dropkey-v2').'</dt><dd>'.esc_html(ucfirst($license->status)).'</dd></div><div><dt>'.esc_html__('Expires','dropkey-v2').'</dt><dd>'.esc_html($expiry).'</dd></div></dl>';
+			}
 			$html.='<p>'.esc_html__('A receipt and account setup instructions will be sent to the email address above.','dropkey-v2').'</p>';
 		}
 		return $html.'</section>';
