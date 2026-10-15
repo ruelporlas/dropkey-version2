@@ -94,3 +94,11 @@ Newest entries first.
 - Change: removed the plan-ID visibility condition; PayPal is displayed when its gateway settings pass the storefront availability check.
 - Commit: https://github.com/ruelporlas/dropkey-version2/commit/4ae978906cc9bd2d7f81340a899bea2241806a4d.
 - Verification at entry: static source readback passed; PHP syntax CI queued; TasteWP and PayPal Sandbox runtime testing not yet performed.
+
+2026-10-15 — PayPal checkout generic rejection diagnostics
+- User reproduced checkout and received `PayPal rejected the request. Check gateway settings and provider logs.`
+- Inspected `includes/class-paypal-gateway.php`, `includes/class-plugin.php`, and `includes/class-commerce-service.php`. The gateway returned a generic message and fired `dk2_gateway_request_failed`, but no listener was found to persist the provider's reason.
+- Added safe `error_log()` diagnostics for PayPal OAuth/API transport failures and provider HTTP rejections. Logs contain status and limited provider error identifiers (`name`, `debug_id`, `issue`, `field`) only, not credentials or full request/response bodies.
+- Follow-up source readback caught and corrected malformed namespaced `WP_Error` references before further verification.
+- Commits: `eb3976d0915f2ccc26ae62f56d57eb554f95843f`, `874d9b8a359392014838c5600385c9c3551e14f8`, `846775707d8755dd8c31fe04b19b59c075d6b3f1`.
+- CI was queued at last check; live Sandbox test and root-cause confirmation remain outstanding.
