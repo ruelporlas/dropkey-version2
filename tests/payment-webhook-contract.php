@@ -105,9 +105,9 @@ $paypal_event=array('id'=>'WH-EVENT-001','event_type'=>'PAYMENT.CAPTURE.COMPLETE
 ));
 $paypal_raw=json_encode($paypal_event);
 $GLOBALS['dk2_test_paypal_headers']=array(
-	'paypal-auth-algo'=>array('SHA256withRSA'),'paypal-cert-url'=>array('https://api.paypal.com/certs/test'),
-	'paypal-transmission-id'=>array('transmission-test'),'paypal-transmission-sig'=>array('signature-test'),
-	'paypal-transmission-time'=>array(gmdate('Y-m-d\\TH:i:s\\Z'))
+	'paypal_auth_algo'=>array('SHA256withRSA'),'paypal_cert_url'=>array('https://api.paypal.com/certs/test'),
+	'paypal_transmission_id'=>array('transmission-test'),'paypal_transmission_sig'=>array('signature-test'),
+	'paypal_transmission_time'=>array(gmdate('Y-m-d\\TH:i:s\\Z'))
 );
 $GLOBALS['dk2_mock_api_response']=array('response'=>array('code'=>200),'body'=>json_encode(array('verification_status'=>'SUCCESS')));
 $paypal_gateway=new \DropKey\V2\PayPal_Gateway();
@@ -116,6 +116,14 @@ check_case(!($paypal_result instanceof WP_Error),'accepts PayPal webhook after p
 check_case(isset($GLOBALS['dk2_mock_api_request']['args']['body'])&&false!==strpos($GLOBALS['dk2_mock_api_request']['args']['body'],'WH-TEST'),'sends the configured PayPal webhook ID for verification');
 check_case(isset($paypal_result['gateway_payment_id'])&&'CAPTURE-001'===$paypal_result['gateway_payment_id'],'extracts PayPal capture reference for refund matching');
 check_case(isset($paypal_result['amount'])&&12.5===$paypal_result['amount']&&'USD'===$paypal_result['currency'],'normalizes PayPal amount and currency');
+$GLOBALS['dk2_test_paypal_headers']=array();
+$paypal_missing_headers=$paypal_gateway->verify_webhook(new DropKey_Test_Request($paypal_raw,''));
+check_case($paypal_missing_headers instanceof WP_Error&&'dk2_paypal_headers_missing'===$paypal_missing_headers->get_error_code(),'rejects PayPal webhook when required verification headers are absent');
+$GLOBALS['dk2_test_paypal_headers']=array(
+	'paypal_auth_algo'=>array('SHA256withRSA'),'paypal_cert_url'=>array('https://api.paypal.com/certs/test'),
+	'paypal_transmission_id'=>array('transmission-test'),'paypal_transmission_sig'=>array('signature-test'),
+	'paypal_transmission_time'=>array(gmdate('Y-m-d\\TH:i:s\\Z'))
+);
 $GLOBALS['dk2_mock_api_response']=array('response'=>array('code'=>200),'body'=>json_encode(array('verification_status'=>'FAILURE')));
 $paypal_bad=$paypal_gateway->verify_webhook(new DropKey_Test_Request($paypal_raw,''));
 check_case($paypal_bad instanceof WP_Error&&'dk2_paypal_signature_invalid'===$paypal_bad->get_error_code(),'rejects PayPal webhook when provider verification fails');
