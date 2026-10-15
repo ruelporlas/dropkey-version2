@@ -133,6 +133,15 @@ final class Commerce_Service {
 		$email_service->process_queue();
 		return $queued;
 	}
+	/** Authorize access to a customer order without trusting its public reference alone. */
+	public function authorize_customer_order($order) {
+		if (!is_user_logged_in()) return new \WP_Error('dk2_order_authentication_required',__('Sign in to access this order.','dropkey-v2'),array('status'=>401));
+		$user=wp_get_current_user();
+		$user_id=isset($user->ID)?absint($user->ID):0;
+		$order_user_id=is_object($order)&&isset($order->customer_user_id)?absint($order->customer_user_id):0;
+		if (!$user_id||!$order_user_id||$user_id!==$order_user_id) return new \WP_Error('dk2_order_forbidden',__('You do not have access to this order.','dropkey-v2'),array('status'=>403));
+		return true;
+	}
 	private function ensure_customer_account($order) {
 		global $wpdb;
 		$email=sanitize_email($order->customer_email);
@@ -417,6 +426,7 @@ final class Commerce_Service {
 	public function capture_paypal($public_id,$paypal_order_id) {
 		global $wpdb; $order=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('orders').' WHERE public_id=%s AND gateway=%s',$public_id,'paypal'));
 		if (!$order) return new \WP_Error('dk2_order_not_found',__('The checkout order was not found.','dropkey-v2'),array('status'=>404));
+		$authorization=$this->authorize_customer_order($order); if (is_wp_error($authorization)) return $authorization;
 		$billing_type=$wpdb->get_var($wpdb->prepare('SELECT billing_type FROM '.Database::table('billing_options').' WHERE id=%d',(int)$order->billing_option_id));
 		if (in_array($billing_type,array('monthly','yearly'),true)) return new \WP_Error('dk2_paypal_subscription_capture_not_supported',__('Recurring PayPal subscriptions are fulfilled only after a verified subscription payment webhook.','dropkey-v2'),array('status'=>409));
 		$gateway=Payment_Gateway::make('paypal'); if (is_wp_error($gateway)) return $gateway;
