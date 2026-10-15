@@ -137,4 +137,4 @@ PAYPAL RETURN/CANCEL URL SANITIZATION — 2026-10-15
 - User-reported runtime result after version 0.3.5: the same plugin-generated “The checkout return URL is invalid” message; PayPal is not yet reached on this path.
 - Source change commit: f931a0a20080b193c46de43c9c1915da5f7791bb. URL syntax check now requires parsed absolute HTTP(S) scheme and host only; when referer URL fails, code falls back to sanitized home_url('/'). Safe logs omit full URLs and query values.
 - Version 0.3.6 commit: 1cf3130d3544e82d345f77cbdb8b85c847de3313.
-- CI: combined commit status lookup returned no status entries at time of check; therefore CI result is UNKNOWN / not confirmed. WordPress runtime and PayPal Sandbox tests are NOT RUN after this change.
+- CI PASSED: source commit f931a0a20080b193c46de43c9c1915da5f7791bb, run https://github.com/ruelporlas/dropkey-version2/actions/runs/38662620511; version commit 1cf3130d3544e82d345f77cbdb8b85c847de3313, run https://github.com/ruelporlas/dropkey-version2/actions/runs/38662636601. PHP syntax checks passed. WordPress runtime and PayPal Sandbox tests are NOT RUN after this change.
