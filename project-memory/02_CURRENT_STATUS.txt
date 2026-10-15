@@ -271,3 +271,11 @@ CUSTOMER ACCOUNT CHECKOUT POLICY — 2026-10-15
 - `Commerce_Service::start_checkout()` rejects unauthenticated checkout and requires checkout email to match the authenticated WordPress account. Fulfillment no longer creates or links accounts by email alone; it requires an order's customer_user_id to resolve to a WordPress user whose email matches the order.
 - Added network-free checkout contract tests for unauthenticated checkout and account-email mismatch; the existing contract suite includes the new test file.
 - Latest CI attempt before final syntax corrections failed on a PHP parse error from over-escaped namespace separators; that source was corrected, but a post-correction CI run has not yet been observed. WordPress runtime and staging behavior are unverified. Existing pending guest orders without customer_user_id may require support resolution; do not attach them to an existing account by email alone.
+
+
+VERIFICATION UPDATE — 2026-10-15 (feature branch only)
+- Mandatory account-before-checkout enforcement is implemented in feature/complete-customer-checkout; it is not merged or deployed.
+- Latest test change commit: ebd3f4245296125c250616d63b1cbb5067410fa5.
+- Fresh GitHub Actions run 38700730891: PHP 8.0 and 8.3 jobs passed, including all PHP lint and webhook/client plus customer-checkout contract tests. PHP 7.4 job remained queued at last inspection; full matrix is therefore not yet confirmed.
+- An earlier run 38700642721 failed because the expanded test file had doubled namespace separators. Corrected in ebd3f424...; do not treat the failed run as the latest result.
+- Staging/runtime behavior remains unverified. PR #1 remains draft; no merge or deployment.
