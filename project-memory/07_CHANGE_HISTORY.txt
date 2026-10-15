@@ -1,3 +1,9 @@
+2026-10-15 — Added repository database-failure logging for tier-save diagnosis
+- What changed: `includes/abstract-repository.php` now logs failed repository inserts, updates, and deletes via PHP `error_log()`. The structured log contains operation, table, `$wpdb->last_error`, and column names, but not submitted field values or the full SQL query.
+- Why: The user's WordPress test site reports a generic tier-save error and no useful error is visible in the browser/Query Monitor. The real database failure must be captured before diagnosing the root cause.
+- Source commit: https://github.com/ruelporlas/dropkey-version2/commit/28b6501088dae8ab8d818c17e162a04393170e4f.
+- Verification: GitHub accepted the source update. PHP syntax/contract CI and runtime reproduction have not yet been checked at the time of this entry. The underlying tier-save cause remains unknown.
+
 2026-10-15 — Implemented initial customer-facing account portal
 - What changed: Added `[dropkey_account]` and responsive account styles for account-linked licenses, activation sites/deactivation, subscription status, purchase/download history, fresh protected download links, profile editing, and password changes. Added schema version 7 fields for license customer_user_id and AES-256-GCM encrypted key display copies while retaining SHA-256 validation hashes. Linked matching-email signed-in checkout orders to the WordPress user. Updated README setup notes.
 - Why: The user explicitly authorized customer-facing account pages for licenses and subscriptions.
