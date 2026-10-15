@@ -195,3 +195,6 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - User-reported staging event: attempted test purchase; log warning at 2026-10-15 01:21:51 reports `return_url_fallback_used` because referer-derived checkout URLs failed parsing and canonical home URL was used. Treat as reported runtime evidence, not an independently reproduced issue.
 - User-reported context also includes a generated license but no purchase email. Email delivery root cause is unconfirmed; inspect order/payment status, email queue status/retry/error logs, and outgoing WordPress SMTP/mail configuration without exposing secrets or customer data.
 - Staging end-to-end verification: NOT COMPLETE. No evidence yet in this handover that the current feature branch has been installed on staging or that the reported purchase has been fully reconciled against database records.
+
+
+2026-10-15 — Review only: protocol and all official memory files read; main source inspected. Plugin version 0.4.8, schema 11. No runtime tests performed.
