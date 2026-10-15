@@ -67,42 +67,61 @@ final class Commerce_Service {
 			if (is_wp_error($completed)) return $completed;
 			return array('order_id'=>$public_id,'status'=>'completed','checkout_url'=>add_query_arg('dk2_order',$public_id,$success_url));
 		}
-		$return_url_fallback_used=false;
-		$success_url=wp_validate_redirect($success_url,home_url('/')); $cancel_url=wp_validate_redirect($cancel_url,home_url('/'));
-		$success_url=esc_url_raw(wp_sanitize_redirect(add_query_arg('dk2_order',$public_id,$success_url)),array('http','https'));
-		$cancel_url=esc_url_raw(wp_sanitize_redirect($cancel_url),array('http','https'));
+		$return_urls=$this->validate_checkout_return_urls($success_url,$cancel_url,$public_id);
+		if (is_wp_error($return_urls)) return $return_urls;
+		$success_url=$return_urls['success_url'];
+		$cancel_url=$return_urls['cancel_url'];
+		$session=$instance->create_checkout($order,$billing,$product,$tier,$success_url,$cancel_url);
+		if (is_wp_error($session)) { Logger::error('checkout','gateway_checkout_failed','Payment gateway could not create a checkout session',array('order_id'=>(int)$order->id,'gateway'=>$gateway,'error_code'=>$session->get_error_code())); $wpdb->update(Database::table('orders'),array('status'=>'failed','updated_at'=>current_time('mysql',true)),array('id'=>$order->id)); return $session; }
+		$wpdb->update(Database::table('orders'),array('gateway_order_id'=>$session['order_id'],'gateway_session_id'=>$session['session_id'],'updated_at'=>current_time('mysql',true)),array('id'=>$order->id));
+		Logger::info('checkout','checkout_session_created','Hosted checkout session created',array('order_id'=>(int)$order->id,'gateway'=>$gateway,'billing_type'=>$billing->billing_type));
+		return array('order_id'=>$public_id,'status'=>'pending','checkout_url'=>$session['checkout_url']);
+	}
+	/**
+	 * Validate hosted-checkout return URLs and fall back safely without trusting the Referer.
+	 * Log only validation outcomes; never include complete URLs or query strings.
+	 */
+	private function validate_checkout_return_urls($success_url,$cancel_url,$public_id) {
 		$valid_url=function($url) {
 			$parts=wp_parse_url($url);
 			return is_array($parts)&&!empty($parts['host'])&&isset($parts['scheme'])&&in_array(strtolower($parts['scheme']),array('http','https'),true);
 		};
+		$validated_success=wp_validate_redirect($success_url,'');
+		$validated_cancel=wp_validate_redirect($cancel_url,'');
+		$success_rejected=''===(string)$validated_success||!$valid_url($validated_success);
+		$cancel_rejected=''===(string)$validated_cancel||!$valid_url($validated_cancel);
+		$success_url=esc_url_raw(wp_sanitize_redirect(add_query_arg('dk2_order',$public_id,$validated_success)),array('http','https'));
+		$cancel_url=esc_url_raw(wp_sanitize_redirect($validated_cancel),array('http','https'));
+		$return_url_fallback_used=false;
 		if (!$valid_url($success_url)||!$valid_url($cancel_url)) {
-			// If the HTTP referer is malformed or proxy-rewritten, use the canonical site URL.
-			$fallback_url=esc_url_raw(home_url('/'),array('http','https'));
+			$fallback_url=esc_url_raw(wp_sanitize_redirect(home_url('/')),array('http','https'));
 			$fallback_success=esc_url_raw(wp_sanitize_redirect(add_query_arg('dk2_order',$public_id,$fallback_url)),array('http','https'));
 			$fallback_cancel=esc_url_raw(wp_sanitize_redirect($fallback_url),array('http','https'));
 			if ($valid_url($fallback_success)&&$valid_url($fallback_cancel)) {
 				$success_url=$fallback_success;
 				$cancel_url=$fallback_cancel;
 				$return_url_fallback_used=true;
-				error_log('[DropKey V2] Checkout return URL fallback used; the referer URL failed URL parsing.');
-				Logger::warning('checkout','return_url_fallback_used','Referer-derived checkout URLs failed parsing; canonical home URL used');
+				error_log('[DropKey V2] Checkout return URL rejected; canonical site URL used.');
+				Logger::warning('checkout','return_url_fallback_used','A checkout return URL was rejected; canonical site URL used',array(
+					'success_url_rejected'=>$success_rejected,
+					'cancel_url_rejected'=>$cancel_rejected
+				));
 			} else {
 				$parts=wp_parse_url($fallback_url);
-				error_log('[DropKey V2] Checkout canonical URL invalid: '.wp_json_encode(array('scheme'=>is_array($parts)&&isset($parts['scheme'])?strtolower($parts['scheme']):'missing','host_present'=>is_array($parts)&&!empty($parts['host']),'url_length'=>strlen($fallback_url))));
-				Logger::error('checkout','canonical_url_invalid','The canonical site URL failed checkout URL validation',array('scheme'=>is_array($parts)&&isset($parts['scheme'])?strtolower($parts['scheme']):'missing','host_present'=>is_array($parts)&&!empty($parts['host']),'url_length'=>strlen($fallback_url)));
-				return new \WP_Error('dk2_checkout_return_url_invalid',__('The checkout return URL is invalid. Please contact the site administrator.','dropkey-v2'),array('status'=>500));
+				$diagnostic=array('scheme'=>is_array($parts)&&isset($parts['scheme'])?strtolower($parts['scheme']):'missing','host_present'=>is_array($parts)&&!empty($parts['host']),'url_length'=>strlen($fallback_url));
+				error_log('[DropKey V2] Checkout canonical URL invalid: '.wp_json_encode($diagnostic));
+				Logger::error('checkout','canonical_url_invalid','The canonical site URL failed checkout URL validation',$diagnostic);
+				return new \\WP_Error('dk2_checkout_return_url_invalid',__('The checkout return URL is invalid. Please contact the site administrator.','dropkey-v2'),array('status'=>500));
 			}
 		}
 		Logger::info('checkout','checkout_urls_validated','Final checkout return and cancel URLs validated',array(
 			'return_url_valid'=>$valid_url($success_url),
 			'cancel_url_valid'=>$valid_url($cancel_url),
-			'return_url_fallback_used'=>$return_url_fallback_used
+			'return_url_fallback_used'=>$return_url_fallback_used,
+			'success_url_rejected'=>$success_rejected,
+			'cancel_url_rejected'=>$cancel_rejected
 		));
-		$session=$instance->create_checkout($order,$billing,$product,$tier,$success_url,$cancel_url);
-		if (is_wp_error($session)) { Logger::error('checkout','gateway_checkout_failed','Payment gateway could not create a checkout session',array('order_id'=>(int)$order->id,'gateway'=>$gateway,'error_code'=>$session->get_error_code())); $wpdb->update(Database::table('orders'),array('status'=>'failed','updated_at'=>current_time('mysql',true)),array('id'=>$order->id)); return $session; }
-		$wpdb->update(Database::table('orders'),array('gateway_order_id'=>$session['order_id'],'gateway_session_id'=>$session['session_id'],'updated_at'=>current_time('mysql',true)),array('id'=>$order->id));
-		Logger::info('checkout','checkout_session_created','Hosted checkout session created',array('order_id'=>(int)$order->id,'gateway'=>$gateway,'billing_type'=>$billing->billing_type));
-		return array('order_id'=>$public_id,'status'=>'pending','checkout_url'=>$session['checkout_url']);
+		return array('success_url'=>$success_url,'cancel_url'=>$cancel_url,'fallback_used'=>$return_url_fallback_used);
 	}
 	private function queue_fulfillment_email($order,$license_id,$license_key) {
 		global $wpdb;
