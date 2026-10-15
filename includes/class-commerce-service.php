@@ -160,7 +160,12 @@ final class Commerce_Service {
 		$wpdb->query('START TRANSACTION');
 		$locked=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$orders} WHERE id=%d FOR UPDATE",$order->id));
 		if (!$locked) { $wpdb->query('ROLLBACK'); Logger::error('commerce','fulfillment_order_missing','The order disappeared before fulfillment',array('order_id'=>(int)$order->id)); return new \WP_Error('dk2_order_not_found',__('The checkout order was not found.','dropkey-v2'),array('status'=>404)); }
-		if ('paid'===$locked->status && $locked->license_id) { $wpdb->query('COMMIT'); return $locked; }
+		if ('paid'===$locked->status && $locked->license_id) {
+			$wpdb->query('COMMIT');
+			$existing_license=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.Database::table('licenses').' WHERE id=%d',(int)$locked->license_id));
+			if ($existing_license) { $existing_key=(new License_Service())->reveal_key($existing_license); if ($existing_key) { $mail_result=$this->queue_fulfillment_email($locked,(int)$existing_license->id,$existing_key); if (is_wp_error($mail_result)) Logger::error('commerce','fulfillment_email_retry_failed','Paid order email could not be queued or retried',array('order_id'=>(int)$locked->id,'error_code'=>$mail_result->get_error_code())); } }
+			return $locked;
+		}
 		$wpdb->update($orders,array('status'=>'processing','updated_at'=>current_time('mysql',true)),array('id'=>$locked->id));
 		$license=(new License_Service())->issue($locked->product_id,$locked->tier_id,$locked->customer_email,$locked->billing_option_id,'',(int)$locked->customer_user_id);
 		if (is_wp_error($license)) { $wpdb->query('ROLLBACK'); Logger::error('commerce','license_issuance_failed','Payment fulfillment could not issue a license',array('order_id'=>(int)$locked->id,'error_code'=>$license->get_error_code(),'db_error'=>substr((string)$wpdb->last_error,0,250))); return $license; }
