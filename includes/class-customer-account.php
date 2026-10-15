@@ -36,7 +36,7 @@ final class Customer_Account {
 	private function render_licenses($user_id,$licenses) {
 		global $wpdb; $a=Database::table('activations'); $service=new License_Service();
 		echo '<section class="dk2-account-section" id="dk2-licenses"><div class="dk2-account-section-heading"><h2>'.esc_html__('Your licenses','dropkey-v2').'</h2><span class="dk2-account-count">'.number_format_i18n(count($licenses)).'</span></div>';
-		if (!$licenses) echo '<p class="dk2-account-empty">'.esc_html__('No licenses are linked to this account yet. Guest purchases need to be securely linked before they appear here.','dropkey-v2').'</p>';
+		if (!$licenses) echo '<p class="dk2-account-empty">'.esc_html__('No licenses are linked to this account yet. If you completed a purchase and do not see your license, contact support using your order email.','dropkey-v2').'</p>';
 		foreach ($licenses as $license) {
 			$sites=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$a} WHERE license_id=%d ORDER BY activated_at DESC",$license->id)); $key=$service->reveal_key($license);
 			echo '<article class="dk2-account-card"><div class="dk2-account-card-head"><div><p class="dk2-account-product">'.esc_html($license->product_name).'</p><h3>'.esc_html($license->tier_name).'</h3></div><span class="dk2-account-status dk2-status-'.esc_attr(sanitize_html_class($license->status)).'">'.esc_html(ucfirst($license->status)).'</span></div>';
