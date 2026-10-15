@@ -252,3 +252,7 @@ FINAL RESULT — 2026-10-15
 - Result: PASSED on PHP 7.4, 8.0, and 8.3. Each job linted all PHP files and ran `tests/payment-webhook-contract.php`, which includes checkout and registration-rate-limit contract tests.
 - New contract coverage passed: five account-registration attempts for one email are allowed and the sixth is throttled; ten attempts from one IP are allowed and the eleventh is throttled. Existing webhook/client, renewal amount/currency, and authenticated-checkout cases also passed.
 - Limitation: this is network-free contract and syntax CI, not WordPress runtime, browser UX, race/concurrency, or staging verification. An intermediate commit (888aa62ba22c1e412485e0898703332cc1a89c9b) failed all PHP lint jobs due to doubled namespace separators in the new test; corrected in 359568626c15ccfe9347270a9595facf90042673 and the fresh run passed.
+
+
+2026-10-15 — Order access contract verification
+CI run 38704141899 passed on PHP 7.4, 8.0 and 8.3: https://github.com/ruelporlas/dropkey-version2/actions/runs/38704141899. Tests deny access without sign-in, deny a different account, allow the matching owner, and deny an order without an owner. The webhook payload-hash guard has no dedicated behavior test yet. No staging verification was performed.
