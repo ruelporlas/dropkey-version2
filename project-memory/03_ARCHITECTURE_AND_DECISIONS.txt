@@ -174,3 +174,9 @@ Decision — Structured operational logging (2026-10-15)
 - Evidence: Source review of `includes/class-storefront.php` and `includes/class-commerce-service.php`; user-reported staging log at 2026-10-15 01:21:51: “Referer-derived checkout URLs failed parsing; canonical home URL used.”
 - Interpretation: This records observed implementation behavior, not an approved change to the checkout design. The exact malformed/empty input and the resulting customer redirect have not yet been reproduced in WordPress runtime. The warning alone does not establish whether payment capture, order fulfillment, or email delivery failed.
 - Status: observed; root cause and runtime impact unverified.
+
+
+2026-10-15 — Customer account required for all checkout
+Decision: Guest checkout is prohibited. A customer must create a WordPress customer account before a DropKey checkout, or sign in to an existing account. The order email must match the authenticated account email. Fulfillment must not link orders/licenses to existing users by email alone.
+Reason: The user explicitly confirmed that account creation is mandatory and guest checkout must not be allowed, superseding the prior MVP selection that permitted guest checkout with later account linking.
+Implementation on `feature/complete-customer-checkout`: registration gate in `includes/class-storefront.php`; account/email guards in `includes/class-commerce-service.php`; network-free contract tests. Verification and staging acceptance are still pending.
