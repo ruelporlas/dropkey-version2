@@ -111,3 +111,4 @@ FOLLOW-UP — URL VALIDATION PHP SYNTAX CORRECTION — 2026-10-15
 1. Check CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119 for commit `4bbc12465abb95396669987a61e06412ff966731`; the preceding run failed due to an extra backslash before `WP_Error`, now corrected.
 2. Only after CI passes, install/update DropKey V2 0.3.4 on https://driftbyte.sellersage.shop and retry PayPal Sandbox checkout.
 3. If PayPal still rejects return/cancel URLs, capture safe URL diagnostics (scheme, host, path, validation result; do not log sensitive query values) before another code change.
+- Follow-up PHP syntax CI now PASSES for commit `4bbc12465abb95396669987a61e06412ff966731` on PHP 7.4, 8.0, and 8.3: https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119. Next action is installing 0.3.4 on driftbyte.sellersage.shop and testing Sandbox checkout.
