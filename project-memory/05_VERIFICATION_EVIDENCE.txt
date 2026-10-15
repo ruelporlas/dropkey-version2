@@ -198,3 +198,10 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 
 
 2026-10-15 — Review only: protocol and all official memory files read; main source inspected. Plugin version 0.4.8, schema 11. No runtime tests performed.
+
+
+2026-10-15 — User-provided staging order admin screen (manual evidence)
+- Screen: staging WordPress admin, Order #19, reference prefix `2579324d`, product `Test product / Basic`, USD 9.99, PayPal.
+- Visible values: order status `paid`; payment record #4 status `paid` for USD 9.99; subscription #4 active and paid through 2026-11-14 10:00:00; license #4 linked to the order.
+- What this supports: the staging admin UI records the order and payment as paid, and displays an active linked subscription and an associated license.
+- Limits: this was a user-provided screenshot/text, not an independent DB/API inspection. It does not prove outbound email was sent/delivered, the license is usable, or the browser return URL is correct. No new payment attempt, code change, or runtime test was performed.
