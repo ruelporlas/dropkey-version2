@@ -137,10 +137,10 @@ final class Commerce_Service {
 		global $wpdb;
 		$email=sanitize_email($order->customer_email);
 		$user_id=isset($order->customer_user_id)?absint($order->customer_user_id):0;
-		if (!is_email($email)) return new \\WP_Error('dk2_customer_email_invalid',__('A valid customer email is required for fulfillment.','dropkey-v2'));
-		if (!$user_id) return new \\WP_Error('dk2_customer_account_required',__('This order has no verified customer account. Contact support to resolve this order securely.','dropkey-v2'));
+		if (!is_email($email)) return new \WP_Error('dk2_customer_email_invalid',__('A valid customer email is required for fulfillment.','dropkey-v2'));
+		if (!$user_id) return new \WP_Error('dk2_customer_account_required',__('This order has no verified customer account. Contact support to resolve this order securely.','dropkey-v2'));
 		$user=get_user_by('id',$user_id);
-		if (!$user||strtolower((string)$user->user_email)!==strtolower($email)) return new \\WP_Error('dk2_customer_account_mismatch',__('The order is not linked to a matching customer account. Contact support before retrying fulfillment.','dropkey-v2'));
+		if (!$user||strtolower((string)$user->user_email)!==strtolower($email)) return new \WP_Error('dk2_customer_account_mismatch',__('The order is not linked to a matching customer account. Contact support before retrying fulfillment.','dropkey-v2'));
 		$orders=Database::table('orders');
 		$wpdb->update($orders,array('customer_user_id'=>$user_id,'updated_at'=>current_time('mysql',true)),array('id'=>(int)$order->id));
 		if (!empty($order->license_id)) $wpdb->update(Database::table('licenses'),array('customer_user_id'=>$user_id,'updated_at'=>current_time('mysql',true)),array('id'=>(int)$order->license_id));
