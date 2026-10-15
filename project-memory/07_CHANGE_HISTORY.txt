@@ -138,3 +138,10 @@ Newest entries first.
 - Added logging for admin action starts/completions/failures, checkout attempts and URL fallback, PayPal OAuth/API failures, shared Stripe/payment-provider transport/API failures, REST errors and webhook activity, email delivery/queue failures, and repository write failures. Existing host PHP error logging remains as fallback/secondary diagnostics.
 - Plugin version 0.3.7. Latest source commit `a2e5dd36eb058366c53cb5b656feadb273065a4d`; CI passed: https://github.com/ruelporlas/dropkey-version2/actions/runs/38663539112.
 - Runtime behavior has not been verified on WordPress; next action is install 0.3.7 on a backed-up site and test migration, log viewer, controls, and a real checkout failure.
+
+2026-10-15 — PayPal webhook verification diagnostic instrumentation
+- Based on user-reported PayPal API rejection from `verify-webhook-signature` (HTTP 400, `INVALID_REQUEST`, debug ID `ca4aaf0b78a57`) and user confirmation that the configured webhook ID is correct, added diagnostics to identify missing inbound signature headers without exposing their values.
+- Updated `includes/class-paypal-gateway.php` to log boolean presence for `auth_algo`, `cert_url`, `transmission_id`, `transmission_sig`, and `transmission_time`, along with event type, event-ID presence, payload byte count, and configured-ID presence.
+- Bumped plugin version from 0.3.7 to 0.3.8 in `dropkey-v2.php`.
+- Commits: `b10df25e173b6e1f8bdb30d1815113674871d255` (diagnostics), `0f8185e48f44e88853d18fa2d1b1e8769cac10c3` (version bump).
+- No CI result or live WordPress/Sandbox verification recorded yet.
