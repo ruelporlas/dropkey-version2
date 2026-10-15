@@ -106,3 +106,8 @@ IMMEDIATE NEXT STEPS — PAYPAL URL SYNTAX — 2026-10-15
 2. Update the installed plugin on https://driftbyte.sellersage.shop to version 0.3.4; a GitHub commit does not update the installed WordPress plugin.
 3. Retry the same PayPal Sandbox checkout once.
 4. If it still fails, share the new `[DropKey V2] PayPal API request rejected:` line with status, name, debug_id, and issue/field entries. Do not share credentials or raw request bodies. If the same URL fields fail, add safe diagnostics of URL scheme/host/path and validation result without logging sensitive query values, then isolate the exact generated URLs on staging.
+
+FOLLOW-UP — URL VALIDATION PHP SYNTAX CORRECTION — 2026-10-15
+1. Check CI run https://github.com/ruelporlas/dropkey-version2/actions/runs/38661320119 for commit `4bbc12465abb95396669987a61e06412ff966731`; the preceding run failed due to an extra backslash before `WP_Error`, now corrected.
+2. Only after CI passes, install/update DropKey V2 0.3.4 on https://driftbyte.sellersage.shop and retry PayPal Sandbox checkout.
+3. If PayPal still rejects return/cancel URLs, capture safe URL diagnostics (scheme, host, path, validation result; do not log sensitive query values) before another code change.
