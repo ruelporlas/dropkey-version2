@@ -29,7 +29,7 @@ body[class*="dk2-"] .wrap textarea {
   background-color: #fff; color: #1e293b; box-shadow: none; transition: border-color .15s, box-shadow .15s;
 }
 body[class*="dk2-"] .wrap textarea { min-height: 90px; }
-body[class*="dk2-"] .wrap input:focus,
+body[class*="dk2-"] .wrap input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):focus,
 body[class*="dk2-"] .wrap select:focus,
 body[class*="dk2-"] .wrap textarea:focus {
   border-color: #477d73; box-shadow: 0 0 0 3px rgba(71, 125, 115, .13); outline: 0;
