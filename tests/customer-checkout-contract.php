@@ -57,8 +57,8 @@ namespace {
 	$GLOBALS['dk2_test_user']=(object)array('ID'=>0,'user_email'=>'owner@example.test');
 	$missing_id=$service->start_checkout(1,'owner@example.test','stripe','https://example.test/success','https://example.test/cancel');
 	check_checkout_case($missing_id instanceof \WP_Error&&'dk2_checkout_account_email_mismatch'===$missing_id->get_error_code(),'rejects an authenticated session without a valid customer user ID');
-	$storefront=new \\DropKey\\V2\\Storefront();
-	$registration_limiter=new \\ReflectionMethod('DropKey'.chr(92).'V2'.chr(92).'Storefront','rate_limit_registration');
+	$storefront=new \DropKey\V2\Storefront();
+	$registration_limiter=new \ReflectionMethod('DropKey'.chr(92).'V2'.chr(92).'Storefront','rate_limit_registration');
 	$registration_limiter->setAccessible(true);
 	$GLOBALS['dk2_test_transients']=array();
 	$_SERVER['REMOTE_ADDR']='192.0.2.10';
