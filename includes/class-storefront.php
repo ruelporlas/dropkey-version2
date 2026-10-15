@@ -55,7 +55,8 @@ final class Storefront {
 			$cadence='monthly'===$row->billing_type?__('per month','dropkey-v2'):('yearly'===$row->billing_type?__('per year','dropkey-v2'):('one_time'===$row->billing_type?__('one-time','dropkey-v2'):'')); 
 			echo '<article class="dk2-store-card"><div class="dk2-store-card-top"><div><p class="dk2-store-eyebrow">'.esc_html($row->product_name).'</p><h3>'.esc_html($row->tier_name).'</h3><p>'.esc_html(wp_strip_all_tags($row->tier_description?$row->tier_description:$row->product_description)).'</p></div><div class="dk2-store-price"><strong>'.esc_html($price).'</strong><span>'.esc_html($cadence).'</span></div></div>';
 			echo '<p class="dk2-store-limit">'.sprintf(esc_html__('%d active website%s included','dropkey-v2'),(int)$row->activation_limit,(1===(int)$row->activation_limit?'':'s')).'</p>';
-			echo '<form class="dk2-store-checkout" method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="dk2_public_checkout"><input type="hidden" name="billing_option_id" value="'.(int)$row->billing_option_id.'">';
+			$return_url=get_permalink(); if (!$return_url) $return_url=home_url('/');
+			echo '<form class="dk2-store-checkout" method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="dk2_public_checkout"><input type="hidden" name="billing_option_id" value="'.(int)$row->billing_option_id.'"><input type="hidden" name="return_url" value="'.esc_attr(esc_url_raw($return_url)).'">';
 			wp_nonce_field('dk2_public_checkout','dk2_checkout_nonce');
 			echo '<label>'.esc_html__('Email address','dropkey-v2').'<input required type="email" name="customer_email" autocomplete="email" value="'.esc_attr(is_user_logged_in()?wp_get_current_user()->user_email:'').'" placeholder="you@example.com"></label>';
 			if ('free'===$row->billing_type) echo '<input type="hidden" name="gateway" value="free">';
@@ -73,7 +74,9 @@ final class Storefront {
 	}
 	public function submit_checkout() {
 		if (empty($_POST['dk2_checkout_nonce'])||!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['dk2_checkout_nonce'])),'dk2_public_checkout')) wp_die(esc_html__('Your checkout form expired. Refresh the page and try again.','dropkey-v2'),'',array('response'=>403));
-		$return=wp_get_referer(); if (!$return) $return=home_url('/');
+		$submitted_return=isset($_POST['return_url'])?esc_url_raw(wp_unslash($_POST['return_url'])):'';
+		$return=wp_validate_redirect($submitted_return,home_url('/'));
+		if (!$return) $return=home_url('/');
 		$billing_id=absint($_POST['billing_option_id']??0); $email=sanitize_email(wp_unslash($_POST['customer_email']??'')); $gateway=sanitize_key($_POST['gateway']??'');
 		$result=(new Commerce_Service())->start_checkout($billing_id,$email,$gateway,$return,$return);
 		if (is_wp_error($result)) {
