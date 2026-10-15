@@ -101,3 +101,9 @@ STOREFRONT PAYPAL VISIBILITY FIX — 2026-10-15
 - Static readback verified that the old recurring-plan-ID condition was removed and the storefront now renders PayPal whenever `$settings['paypal']` is true.
 - GitHub Actions PHP syntax workflow: queued at the time of this entry: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659803790.
 - TasteWP storefront display and end-to-end PayPal Sandbox subscription checkout: NOT RUN.
+
+FOLLOW-UP — VERSION 0.3.2 AND CI — 2026-10-15
+- Plugin header and `DK2_VERSION` were bumped to 0.3.2 in commits `1b2e4917dbac012bb98283eed707df76724d3e09` and `9e20e29055e9aef2a54d38831fec43242340da35`.
+- PHP syntax CI for the actual storefront visibility logic commit `4ae978906cc9bd2d7f81340a899bea2241806a4d` passed: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659803790.
+- CI for the latest version-bump commit was queued at the time of this note: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659918482.
+- No live WordPress/TasteWP or PayPal Sandbox transaction has been executed by the assistant.
