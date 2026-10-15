@@ -175,3 +175,11 @@ Separate unresolved issue: checkout_urls_validated still reports return_url_fall
 CI FOLLOW-UP — 2026-10-15
 - First regression run 38666594617 failed in the missing-header contract assertion because the test harness does not load Logger; PHP syntax checks passed. Source was guarded in commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542.
 - CI run 38666693429 has PASSED on commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542 (PHP 7.4, 8.0, 8.3 lint plus network-free contract test). Immediate next action: deploy the latest plugin to the WordPress test site and verify a fresh PayPal Sandbox webhook, including signature verification and correct handling of BILLING.SUBSCRIPTION.CREATED.
+
+
+IMMEDIATE NEXT ACTION — RETURN URL FIX — 2026-10-15
+1. Confirm GitHub Actions passes for commit `3e4d1213da58b172ca9c3a9611ae5dcc2f1818da`.
+2. Back up the WordPress test site/database and deploy the latest plugin source to `https://driftbyte.sellersage.shop`.
+3. Start a fresh PayPal Sandbox checkout from the page containing `[dropkey_store]`; confirm `return_url_fallback_used=false` and the return path contains the order notice on the storefront page.
+4. Verify payment event handling end to end: the matching order is `paid`, a license exists, subscription row exists for recurring checkout, and fulfillment email is queued/sent. CREATED/ACTIVATED webhooks alone are not payment confirmation.
+5. If the warning remains, share the safe checkout log fields and relevant event names only; never share credentials, signatures, access tokens, webhook ID values, or raw payloads. Do not run another real-money payment until fulfillment is verified in Sandbox.
