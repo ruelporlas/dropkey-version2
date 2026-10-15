@@ -185,3 +185,11 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - PASSED: checkout URL outcome logging commit `e6c3c3e5d857385e4cb66e12761321fdb77290c5`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665842694.
 - PASSED: plugin version 0.3.9 commit `5a92775c8b06614de5c926f728a8f3c87c724508`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38665864865.
 - These are GitHub Actions PHP syntax/contract checks, not WordPress runtime or PayPal Sandbox verification. The live root cause is still unknown; install 0.3.9 on the test site, run a fresh Sandbox checkout, then inspect only the safe diagnostic fields.
+
+
+PAYPAL WEBHOOK DEBUGGING UPDATE — 2026-10-15
+- User-reported logs show PayPal subscription checkout session creation succeeds, but the verify-webhook-signature API rejects a verification request with HTTP 400 INVALID_REQUEST. Diagnostic flags showed required headers present in $_SERVER but absent from WP_REST_Request::get_headers().
+- Source change committed to main: PayPal header lookup now normalizes underscores/hyphens and falls back to the corresponding HTTP_* server key when the REST header collection omits it. The verifier now rejects genuinely missing required verification headers before calling PayPal.
+- Added contract-test fixture coverage for underscore-form header names and missing required headers.
+- GitHub Actions run 38666594617 was queued at last inspection; results pending. Live WordPress/PayPal Sandbox webhook behavior remains unverified.
+- The checkout return URL fallback warning remains a separate known issue; this task did not fix it.
