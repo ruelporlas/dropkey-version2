@@ -233,8 +233,17 @@ final class Admin {
 	public function handle() {
 		$this->guard(); global $wpdb; $action=isset($_POST['action'])?sanitize_key(wp_unslash($_POST['action'])):'';
 		$id=isset($_POST['id'])?absint($_POST['id']):0; $page='dk2-products';
-		if ('dk2_subscription_cancel'===$action) {
-			$page='dk2-orders'; $result=(new Commerce_Service())->request_cancel_subscription(absint($_POST['subscription_id']??0)); if (!is_wp_error($result)) $this->redirect($page,'saved');
+		Logger::info('admin','admin_action_started','Admin action started',array('action'=>$action,'record_id'=>$id));
+		if ('dk2_logs_settings'===$action) {
+			update_option('dk2_logging_enabled',isset($_POST['logging_enabled'])?'1':'0',false);
+			if (isset($_POST['logging_enabled'])) Logger::info('admin','logging_enabled','Structured logging enabled');
+			wp_safe_redirect(add_query_arg(array('page'=>'dk2-logs','dk2_notice'=>'saved'),admin_url('admin.php'))); exit;
+		} elseif ('dk2_logs_clear'===$action) {
+			$wpdb->query('DELETE FROM '.Database::table('logs'));
+			Logger::info('admin','logs_cleared','Administrator cleared the DropKey log history');
+			wp_safe_redirect(add_query_arg(array('page'=>'dk2-logs','dk2_notice'=>'logs_cleared'),admin_url('admin.php'))); exit;
+		} elseif ('dk2_subscription_cancel'===$action) {
+			$page='dk2-orders'; $result=(new Commerce_Service())->request_cancel_subscription(absint($_POST['subscription_id']??0)); if (!is_wp_error($result)) { Logger::info('admin','admin_action_completed','Admin action completed',array('action'=>$action,'record_id'=>$id)); $this->redirect($page,'saved'); }
 		} elseif ('dk2_gateway_settings'===$action) {
 			$page='dk2-settings'; $all=get_option('dk2_payment_settings',array()); $all=is_array($all)?$all:array();
 			$stripe=isset($all['stripe'])?$all['stripe']:array(); $paypal=isset($all['paypal'])?$all['paypal']:array();
@@ -244,7 +253,7 @@ final class Admin {
 			foreach(array('client_id','secret','webhook_id') as $key) if (''===$new_paypal[$key]&&!empty($paypal[$key])) $new_paypal[$key]=$paypal[$key];
 			if ('1'===$new_stripe['enabled']&&(''===$new_stripe['secret']||''===$new_stripe['webhook_secret'])) $result=new \WP_Error('dk2_stripe_settings_required',__('Stripe requires both a secret key and webhook signing secret before it can be enabled.','dropkey-v2'));
 			elseif ('1'===$new_paypal['enabled']&&(''===$new_paypal['client_id']||''===$new_paypal['secret']||''===$new_paypal['webhook_id'])) $result=new \WP_Error('dk2_paypal_settings_required',__('PayPal requires a client ID, client secret, and webhook ID before it can be enabled.','dropkey-v2'));
-			else { $all['stripe']=$new_stripe; $all['paypal']=$new_paypal; update_option('dk2_payment_settings',$all,false); $this->redirect($page,'saved'); }
+			else { $all['stripe']=$new_stripe; $all['paypal']=$new_paypal; update_option('dk2_payment_settings',$all,false); Logger::info('admin','gateway_settings_saved','Payment gateway settings saved',array('stripe_enabled'=>$new_stripe['enabled'],'paypal_enabled'=>$new_paypal['enabled'],'paypal_live_mode'=>$new_paypal['live_mode'])); $this->redirect($page,'saved'); }
 		} elseif ('dk2_email_resend'===$action) {
 			$page='dk2-orders'; $result=(new Email_Service())->resend(absint($_POST['email_id']??0)); if (!is_wp_error($result)) $this->redirect($page,'saved');
 		} elseif ('dk2_product'===$action) {
@@ -264,18 +273,19 @@ final class Admin {
 			else { $package=Private_Storage::save_upload($_FILES['package']??array()); if(is_wp_error($package)) $result=$package; else { $ok=$wpdb->insert(Database::table('releases'),array('product_id'=>$pid,'version'=>$version,'package_path'=>$package['path'],'package_sha256'=>$package['sha256'],'package_size'=>$package['size'],'release_notes'=>$notes,'status'=>$status,'created_at'=>current_time('mysql',true),'updated_at'=>current_time('mysql',true))); if(!$ok){@unlink($package['path']);$result=new \WP_Error('dk2_release_save_failed',__('Release metadata could not be saved.','dropkey-v2'));}else{do_action('dk2_release_created',(int)$wpdb->insert_id,$pid,$version);$result=(int)$wpdb->insert_id;} } }
 		} elseif ('dk2_license'===$action) {
 			$page='dk2-licenses'; $result=(new License_Service())->issue(absint($_POST['product_id']??0),absint($_POST['tier_id']??0),sanitize_email(wp_unslash($_POST['customer_email']??'')),absint($_POST['billing_option_id']??0),sanitize_text_field(wp_unslash($_POST['expires_at']??'')));
-			if (!is_wp_error($result)) $this->redirect($page,'key',array('license_key'=>$result['license_key']));
+			if (!is_wp_error($result)) { Logger::info('admin','license_issued','License issued by administrator',array('license_id'=>isset($result['id'])?(int)$result['id']:0)); $this->redirect($page,'key',array('license_key'=>$result['license_key'])); }
 		} elseif ('dk2_license_status'===$action) {
 			$page='dk2-licenses'; $result=(new License_Service())->set_status($id,sanitize_key($_POST['status']??''));
 		} elseif ('dk2_download_link'===$action) {
 			$page='dk2-licenses'; $result=(new Download_Service())->create_token(absint($_POST['license_id']??0),absint($_POST['release_id']??0));
-			if (!is_wp_error($result)) $this->redirect($page,'link',array('url'=>$result['url']));
+			if (!is_wp_error($result)) { Logger::info('admin','download_link_created','Protected download link created',array('license_id'=>absint($_POST['license_id']??0),'release_id'=>absint($_POST['release_id']??0))); $this->redirect($page,'link',array('url'=>$result['url'])); }
 		} elseif ('dk2_activation_status'===$action) {
 			$page='dk2-licenses'; $activation_id=absint($_POST['id']??0); $status=sanitize_key($_POST['status']??'');
 			if ('inactive'!==$status) $result=new \WP_Error('dk2_activation_status_invalid',__('Only deactivation is supported from this screen.','dropkey-v2'));
 			else { $result=$wpdb->update(Database::table('activations'),array('status'=>'inactive','deactivated_at'=>current_time('mysql',true)),array('id'=>$activation_id,'status'=>'active')); if(false!==$result) $result=true; else $result=new \WP_Error('dk2_activation_update_failed',__('The activation could not be deactivated.','dropkey-v2')); }
 		} else { wp_die(esc_html__('Unknown DropKey action.','dropkey-v2')); }
-		if (is_wp_error($result)) $this->redirect($page,'error',array('message'=>rawurlencode($result->get_error_message())));
+		if (is_wp_error($result)) { Logger::error('admin','admin_action_failed','Admin action failed',array('action'=>$action,'record_id'=>$id,'error_code'=>$result->get_error_code())); $this->redirect($page,'error',array('message'=>rawurlencode($result->get_error_message()))); }
+		Logger::info('admin','admin_action_completed','Admin action completed',array('action'=>$action,'record_id'=>$id));
 		$this->redirect($page,$id?'saved':'created');
 	}
 }
