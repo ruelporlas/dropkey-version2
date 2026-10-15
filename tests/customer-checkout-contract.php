@@ -63,7 +63,7 @@ namespace {
 		if (!$condition) { fwrite(STDERR,"FAIL: ".$message."\n"); exit(1); }
 		echo "PASS: ".$message."\n";
 	}
-	$service=new \\DropKey\\V2\\Commerce_Service();
+	$service=new \DropKey\V2\Commerce_Service();
 	$return_url_method=new \\ReflectionMethod('DropKey'.chr(92).'V2'.chr(92).'Commerce_Service','validate_checkout_return_urls');
 	$return_url_method->setAccessible(true);
 	$valid_returns=$return_url_method->invoke($service,'https://client.example/checkout?product_id=7','https://client.example/checkout?product_id=7','order-test-uuid');
