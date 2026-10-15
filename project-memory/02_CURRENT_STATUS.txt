@@ -116,3 +116,10 @@ FOLLOW-UP — STOREFRONT FIX VERSION BUMP — 2026-10-15
 - PHP syntax CI passed for storefront logic commit `4ae978906cc9bd2d7f81340a899bea2241806a4d`: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659803790.
 - The latest version-bump commit `9e20e29055e9aef2a54d38831fec43242340da35` had its CI run queued when this note was written: https://github.com/ruelporlas/dropkey-version2/actions/runs/38659918482.
 - TasteWP runtime testing remains pending.
+
+PAYPAL CHECKOUT ERROR DIAGNOSTICS — 2026-10-15
+- User reported: `PayPal rejected the request. Check gateway settings and provider logs.`
+- Source inspection found `includes/class-paypal-gateway.php` returned a generic error for PayPal API rejection and fired `dk2_gateway_request_failed`, but no listener was found registering a provider-log handler. The actual provider rejection reason was therefore not being made visible by DropKey's own logger.
+- Added PHP error-log diagnostics for OAuth transport/rejection and PayPal API transport/rejection. API rejection diagnostics include HTTP status, provider error name/debug ID, and safe issue/field identifiers when present. No secrets, authorization headers, or request bodies are logged.
+- Plugin version bumped from 0.3.2 to 0.3.3 to identify the diagnostic build. Commits: `eb3976d0915f2ccc26ae62f56d57eb554f95843f` (diagnostics), `874d9b8a359392014838c5600385c9c3551e14f8` (correct PHP namespaced error references), `846775707d8755dd8c31fe04b19b59c075d6b3f1` (version bump).
+- Status: source committed; GitHub PHP syntax CI is queued as of latest check. Not installed or tested on TasteWP, and the specific PayPal rejection cause remains unknown until the user updates to 0.3.3 and reproduces the error.
