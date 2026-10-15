@@ -243,3 +243,11 @@ User-provided staging Order #19 screen shows the PayPal order and payment marked
 - Found the current storefront uses a hidden posted `return_url` sourced from the checkout permalink, sanitizes/validates it in `submit_checkout()`, and passes it as both success and cancel URL. The commerce service has a second URL-validation stage and canonical-home fallback. REST checkout is a separate entry point with caller-supplied success/cancel URLs defaulting to home URL.
 - The fallback warning says “Referer-derived” despite the inspected storefront path using the posted hidden field. This is a diagnostic wording/source-path mismatch, not proof of the root cause. The installed staging plugin revision and exact runtime URL values remain unknown.
 - No source implementation, CI run, staging/browser test, or payment attempt was performed. Root cause remains unconfirmed. Next action: verify deployed plugin revision and safe URL/configuration diagnostics, then present a narrow fix proposal for user approval.
+
+
+2026-10-15 — Checkout return URL hardening (implementation approved by user)
+- Refactored return/cancel URL validation into a focused private helper in `includes/class-commerce-service.php`.
+- Uses WordPress redirect validation with an explicit invalid sentinel to distinguish rejected submitted destinations, appends the order reference only to the success URL, and falls back to a validated canonical home URL when either destination is rejected/invalid.
+- Replaced inaccurate “Referer-derived” fallback logging with a clear rejected-return-URL message and safe boolean diagnostics; no complete URL/query strings are logged.
+- Added network-free checkout return URL regression assertions to `tests/customer-checkout-contract.php` for same-site URLs, order-reference append, external-host rejection, and malformed input fallback.
+- GitHub Actions run `38722562015` passed PHP 7.4, 8.0, and 8.3 including the contract tests. No staging test, payment, merge, or deployment occurred; live root cause remains unconfirmed. PR #1 stays draft/unmerged.
