@@ -80,11 +80,9 @@ final class Storefront {
 		if (!empty($_GET['dk2_checkout_error'])) echo '<div class="dk2-store-notice dk2-store-error">'.esc_html(sanitize_text_field(wp_unslash($_GET['dk2_checkout_error']))).'</div>';
 		if (!$rows) echo '<div class="dk2-store-empty">'.esc_html__('No products are available for purchase yet.','dropkey-v2').'</div>';
 		foreach($rows as $row) {
-			$price='free'===$row->billing_type?__('Free','dropkey-v2'):strtoupper($row->currency).' '.number_format((float)$row->price,2);
-			$cadence='monthly'===$row->billing_type?__('per month','dropkey-v2'):('yearly'===$row->billing_type?__('per year','dropkey-v2'):('one_time'===$row->billing_type?__('one-time','dropkey-v2'):'')); 
-			echo '<article class="dk2-store-card"><div class="dk2-store-card-top"><div><p class="dk2-store-eyebrow">'.esc_html($row->product_name).'</p><h3>'.esc_html($row->tier_name).'</h3><p>'.esc_html(wp_strip_all_tags($row->tier_description?$row->tier_description:$row->product_description)).'</p></div><div class="dk2-store-price"><strong>'.esc_html($price).'</strong><span>'.esc_html($cadence).'</span></div></div>';
-			echo '<p class="dk2-store-limit">'.sprintf(esc_html__('%d active website%s included','dropkey-v2'),(int)$row->activation_limit,(1===(int)$row->activation_limit?'':'s')).'</p>';
-			echo '<a class="dk2-store-order-button" href="'.esc_url(add_query_arg('billing_option_id',(int)$row->billing_option_id,$this->checkout_url())).'">'.esc_html__('Order now','dropkey-v2').' <span aria-hidden="true">→</span></a></article>';
+			$desc=wp_strip_all_tags($row->product_description);
+			echo '<article class="dk2-store-card"><div class="dk2-store-card-top"><div><p class="dk2-store-eyebrow">'.esc_html__('Plugin','dropkey-v2').'</p><h3>'.esc_html($row->product_name).'</h3><p>'.esc_html($desc).'</p><p class="dk2-store-limit">'.sprintf(esc_html__('%d plan and billing option(s) available','dropkey-v2'),(int)$row->option_count).'</p></div></div>';
+			echo '<a class="dk2-store-order-button" href="'.esc_url(add_query_arg('product_id',(int)$row->product_id,$this->checkout_url())).'">'.esc_html__('Order now','dropkey-v2').' <span aria-hidden="true">→</span></a></article>';
 		}
 		echo '</div>';
 		return ob_get_clean();
