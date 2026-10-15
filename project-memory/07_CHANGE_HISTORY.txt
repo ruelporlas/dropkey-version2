@@ -174,3 +174,9 @@ CI RESULT — DIAGNOSTIC BUILD v0.3.9 — 2026-10-15
 - Commits: c253d2b7054ff7a3123812b41a6af2625c5e592c; 7e3da1d3049ec59b809c1960467f4b32ab1e8b64; 21420011f733a821b2fc15a739c3922f4ae5a874; ff57c180e2caf1331ab3a7241b308ffb65ec728d.
 - Verification: initial run 38666594617 failed because the standalone contract-test harness did not load Logger; the guarded warning path was added in commit fce2fa7ee2c3d08e2532dc4688d9c52a21970542. Follow-up GitHub Actions run 38666693429 PASSED PHP lint on PHP 7.4, 8.0, and 8.3 and the network-free contract test. Live WordPress/PayPal Sandbox behavior is not yet verified.
 - Remaining: checkout return URL fallback warning is still unresolved and separate.
+
+
+2026-10-15 — Made storefront return URL explicit
+- `includes/class-storefront.php` now includes the storefront permalink in a hidden `return_url` field on each checkout form. `submit_checkout()` reads that field, sanitizes it, and validates it with `wp_validate_redirect()` before using it as both success and cancel URL. This avoids relying on `wp_get_referer()` for a normal storefront form submission.
+- Commit: `3e4d1213da58b172ca9c3a9611ae5dcc2f1818da`.
+- Verification: CI and live WordPress/PayPal Sandbox retest pending at commit time.
