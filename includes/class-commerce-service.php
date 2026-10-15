@@ -111,7 +111,7 @@ final class Commerce_Service {
 				$diagnostic=array('scheme'=>is_array($parts)&&isset($parts['scheme'])?strtolower($parts['scheme']):'missing','host_present'=>is_array($parts)&&!empty($parts['host']),'url_length'=>strlen($fallback_url));
 				error_log('[DropKey V2] Checkout canonical URL invalid: '.wp_json_encode($diagnostic));
 				Logger::error('checkout','canonical_url_invalid','The canonical site URL failed checkout URL validation',$diagnostic);
-				return new \\WP_Error('dk2_checkout_return_url_invalid',__('The checkout return URL is invalid. Please contact the site administrator.','dropkey-v2'),array('status'=>500));
+				return new \WP_Error('dk2_checkout_return_url_invalid',__('The checkout return URL is invalid. Please contact the site administrator.','dropkey-v2'),array('status'=>500));
 			}
 		}
 		Logger::info('checkout','checkout_urls_validated','Final checkout return and cancel URLs validated',array(
