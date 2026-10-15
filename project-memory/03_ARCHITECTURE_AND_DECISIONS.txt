@@ -160,3 +160,10 @@ Context: Product, tier, and billing option setup should remain gateway-neutral; 
 Implementation: On the first PayPal checkout for a monthly/yearly billing option without a stored plan ID, create a PayPal catalog product and active fixed-price recurring plan using the selected Sandbox/Live credentials, then persist the returned plan ID. PayPal request IDs are derived for retry idempotency. Changes to billing type, price, or currency clear the local plan reference so a matching plan is created at the next checkout.
 Consequences: PayPal API credentials must be configured before paid PayPal checkout can provision a plan. Provider calls are deferred until checkout, so saving a billing option does not depend on PayPal availability. Existing subscriptions are not migrated when billing terms change.
 Status: source committed; PHP syntax CI passed on PHP 7.4, 8.0, and 8.3 for code commit `a26c21b81d53b0d6c457c8d98a3e4eba6c59360d` (https://github.com/ruelporlas/dropkey-version2/actions/runs/38658721423). WordPress/PayPal Sandbox runtime verification remains pending.
+
+
+Decision — Structured operational logging (2026-10-15)
+- Add a dedicated `dk2_logs` table rather than relying only on host PHP logs, so authorized administrators can inspect DropKey events inside WordPress Admin.
+- Logger class: `includes/class-logger.php`; schema version 8; log levels debug/info/warning/error/critical; per-request correlation ID; 30-day cleanup; logging enabled by default and configurable on the Debug Logs screen.
+- Context redaction and bounded field sizes are applied before persistence. The logger must never store provider credentials, auth headers, passwords, license keys, raw request/response bodies, customer email addresses, or complete checkout URLs. If the log table write fails, fallback is a generic PHP error_log message to avoid recursive logging or leaking context.
+- Admin log viewer requires manage_options, supports level filter/pagination and clear-all. This feature is source-implemented but WordPress runtime verification remains pending.
