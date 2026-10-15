@@ -7,10 +7,10 @@ namespace DropKey\V2;
 defined( 'ABSPATH' ) || exit;
 final class Database {
 	const VERSION_OPTION = 'dk2_db_version';
-	const SCHEMA_VERSION = '7';
+	const SCHEMA_VERSION = '8';
 	public static function table( $table ) {
 		global $wpdb;
-		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue', 'payments' );
+		$allowed = array( 'products', 'tiers', 'billing_options', 'releases', 'licenses', 'activations', 'download_tokens', 'orders', 'subscriptions', 'payment_events', 'email_queue', 'payments', 'logs' );
 		return in_array( $table, $allowed, true ) ? $wpdb->prefix . 'dk2_' . $table : '';
 	}
 	public static function install() {
@@ -116,6 +116,16 @@ final class Database {
 			created_at datetime NOT NULL, updated_at datetime NOT NULL,
 			PRIMARY KEY  (id), UNIQUE KEY gateway_payment (gateway,gateway_payment_id),
 			KEY order_id (order_id), KEY status (status)
+		) {$c};");
+
+		$logs=self::table('logs');
+		dbDelta("CREATE TABLE {$logs} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			level varchar(20) NOT NULL DEFAULT 'info', source varchar(50) NOT NULL DEFAULT '',
+			event varchar(100) NOT NULL DEFAULT '', message varchar(500) NOT NULL DEFAULT '',
+			context longtext NOT NULL, user_id bigint(20) unsigned DEFAULT NULL,
+			request_id varchar(40) NOT NULL DEFAULT '', created_at datetime NOT NULL,
+			PRIMARY KEY  (id), KEY level (level), KEY source (source), KEY event (event), KEY created_at (created_at), KEY request_id (request_id)
 		) {$c};");
 		update_option(self::VERSION_OPTION,self::SCHEMA_VERSION,false);
 		do_action('dk2_database_installed',self::SCHEMA_VERSION);
