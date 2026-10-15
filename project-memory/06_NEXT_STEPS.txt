@@ -131,3 +131,11 @@ IMMEDIATE — Verify structured logging v0.3.7 (2026-10-15)
 4. Test level filtering, enable/disable, and clear-all in a safe/staging environment. Confirm the clear operation removes prior entries and may record its own event after clearing.
 5. If the log table is empty or page errors, inspect the hosting PHP error log for the generic `[DropKey V2] Diagnostic log write failed.` fallback and confirm the plugin upgrade ran.
 Acceptance criteria: schema migration succeeds, structured rows are inserted/displayed, privacy redaction works, and admin controls operate correctly. Automated CI passed; WordPress runtime is still unverified.
+
+IMMEDIATE NEXT ACTION — VERIFY PAYPAL WEBHOOK DIAGNOSTICS v0.3.8 — 2026-10-15
+1. Check GitHub Actions for source commit `b10df25e173b6e1f8bdb30d1815113674871d255` and version commit `0f8185e48f44e88853d18fa2d1b1e8769cac10c3`; record actual CI status before calling source verified.
+2. Back up the WordPress site/database and update the installed plugin on `https://driftbyte.sellersage.shop` to version 0.3.8.
+3. Trigger one fresh PayPal Sandbox webhook using the actual provider flow.
+4. Inspect DropKey → Debug Logs for `paypal / webhook_verification_attempt`; share only the five header-presence booleans, event type, event-ID presence, payload byte count, and the corresponding `api_request_rejected` status/name/debug_id/issues. Do not share header values, tokens, webhook ID, or raw payload.
+5. If one or more required headers are absent, investigate the inbound request/proxy path before changing verification logic. If all are present, use the provider error details and verification request construction to narrow the cause.
+6. Do not claim live payment/license fulfillment works until end-to-end WordPress Sandbox checkout and webhook tests pass.
