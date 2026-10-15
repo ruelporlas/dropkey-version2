@@ -145,3 +145,9 @@ PAYPAL RETURN/CANCEL URL SANITIZATION — 2026-10-15
 - Automated workflow PASSED: https://github.com/ruelporlas/dropkey-version2/actions/runs/38663539112. Earlier incremental commits also passed their runs; latest commit includes the accumulated changes.
 - Static source readback confirmed the logger class, schema version 8, allowlisted logs table, version 0.3.7 bootstrap include, admin log screen and controls, and integration calls.
 - NOT RUN: WordPress activation/schema upgrade on the user's site; database writes; admin rendering/filter/pagination; enable/disable; clear logs; 30-day cleanup; live checkout and webhook diagnostics. Do not claim runtime verification until tested after installing 0.3.7.
+
+2026-10-15 — PayPal webhook diagnostic change
+- Implemented: safe header-presence and webhook metadata logging immediately before `/v1/notifications/verify-webhook-signature`.
+- Implemented: plugin version 0.3.8.
+- Automated syntax/contract CI for these latest commits: NOT YET CHECKED in this work session.
+- WordPress runtime / actual Sandbox webhook test: NOT RUN. Do not interpret code commit as a verified fix.
