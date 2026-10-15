@@ -149,3 +149,6 @@ Newest entries first.
 2026-10-15 — CI caught test-harness compatibility issue
 - The initial webhook diagnostics called `Logger::info()` unconditionally. Existing network-free contract tests invoke the gateway without loading the Logger class, so the test failed with `Class "DropKey\V2\Logger" not found` despite PHP syntax passing.
 - Added a `class_exists(__NAMESPACE__.'\\Logger')` guard in commit `d0420a3d096603fd36a0855c558c95a13da6b186`. CI result pending at time of entry.
+
+2026-10-15 — CI passed after diagnostic guard
+The follow-up commit d0420a3d096603fd36a0855c558c95a13da6b186 passed PHP syntax and contract checks in GitHub Actions run 38664933061. Static checks are green; the WordPress Sandbox webhook test remains outstanding.
